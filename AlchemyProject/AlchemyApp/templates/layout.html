@@ -1,0 +1,23 @@
+{% load static %}
+{% load static tailwind_tags %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{% block title %}Alchemy{% endblock %}</title>
+
+        {% tailwind_css %}
+        {% block script %}
+        {% endblock %}
+
+        <!-- for Font Awesome -->
+        <script src="https://kit.fontawesome.com/20f03e31c1.js" crossorigin="anonymous"></script>
+
+    </head>
+
+    <body>
+            {% block body %}
+            {% endblock %}
+    </body>
+</html>
