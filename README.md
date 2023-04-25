@@ -18,9 +18,9 @@
 ## Run the code and git push/pull
 
 4. Move into the AlchemyProject folder and run 'python manage.py runserver & python manage.py tailwind start'. The command has the tailwind addendum because we are using the tailwind css framework.
-5. The code should now be running on your browser! Create a new branch to work on using the command git checkout -b <new-branch-name>. Replace <new-branch-name> with a descriptive name for your branch.
+5. The code should now be running on your browser!Create a new branch to work on using the command "git checkout -b new-branch-name". Replace 'new-branch-name' with a descriptive name for your branch.
 6. Make the changes you want to make to the files in the repository.
-7. Stage your changes for commit using the command git add . or git add <file-name> to stage specific files.
-8. Commit your changes using the command git commit -m "Your commit message".
-9. Push your changes to the remote repository using the command git push origin <new-branch-name>. Replace <new-branch-name> with the name of the branch you created in step 6.
+7. Stage your changes for commit using the command "git add ." or "git add file-name" to stage specific files.
+8. Commit your changes using the command "git commit -m "Your commit message"".
+9. Push your changes to the remote repository using the command "git push origin new-branch-name". Replace 'new-branch-name' with the name of the branch you created in step 6.
 10. Finally, go to the GitHub repository in your browser and create a pull request to merge your changes into the main branch. Your changes should now be successfully merged into the main branch of the repository.
