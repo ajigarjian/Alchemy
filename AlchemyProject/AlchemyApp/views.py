@@ -13,12 +13,10 @@ def index(request):
 
 def overview(request):
 
-    information_types = InformationCategory.objects.all()
-    information_subtypes = InformationSubCategory.objects.all()
+    information_types = InformationCategory.objects.prefetch_related('informationsubcategory_set').all()
 
     return render(request, "overview.html", {
-        "information_types": information_types,
-        "information_subtypes": information_subtypes
+        "information_types": information_types
     })
 
 # Route to render the given family Q&A wizard. Pull the relevant questions

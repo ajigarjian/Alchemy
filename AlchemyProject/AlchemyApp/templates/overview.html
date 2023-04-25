@@ -93,28 +93,31 @@
             <h1 class="text-base sm:text-xl font-black tracking-wide text-blue-500 mb-8">Please review the following categories and subcategories, and select all data types that apply to your system.</h1>
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% csrf_token %}
             {% for information_type in information_types %}
-                <div class="flex justify-around items-center align-middle category bg-white rounded-lg shadow p-4 relative text-center hover:bg-blue-600 hover:text-white hover:cursor-pointer">
+                <div class="category bg-white rounded-lg shadow p-4 relative text-center hover:bg-blue-600 hover:text-white hover:cursor-pointer">
                     
-                    <text>icon</text>
+                    <div id="category_item_header" class="mb-4">
+                        <text class="text-gray-700 font-semibold">{{information_type.info_category}}</text>
+                    </div>
 
-                    <div>
-                        <div id="category_item_header" class="mb-4">
-                            <text class="text-sm">{{information_type.info_category}}</text>
-                        </div>
-                    
-                            <div class="subcategories">
-                                <label class="text-sm text-black block mb-2 opacity-70">
-                                <input type="checkbox" class="mr-2">
-                                Subcategory 1
-                                </label>
-                                <label class="text-sm text-black block mb-2 opacity-70">
-                                <input type="checkbox" class="mr-2">
-                                Subcategory 2
-                                </label>
-                                <!-- Add more subcategories as needed -->
+                    <div class="flex justify-around items-center">
+
+                        <text>icon</text>
+
+                        <div>
+                            <div class="subcategories text-left">
+
+                                {% for subcategory in information_type.informationsubcategory_set.all %}
+                                    <div id="subcategory titles">
+                                        <label class="text-sm text-black block mb-2 opacity-70 whitespace-nowrap overflow-x-auto"></label>
+                                    </div>
+                                    <input type="checkbox" class="mr-2 text-black text-sm opacity-70 whitespace-nowrap overflow-x-auto">
+                                    {{subcategory.info_subcategory}}
+                                {% endfor %}
+
+                            </div>
                         </div>
                     </div>
                 </div>
