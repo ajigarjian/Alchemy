@@ -11,6 +11,28 @@ from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFa
 def index(request):
     return render(request, "index.html")
 
+def login(request):
+    # if this is a POST, process the login data and redirect the logged in user to the overview page
+    if request.method == "POST":
+        # process the data in form.cleaned_data as required
+        email = request.POST["email"]
+        password = request.POST["password"]
+
+        #attempt to sign user in, return User object if so
+        user = authenticate(request, email=email, password=password)
+
+        if user:
+            auth_login(request, user)
+            return HttpResponseRedirect(reverse("alchemy:overview"))
+        else:
+            context = {
+                'error_message': 'Invalid email or password.',
+            }
+            return render(request, "login.html", context)
+
+    # if not a POST request, show the login page
+    return render(request, "login.html")
+
 def overview(request):
 
     information_types = InformationCategory.objects.prefetch_related('informationsubcategory_set').all()

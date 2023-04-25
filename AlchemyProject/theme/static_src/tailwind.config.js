@@ -44,10 +44,18 @@ module.exports = {
     ],
     theme: {
         extend: {
+            fontSize: {
+                '10xl': '10rem',
+                '11xl': '12rem',
+                '12xl': '15rem',
+                '13xl': '20rem',
+            },
+
             minWidth: {
                 '36': '9rem',
                 '128': '128px',
                 '256': '256px',
+                '384': '384px',
                 '512': '512px',
                 '768': '768px',
             },
