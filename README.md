@@ -1,3 +1,26 @@
 # Alchemy
 
-# Test
+## 1. Create and activate your Virtual Env
+
+1. First step is to create a virtual environment on your computer. Create a parent folder you'd like to house the project in.
+2. Upon clicking into the folder, follow the guidance here to create a virtual environment: https://docs.python.org/3/library/venv.html
+    - Essentially, run "python -m venv /path/to/new/virtual/environment" in the command line, where the path is the path on your computer into the root folder of your project
+3. Now you have a virtual environment named "venv" in your root folder. To activate the venv, navigate to the root folder with the venv folder via the command line, and run "source venv/bin/activate" on Mac or Unix, and "venv\Scripts\activate.bat" on Windows. Now you'll notice in your command line that you're in your virtual environment! Whenever you work on this project, make sure you are doing so with your venv activated.
+4. Note - you can exit your venv at any time in the command line by tuyping "deactivate"
+
+## 2. Download the existing project files
+
+1. Click the green "<> Code" button in the upper right portion of this repository. Copy the HTTPS link under "clone" - https://github.com/ajigarjian/Alchemy.git
+2. Run "git clone https://github.com/ajigarjian/Alchemy.git" in the root folder you'd like the project to be (make sure you're in your venv first!)
+3. Now, your root folder should have the venv, as well as the recently downloaded files from the Github repository. Run 'pip install -r requirements.txt' to automatically download all the dependenices you'll need for the project (requirements.txt should be at the highest directory of the repo you downloaded).
+
+
+## Run the code and git push/pull
+
+4. Move into the AlchemyProject folder and run 'python manage.py runserver & python manage.py tailwind start'. The command has the tailwind addendum because we are using the tailwind css framework.
+5. The code should now be running on your browser! Create a new branch to work on using the command git checkout -b <new-branch-name>. Replace <new-branch-name> with a descriptive name for your branch.
+6. Make the changes you want to make to the files in the repository.
+7. Stage your changes for commit using the command git add . or git add <file-name> to stage specific files.
+8. Commit your changes using the command git commit -m "Your commit message".
+9. Push your changes to the remote repository using the command git push origin <new-branch-name>. Replace <new-branch-name> with the name of the branch you created in step 6.
+10. Finally, go to the GitHub repository in your browser and create a pull request to merge your changes into the main branch. Your changes should now be successfully merged into the main branch of the repository.
