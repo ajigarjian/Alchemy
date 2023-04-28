@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<!-- background div -->
+<div class="w-screen h-screen md:flex items-center bg-blue-100">
+
+    <!-- Div container for registration section on right. -->
+    <div class="flex h-screen justify-center items-center overflow-auto flex-shrink-0 min-w-512 lg:w-1/2">
+        <div class="flex flex-col justify-between md:ml-16 w-4/5 h-fit p-8 bg-white rounded-xl shadow-md">
+            <!-- Text on top of registration section -->
+            <div class="space-y-3">
+                <p class="text-2xl text-gray-700 font-light">Register for</p>
+                <p class="w-fit text-4xl font-serif font-black tracking-wide text-blue-500 hover:text-blue-600 hover:cursor-pointer"><a href="{% url 'alchemy:index' %}">Alchemy</a></p>
+                <p class="text-sm text-gray-500 opacity-80">Please enter your email, phone number, and password to create a new account.</p>
+            </div>
+            
+            <!-- registration form -->
+            <div>
+                <form class="mt-10 grid grid-cols-1 gap-10" action="{% url  'alchemy:register' %}" method="post">
+                    {% csrf_token %}
+
+                    <!-- email section -->
+                    <label class="block">
+                        <span class="text-gray-700">Email</span>
+                        <input type="email" class="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200" name="email" placeholder="" required>
+                    </label>
+
+                    <!-- phone number section -->
+                    <label class="block">
+                        <span class="text-gray-700">Phone number</span>
+                        <input type="text" class="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200" name="phone_number" required>
+                    </label>
+
+                    <!-- client section -->
+                    <label class="block">
+                        <span class="text-gray-700">Client</span>
+                        <select class="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200" name="client" required>
+                            {% for client in clients %}
+                                <option value="{{ client.id }}">{{ client.client_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+
+                    <label class="block">
+                        <span class="text-gray-700">Password</span>
+                        <input type="password" class="mt-0 block w-full px-0.5 border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200" name="password" required>
+                    </label>
+
+                    <!-- Sign up section -->
+                    <label class="block">
+                        <div class="flex justify-center space-x-20">
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                                Sign Up
+                            </button>
+                            <a class="font-bold text-sm text-blue-500 hover:text-blue-600 my-auto" href="{% url 'alchemy:login' %}">
+                                Already have an account? Sign in
+                            </a>
+                        </div>
+                    </label>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section for burger (or any other image) on left side. Disappears on mobile or small window -->
+    <div class="hidden md:block md:w-1/2 md:h-full">
+        <div class="h-full w-full flex justify-center items-center">
+            <text class="font-serif text-12xl lg:text-13xl font-black tracking-wide text-blue-500 select-none">A</text>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+{% endblock %}

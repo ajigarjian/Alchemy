@@ -26,7 +26,7 @@
             
             <!-- login form -->
             <div>
-                <form class="mt-10 grid grid-cols-1 gap-10" action="{% url 'alchemy:access' %}" method="post">
+                <form class="mt-10 grid grid-cols-1 gap-10" action="{% url 'alchemy:login' %}" method="post">
                     {% csrf_token %}
 
                     {% if error_message %}
@@ -60,7 +60,7 @@
 
                     <!-- Register section -->
                     <label class="block">
-                        <span class="text-gray-400 hover:text-gray-600"> <a href="#">Don't have an account? Sign up</a></span>
+                        <span class="text-gray-400 hover:text-gray-600"> <a href="{% url 'alchemy:register' %}">Don't have an account? Sign up</a></span>
                     </label>
                 </form>
             </div>

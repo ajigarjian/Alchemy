@@ -5,13 +5,15 @@ from django.http import JsonResponse #for API calls
 from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
+from django.contrib import messages #for register error message(s)
+from django.shortcuts import redirect
 from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory #for interacting with database
 
 # Route to render the landing page
 def index(request):
     return render(request, "index.html")
 
-def login(request):
+def login_view(request):
     # if this is a POST, process the login data and redirect the logged in user to the overview page
     if request.method == "POST":
         # process the data in form.cleaned_data as required
@@ -22,18 +24,54 @@ def login(request):
         user = authenticate(request, email=email, password=password)
 
         if user:
-            auth_login(request, user)
+            login(request, user)
             return HttpResponseRedirect(reverse("alchemy:overview"))
         else:
             context = {
                 'error_message': 'Invalid email or password.',
             }
+
             return render(request, "login.html", context)
 
     # if not a POST request, show the login page
     return render(request, "login.html")
 
+def register_view(request):
+
+    if request.method == 'POST':
+        email = request.POST['email']
+        phone_number = request.POST['phone_number']
+        client = Client.objects.get(id=request.POST['client'])
+        password = request.POST['password']
+
+        if CustomUser.objects.filter(email=email).exists():
+            messages.error(request, "Email already exists.")
+            return redirect('alchemy:register')
+
+        user = CustomUser.objects.create(email=email, phone_number=phone_number, client=client)
+        user.set_password(password)
+        user.save()
+
+        # Log the user in.
+        login(request, user)
+        return redirect('alchemy:index')
+
+    return render(request, 'register.html', {
+        "clients": Client.objects.all()
+    })
+
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect(reverse("alchemy:index"))
+
+def contact(request):
+    return render(request, "contact.html")
+
 def overview(request):
+
+    # if the user isn't logged in, they can't access the home page - redirect them to the login page
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("alchemy:login"))
 
     information_types = InformationCategory.objects.prefetch_related('informationsubcategory_set').all()
 
