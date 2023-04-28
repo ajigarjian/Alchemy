@@ -96,6 +96,11 @@ DATABASES = {
     }
 }
 
+# Added this in to create run custom authentication backend before default one for users trying to log in
+AUTHENTICATION_BACKENDS = [
+    'AlchemyApp.backends.CustomUserAuthenticationBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
