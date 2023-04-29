@@ -40,8 +40,8 @@
 
             <div class="flex">
                 <div class="w-full">
-                    <label for="contact_notes" class="block mb-2 font-semibold text-sm text-blue-700 opacity-70 whitespace-nowrap overflow-x-auto">Additional Comments or Questions</label>
-                    <textarea rows="2" name="contact_notes" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200" placeholder="Write your comments here..."></textarea> 
+                    <label for="contact_notes" class="block mb-4 font-semibold text-sm text-blue-700 opacity-70 whitespace-nowrap overflow-x-auto">Additional Comments or Questions</label>
+                    <textarea rows="2" name="contact_notes" class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200" placeholder="Write your comments here..."></textarea> 
                 </div>
             </div>
 
@@ -59,7 +59,7 @@
         setTimeout(function() {
             const form = document.getElementById("contact_box");
             form.classList.remove("opacity-0", "translate-y-10");
-            form.classList.add("transition", "duration-1000", "ease-in-out", "opacity-100", "translate-y-0");
+            form.classList.add("transition", "duration-1000", "ease-in-out");
         }, 100);
     });
 </script>

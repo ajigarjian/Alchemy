@@ -2,11 +2,11 @@
 
 {% block body %}
 
-<div class="flex min-h-screen items-center justify-center">
+<div id="wizard_container" class="flex min-h-screen items-center justify-center">
         
     <!-- <button id="previous-button" class="fixed left-16 top-1/2 transform -translate-y-1/2 w-36 min-w-36 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-2 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed">←</button> -->
 
-    <div id="initial_box" class="overview_form w-5/6 min-w-100 md:w-192 bg-white p-10 rounded-lg shadow-lg opacity-100 transition-opacity duration-150">
+    <div id="initial_box" class="overview_form w-5/6 min-w-100 md:w-192 bg-white p-10 rounded-lg shadow-lg hidden opacity-0 transition-opacity duration-150">
         <div id="initial_headers" class="text-center">
             <h1 class="text-4xl font-black tracking-wide text-blue-600 mb-2">Intake Questionnaire</h1>
             <h1 class="text-xl font-black tracking-wide text-blue-500 mb-8 overflow-x-auto whitespace-nowrap">Let's first get down the basics.</h1>
@@ -82,7 +82,6 @@
                     <textarea rows="4" name="system_description" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200" placeholder="Write your answer here..."></textarea> 
                 </div>
             </div>
-            
         </div>
     </div>
 
@@ -96,28 +95,29 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% csrf_token %}
             {% for information_type in information_types %}
-                <div class="category bg-white rounded-lg shadow p-4 relative text-center hover:bg-blue-600 hover:text-white hover:cursor-pointer">
+                <div class="category bg-white rounded-lg shadow p-4 relative text-center">
                     
                     <div id="category_item_header" class="mb-4">
-                        <text class="text-gray-700 font-semibold">{{information_type.info_category}}</text>
+                        <span class="text-gray-700 font-semibold">{{information_type.info_category}}</span>
                     </div>
-
-                    <div class="flex justify-around items-center">
-
-                        <text>icon</text>
-
+    
+                    <div class="items-center">
                         <div>
-                            <div class="subcategories text-left">
+                            <p class="text-center text-sm text-gray-600 mb-2">Select all that apply:</p>
+                        </div>
 
-                                {% for subcategory in information_type.informationsubcategory_set.all %}
-                                    <div id="subcategory titles">
-                                        <label class="text-sm text-black block mb-2 opacity-70 whitespace-nowrap overflow-x-auto"></label>
-                                    </div>
-                                    <input type="checkbox" class="mr-2 text-black text-sm opacity-70 whitespace-nowrap overflow-x-auto">
-                                    {{subcategory.info_subcategory}}
-                                {% endfor %}
+                        <div class="subcategories flex flex-col grid grid-cols-1 gap-2">
+                            {% for subcategory in information_type.informationsubcategory_set.all %}
+                            <div class="flex justify-around">
+                                <div id="subcategory titles" title="{{subcategory.subcategory_description}}" class="text-black bg-gray-100 hover:bg-blue-600 hover:text-white hover:cursor-pointer transition-colors duration-200 p-2 rounded-lg w-4/5">
+                                    <span class="text-sm block opacity-70 whitespace-nowrap overflow-x-auto max-w-full truncate" for="{{ subcategory.id }}">{{subcategory.info_subcategory}}</span>
+                                </div>
 
+                                <button type="button" class="help-icon" aria-label="Help" title="Click for more information">
+                                    <i class="fas fa-question-circle text-blue-400 hover:text-blue-600 transition-colors"></i>
+                                </button>
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -128,7 +128,6 @@
             <i id="scrollIcon" class="fas fa-chevron-down"></i>
         </button>
 
-        
     </div>
 
     <!-- <button id="next-button"class="fixed right-16 top-1/2 transform -translate-y-1/2 w-36 min-w-36 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-2 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed">→</button> -->
@@ -159,36 +158,15 @@
 <!-- Javascript for interactive aspects of the onboarding wizard -->
 <script type="text/javascript">
 
+    document.addEventListener("DOMContentLoaded", function() {
+        changeVisibility(document.querySelector("#initial_box"), false);
+    });
+
     // General selections to 
     const overviewForms = document.querySelectorAll('.overview_form'); //Saving all the overview forms in a variable for later use
     const primaryFunctionModal = document.getElementById("primaryFunctionModal"); //Saving the modal in the primary function view in a variable for later use
     const categories = document.querySelectorAll('.category'); //Saving the categories in the info categorization view in a variable for later use
     let currentFormIndex = 0; //Initializing the counter before we move through views
-
-    // categories.forEach((category) => {
-    //     category.addEventListener("click", (event) => {
-    //         const subcategories = category.children[1];
-    //         subcategories.classList.toggle('hidden');
-    //         category.classList.toggle('bg-blue-600');
-    //         category.classList.toggle('text-white');
-    //     });
-    // });
-
-
-    // // Close dropdowns when clicking outside
-    // document.addEventListener("click", (event) => {
-    //     categories.forEach((category) => {
-    //         category.children[1].classList.add("hidden");
-    //     });
-    // });
-
-    // // Prevent dropdowns from closing when clicking on the checkboxes
-    // const checkboxes = document.querySelectorAll(".subcategories input[type='checkbox']");
-    //     checkboxes.forEach((checkbox) => {
-    //     checkbox.addEventListener("click", (event) => {
-    //         event.stopPropagation();
-    //     });
-    // });
 
     // Function for all views. Allows moving between views using left and right arrow keys. Checks if a modal is present - if one is, a user cannot toggle views until modal is inactive again.
     document.addEventListener("keydown", (event) => {

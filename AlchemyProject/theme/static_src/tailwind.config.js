@@ -42,6 +42,11 @@ module.exports = {
          */
         // '../../**/*.py'
     ],
+    variants: {
+        extend: {
+            textColor: ['group-hover'],
+        },
+    },
     theme: {
         extend: {
             fontSize: {
