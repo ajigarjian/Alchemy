@@ -17,5 +17,6 @@ urlpatterns = [
 
     #API Calls
     path("answer", views.answer, name="answer"),
-    path('get_answer/', views.get_answer, name='get_answer'),
+    path('get_answer', views.get_answer, name='get_answer'),
+    path("create_update_org", views.create_update_org, name="create_update_org")
  ]

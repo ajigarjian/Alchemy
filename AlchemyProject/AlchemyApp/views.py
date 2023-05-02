@@ -7,7 +7,8 @@ from django.contrib.auth import authenticate, login, logout #for login/logout/re
 from django.views.decorators.csrf import csrf_exempt #for API calls
 from django.contrib import messages #for register error message(s)
 from django.shortcuts import redirect
-from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory #for interacting with database
+from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System #for interacting with database
+from .forms import OrganizationForm
 
 # Route to render the landing page
 def index(request):
@@ -76,8 +77,33 @@ def overview(request):
     information_types = InformationCategory.objects.prefetch_related('informationsubcategory_set').all()
 
     return render(request, "overview.html", {
-        "information_types": information_types
+        "information_types": information_types,
+        "organization": request.user.client,
+        "org_form": OrganizationForm()
     })
+
+@csrf_exempt
+def create_update_org(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    else:
+        data = json.loads(request.body)
+        client_id = data.get('id', None)
+
+        if client_id:
+            client = get_object_or_404(Client, id=client_id)
+            form = OrganizationForm(data, instance=client)
+        else:
+            form = OrganizationForm(data)
+
+        if form.is_valid():
+            client = form.save()
+            response_data = {'success': True, 'client_id': client.id}
+        else:
+            response_data = {'success': False, 'errors': form.errors}
+
+        return JsonResponse(response_data)
 
 # Route to render the given family Q&A wizard. Pull the relevant questions
 def questions(request, control_family_name=None):
