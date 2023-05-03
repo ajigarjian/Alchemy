@@ -1,4 +1,5 @@
 import json #for api calls
+import random #for generating system color for client dashboard
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import JsonResponse #for API calls
@@ -9,10 +10,19 @@ from django.contrib import messages #for register error message(s)
 from django.shortcuts import redirect
 from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System #for interacting with database
 from .forms import OrganizationForm
+from django.contrib.auth.backends import ModelBackend
+from django.db import IntegrityError
+
+####################################### Public Application when not logged in ##############################################
 
 # Route to render the landing page
 def index(request):
-    return render(request, "index.html")
+
+    if not request.user.is_authenticated:
+        return render(request, "public/index.html")
+    
+    else:
+        return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
 
 def login_view(request):
     # if this is a POST, process the login data and redirect the logged in user to the overview page
@@ -26,16 +36,20 @@ def login_view(request):
 
         if user:
             login(request, user)
-            return HttpResponseRedirect(reverse("alchemy:overview"))
+            return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
         else:
             context = {
                 'error_message': 'Invalid email or password.',
             }
 
-            return render(request, "login.html", context)
+            return render(request, "public/login.html", context)
 
     # if not a POST request, show the login page
-    return render(request, "login.html")
+    if not request.user.is_authenticated:
+        return render(request, "public/login.html")
+    else:
+        return HttpResponseRedirect(reverse("alchemy:logout"))
+
 
 def register_view(request):
 
@@ -54,19 +68,67 @@ def register_view(request):
         user.save()
 
         # Log the user in.
+        backend = ModelBackend()
+        user.backend = f"{backend.__module__}.{backend.__class__.__name__}"
         login(request, user)
         return redirect('alchemy:index')
 
-    return render(request, 'register.html', {
-        "clients": Client.objects.all()
-    })
+    else:
+        if request.user.is_authenticated:
+            logout(request)
+        return render(request, 'public/register.html', {
+            "clients": Client.objects.all()
+        })
 
 def logout_view(request):
-    logout(request)
+
+    if request.user.is_authenticated:
+        logout(request)
     return HttpResponseRedirect(reverse("alchemy:index"))
 
 def contact(request):
-    return render(request, "contact.html")
+
+    if request.user.is_authenticated:
+         return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
+    return render(request, "public/contact.html")
+
+
+####################################### Internal Application once logged in ##############################################
+
+def dashboard(request, client):
+
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("alchemy:login"))
+    
+    systems = System.objects.filter(client__client_name=client)
+
+    if request.method == 'POST':
+
+        colors = ['3E4756', '97ACCF', 'FFE1E9', 'CAAAB2', '6E7788', '5A3F46', '8D6F77', 'A2ACBD', 'CF9EAA', '986A76', '564147', 'CF9EAC', 'F3E7D0', 'BBB099', 'BEA5AB', 'BBB19B', '867D67']
+
+        # process the data for new user. Make their username the first part of their email
+        system_name = request.POST["system_name"]
+        client_object = Client.objects.get(client_name=client)
+        color = random.choice(colors)
+
+        # Try to make a new system, if not possible, it's due to the system already existing
+        try:
+            system = System.objects.create(name=system_name, client=client_object, color=color)
+            system.save()
+
+        except IntegrityError:
+            return render(request, "dashboard.html", {
+                "message": "Email already being used."
+            })
+
+        return HttpResponseRedirect(reverse("alchemy:dashboard", args=[client]))
+    
+    else:
+        return render(request, "internal/dashboard.html", {
+            "client": client,
+            "systems": systems
+        })
+
 
 def overview(request):
 

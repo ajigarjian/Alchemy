@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "public/public.html" %}
 
 {% block body %}
 
@@ -6,7 +6,7 @@
 <div class="w-screen h-screen md:flex items-center bg-blue-100">
 
     <!-- Div container for registration section on right. -->
-    <div class="flex h-screen justify-center items-center overflow-auto flex-shrink-0 min-w-512 lg:w-1/2">
+    <div id="register_section" class="flex h-screen justify-center items-center overflow-auto flex-shrink-0 min-w-512 lg:w-1/2 opacity-0 translate-y-10">
         <div class="flex flex-col justify-between md:ml-16 w-4/5 h-fit p-8 bg-white rounded-xl shadow-md">
             <!-- Text on top of registration section -->
             <div class="space-y-3">
@@ -64,7 +64,7 @@
     </div>
 
     <!-- Section for burger (or any other image) on left side. Disappears on mobile or small window -->
-    <div class="hidden md:block md:w-1/2 md:h-full">
+    <div id="register_image" class="hidden md:block md:w-1/2 md:h-full opacity-0 translate-y-10">
         <div class="h-full w-full flex justify-center items-center">
             <text class="font-serif text-12xl lg:text-13xl font-black tracking-wide text-blue-500 select-none">A</text>
         </div>
@@ -72,6 +72,23 @@
 
 </div>
 
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(function() {
+            const register_section = document.querySelector("#register_section");
+            register_section.classList.remove("opacity-0", "translate-y-10");
+            register_section.classList.add("transition", "duration-1000", "ease-in-out");
+        }, 100);
+
+        setTimeout(function() {
+            const register_image = document.querySelector("#register_image");
+            register_image.classList.remove("opacity-0", "translate-y-10");
+            register_image.classList.add("transition", "duration-1000", "ease-in-out");
+        }, 200);
+    })
+
+</script>
 {% endblock %}
 
 {% block script %}

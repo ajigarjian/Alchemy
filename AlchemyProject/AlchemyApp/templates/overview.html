@@ -28,7 +28,7 @@
             
             <div>
                 <label for="{{org_form.client_name.id_for_label" class="block mb-1 font-semibold text-sm text-blue-700 opacity-70">Organization Name</label>
-                <input type="text" name="{{org_form.client_name.name}}" id="{{org_form.client_name.auto_id}}" value="{{org_form.client_name.value|default:''}}" placeholder="e.g., Acme Industries" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.client_name.errors %}border-red-500{% endif %}">
+                <input type="text" name="{{org_form.client_name.name}}" id="{{org_form.client_name.auto_id}}" value="{{organization|default:org_form.client_name.value|default:''}}" placeholder="e.g., Acme Industries" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.client_name.errors %}border-red-500{% endif %}">
                 {% if org_form.client_name.errors %}
                     <span class="text-red-500 text-xs mt-1">
                         {{ org_form.client_name.errors.0 }}
@@ -39,7 +39,7 @@
             <div>
                 <div>
                     <label for="{{org_form.address1.id_for_label}}" class="block mb-1 font-semibold text-sm text-blue-700 opacity-70">Organization Address</label>
-                    <input type="text" name="{{org_form.address1.name}}" id="{{org_form.address1.auto_id}}" value="{{ org_form.address1.value|default:'' }}" placeholder="Street Address" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.address1.errors %}border-red-500{% endif %}">
+                    <input type="text" name="{{org_form.address1.name}}" id="{{org_form.address1.auto_id}}" value="{{ organization.address1|default:org_form.address1.value|default:'' }}" placeholder="Street Address" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.address1.errors %}border-red-500{% endif %}">
                     {% if org_form.address1.errors %}
                         <span class="text-red-500 text-xs mt-1">
                             {{ org_form.address1.errors.0 }}
@@ -47,13 +47,13 @@
                     {% endif %}
                 </div>
                 <div class="flex mt-4">
-                    <input type="text" name="{{org_form.address2.name}}" id="{{org_form.address2.auto_id}}" value="{{ org_form.address2.value|default:'' }}" placeholder="Unit/Suite Number" class="mr-6 w-1/2 p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.address2.errors %}border-red-500{% endif %}">
+                    <input type="text" name="{{org_form.address2.name}}" id="{{org_form.address2.auto_id}}" value="{{ organization.address2|default:org_form.address2.value|default:'' }}" placeholder="Unit/Suite Number" class="mr-6 w-1/2 p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.address2.errors %}border-red-500{% endif %}">
                     {% if org_form.address2.errors %}
                         <span class="text-red-500 text-xs mt-1">
                             {{ org_form.address2.errors.0 }}
                         </span>
                     {% endif %}
-                    <input type="text" name="{{org_form.city.name}}" id="{{org_form.city.auto_id}}" value="{{ org_form.city.value|default:'' }}" placeholder="City" required class="w-1/2 p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.city.errors %}border-red-500{% endif %}">
+                    <input type="text" name="{{org_form.city.name}}" id="{{org_form.city.auto_id}}" value="{{ organization.city|default:org_form.city.value|default:'' }}" placeholder="City" required class="w-1/2 p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.city.errors %}border-red-500{% endif %}">
                     {% if org_form.city.errors %}
                         <span class="text-red-500 text-xs mt-1">
                             {{ org_form.city.errors.0 }}
@@ -65,7 +65,7 @@
                         <select name="{{org_form.state.name}}" id="{{org_form.state.auto_id}}" class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200{% if org_form.state.errors %}border-red-500{% endif %}">
                             <option value="">Select a state/territory</option>
                             {% for value, display_name in org_form.state.field.choices %}
-                                <option value="{{ value }}" {% if org_form.state.value == value %}selected{% endif %}>{{ display_name }}</option>
+                                <option value="{{ value }}" {% if organization.state|default:org_form.state.value == value %}selected{% endif %}>{{ display_name }}</option>
                             {% endfor %}
                         </select>
                         {% if org_form.state.errors %}
@@ -76,7 +76,7 @@
                     </div>
 
                     <div class="w-1/2">
-                        <input type="text" name="{{org_form.zip_code.name}}" id="{{org_form.zip_code.auto_id}}" value="{{org_form.zip_code.value|default:''}}" placeholder="Zip Code" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.zip_code.errors %}border-red-500 {% endif %}">
+                        <input type="text" name="{{org_form.zip_code.name}}" id="{{org_form.zip_code.auto_id}}" value="{{organization.zip_code|default:org_form.zip_code.value|default:''}}" placeholder="Zip Code" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200 {% if form.zip_code.errors %}border-red-500 {% endif %}">
                         {% if org_form.zip_code.errors %}
                             <span class="text-red-500 text-xs mt-1">
                                 {{ org_form.zip_code.errors.0 }}

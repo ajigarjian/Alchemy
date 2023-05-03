@@ -12,6 +12,7 @@ urlpatterns = [
    path("contact",views.contact, name="contact"),
 
    #Once logged in - app itself
+   path("dashboard/<str:client>", views.dashboard, name="dashboard"),
    path("overview", views.overview, name="overview"),
    path("questions/<str:control_family_name>", views.questions, name="questions"),
 
