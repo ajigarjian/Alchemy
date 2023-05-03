@@ -75,6 +75,7 @@ module.exports = {
             },
 
             height: {
+                '72': '18rem',
                 '144': '36rem',
                 '168': '42rem',
                 '192': '48rem'
@@ -88,7 +89,7 @@ module.exports = {
                 '512': '512px',
                 '768': '768px',
                 '900': '900px',
-            }
+            },
         },
     },
     plugins: [

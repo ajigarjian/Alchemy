@@ -14,7 +14,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
     phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True)
     client = models.ForeignKey('AlchemyApp.Client', on_delete=models.CASCADE)
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=True)
 
     groups = models.ManyToManyField(
         'auth.Group',
@@ -200,6 +200,7 @@ class System(models.Model):
     )
     owner_phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)  # Client to which the system belongs
+    color = color = models.CharField(max_length=20)
     information_subcategories = models.ManyToManyField(
         'AlchemyApp.InformationSubCategory',
         verbose_name=_('information subcategories'),
