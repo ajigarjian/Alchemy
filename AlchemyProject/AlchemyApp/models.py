@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinLengthValidator, MaxLengthValidator
+from .managers import CustomUserManager #import from managers.py file
 
 # Create your models here.
 
@@ -14,7 +15,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
     phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True)
     client = models.ForeignKey('AlchemyApp.Client', on_delete=models.CASCADE)
-    is_staff = models.BooleanField(default=True)
+    
+    is_staff = models.BooleanField(default=True) #to be able to log into django admin
+    is_superuser = models.BooleanField(default=False) #to be able to log into django admin AND have read/write access
 
     groups = models.ManyToManyField(
         'auth.Group',
@@ -39,6 +42,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["phone_number", "client"]
+
+    objects = CustomUserManager()
 
     def __str__(self):
         return f"{self.email} ({self.client.client_name})"

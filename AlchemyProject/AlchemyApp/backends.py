@@ -5,7 +5,7 @@ from .models import CustomUser
 class CustomUserAuthenticationBackend(BaseBackend):
     def authenticate(self, request, email=None, password=None, **kwargs):
         try:
-            user = CustomUser.objects.get(email=email)
+            user = CustomUser.objects.get_by_natural_key(email)
             if user.check_password(password):
                 return user
         except CustomUser.DoesNotExist:
