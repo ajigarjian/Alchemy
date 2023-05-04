@@ -105,6 +105,8 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'AlchemyApp.CustomUser'
 
+# Changing the default login url from /accounts/login to /login for @login_required.
+LOGIN_URL = '/login'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

@@ -215,6 +215,10 @@ class System(models.Model):
         related_query_name="system",
     )
 
+    #Making combination of client and name unique so that a given client cannot have two systems with the same name
+    class Meta:
+        unique_together = ('name', 'client') 
+
     def __str__(self):
         return f"{self.name} ({self.client.client_name})"
 
@@ -358,12 +362,9 @@ class Question(models.Model):
         return f"Q{self.id}: Related Controls: {related_controls}"
 
 class Answer(models.Model):
-    system = models.ForeignKey(System, on_delete=models.CASCADE, null=True)  # System answering
+    system = models.ForeignKey(System, on_delete=models.SET_NULL, null=True)  # System answering
     question = models.ForeignKey(Question, on_delete=models.CASCADE)  # Question answered
     answer_text = models.TextField()  # What the answer was
-
-    class Meta:
-        unique_together = ('system', 'question')
 
     def __str__(self):
         answer_preview = self.answer_text[:50] + "..." if len(self.answer_text) > 50 else self.answer_text
