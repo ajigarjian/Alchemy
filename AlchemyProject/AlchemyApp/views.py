@@ -1,17 +1,17 @@
 import json #for api calls
 import random #for generating system color for client dashboard
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import JsonResponse #for API calls
 from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
 from django.contrib import messages #for register error message(s)
-from django.shortcuts import redirect
 from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System #for interacting with database
 from .forms import OrganizationForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
+from django.contrib.auth.decorators import login_required #to redirect user to login route if they try to access an app page past login
 
 ####################################### Public Application when not logged in ##############################################
 
@@ -96,19 +96,17 @@ def contact(request):
 ####################################### Internal Application once logged in ##############################################
 
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
+@login_required
 def dashboard(request, client):
-
-    if not request.user.is_authenticated:
-        return HttpResponseRedirect(reverse("alchemy:login"))
     
     systems = System.objects.filter(client__client_name=client)
 
-    if request.method == 'POST':
+    if (request.method == 'POST') & (request.POST.get("system_name") != None):
 
         colors = ['3E4756', '97ACCF', 'FFE1E9', 'CAAAB2', '6E7788', '5A3F46', '8D6F77', 'A2ACBD', 'CF9EAA', '986A76', '564147', 'CF9EAC', 'F3E7D0', 'BBB099', 'BEA5AB', 'BBB19B', '867D67']
 
         # process the data for new system. Use the client of the logged in user, and choose a random color
-        system_name = request.POST["system_name"]
+        system_name = request.POST.get("system_name")
         client_object = Client.objects.get(client_name=client)
         color = random.choice(colors)
 
@@ -130,23 +128,20 @@ def dashboard(request, client):
             "systems": systems
         })
 
+@login_required
 def delete_system(request):
 
-    if not request.user.is_authenticated:
-        return HttpResponseRedirect(reverse("alchemy:login"))
-    
-    if request.method != 'POST':
-        return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
-    
-    else:
-        system = request.POST[""]
+    client = request.user.client
 
+    if request.method == 'POST':
+        system_name = request.POST['delete-system-button']
+        system = get_object_or_404(System, name=system_name, client=client)
+        system.delete()
 
+    return redirect('alchemy:dashboard', client=client)
+
+@login_required
 def overview(request):
-
-    # if the user isn't logged in, they can't access the home page - redirect them to the login page
-    if not request.user.is_authenticated:
-        return HttpResponseRedirect(reverse("alchemy:login"))
 
     information_types = InformationCategory.objects.prefetch_related('informationsubcategory_set').all()
 
@@ -157,6 +152,7 @@ def overview(request):
     })
 
 @csrf_exempt
+@login_required
 def create_update_org(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)

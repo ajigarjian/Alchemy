@@ -13,7 +13,7 @@ urlpatterns = [
 
    #Once logged in - app itself
    path("dashboard/<str:client>", views.dashboard, name="dashboard"),
-   path("delete_system", views.delete_system, name="delete_system"),
+   path('delete_system', views.delete_system, name='delete_system'),
    path("overview", views.overview, name="overview"),
    path("questions/<str:control_family_name>", views.questions, name="questions"),
 
