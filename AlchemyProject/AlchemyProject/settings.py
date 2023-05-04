@@ -98,9 +98,10 @@ DATABASES = {
 
 # Added this in to create run custom authentication backend before default one for users trying to log in
 AUTHENTICATION_BACKENDS = [
-    'AlchemyApp.backends.CustomUserAuthenticationBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Django's default authentication backend
+    'AlchemyApp.backends.CustomUserAuthenticationBackend',  # Our custom authentication backend
 ]
+
 
 AUTH_USER_MODEL = 'AlchemyApp.CustomUser'
 

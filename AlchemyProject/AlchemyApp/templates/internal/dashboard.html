@@ -10,48 +10,84 @@
     <div class="container mx-auto px-4 py-10">
         <div id="grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {% for system in systems %}
-            <div class="h-72 bg-white rounded-lg shadow-md hover:cursor-pointer transform hover:scale-105 transition duration-300 ease-in-out hover:shadow-lg opacity-0 translate-y-10 flex flex-col">
+            <div class="h-72 bg-white rounded-lg shadow-md hover:cursor-pointer transform hover:scale-105 transition duration-300 ease-in-out hover:shadow-lg opacity-0 translate-y-10 flex flex-col" data-system-name="{{ system.name }}">
+                
+                <!-- Top section with color -->
                 <div style="background-color: #{{system.color}};" class="rounded-t-lg top_section h-3/4">
 
+                    <!-- Settings icon -->
+                    <div id="system_settings_icon" class="absolute top-2 right-4">
+                        <i class="fa-solid fa-ellipsis fa-xl text-black hover:text-white transition duration-300"></i>
+                    </div>
+
                 </div>
+
+                <!-- Bottom section with system name -->
                 <div class="bottom_section h-1/4 flex justify-center items-center">
                     <span class="text-xl font-bold text-blue-500 hover:text-blue-700 duration-300">{{system.name}}</span>
                 </div>
             </div>
             {% endfor %}
-            <div class="open-modal h-72 bg-white p-6 rounded-lg shadow-md flex items-center justify-center hover:cursor-pointer hover:bg-gray-100 transform hover:scale-105 transition duration-300 ease-in-out hover:shadow-lg opacity-0 translate-y-10">
+            <div class="open-modal h-72 bg-white p-6 rounded-lg shadow-sm flex items-center justify-center hover:cursor-pointer hover:bg-gray-100 transform hover:scale-105 transition duration-300 ease-in-out hover:shadow-lg opacity-0 translate-y-10">
                 <i class="fas fa-plus text-blue-500 text-4xl"></i>
               </div>                          
         </div>
     </div>
 </div>
 
-<!-- Modal container -->
-<div class="modal fixed z-10 inset-0 bg-black bg-opacity-50 hidden transition opacity duration-300" id="modal-container">
+<div id="context-menu" class="hidden fixed bg-white text-gray-700 border border-gray-200 rounded-md shadow-md py-2">
+    <div id="rename-system" class="flex py-1 px-4 cursor-pointer hover:bg-gray-200">
+        <div class="flex items-center w-8">
+            <i class="fa-solid fa-pen"></i>
+        </div>
+        <span>Rename System</span>
+    </div>
+    <div id="delete-system" class="flex py-1 px-4 cursor-pointer hover:bg-gray-200">
+        <div class="flex items-center w-8">
+            <i class="fa-solid fa-trash"></i>
+        </div>
+        <span>Delete System</span>
+    </div>
+</div>
+
+<!-- Add system modal container -->
+<div class="modal fixed z-10 inset-0 bg-black bg-opacity-50 hidden transition opacity duration-300" id="add-system-modal-container">
     <div class="flex items-center justify-center min-h-screen text-center">
         <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 p-6 mx-auto transition-opacity duration-300 opacity-0 modal-content">
             <!-- Modal content -->
             <h1 class="text-2xl font-bold text-blue-500 mb-4">Add System</h1>
-            <form action="{% url 'alchemy:dashboard' client %}" method="post" class="space-y-4">
+            <form action="{% url 'alchemy:dashboard' client %}" method="post">
                 {% csrf_token %}
-                <div>
-                    <label for="system_name" class="blockleft mb-1 font-semibold text-sm text-blue-700">System Name</label>
-                    <input type="text" name="system_name" id="system_name" placeholder="e.g., HR Management System" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200">
+                <div class="mx-8">
+                    <input type="text" name="system_name" id="system_name" placeholder="System Name" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200">
                 </div>
-                <button type="submit" class="bg-blue-500 w-1/2 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">Add System</button>
+                <button type="submit" class="mt-8 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">Add System</button>
             </form>
         </div>
     </div>
 </div>
 
-
+<!-- Delete system modal container -->
+<div class="modal fixed z-10 inset-0 bg-black bg-opacity-50 hidden transition opacity duration-300" id="delete-system-modal-container">
+    <div class="flex items-center justify-center min-h-screen text-center">
+        <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 p-8 mx-auto transition-opacity duration-300 opacity-0 modal-content">
+            <!-- Modal content -->
+            <h1 class="text-2xl font-bold text-red-500 mb-6"></h1>
+            <form action="#" method="post">
+                {% csrf_token %}
+                <span class="text-gray-8700 text-base block mb-6">Are you sure you'd like to delete this system? All related information, including control implementations, will be permanently deleted.</span>
+                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"></button>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const gridContainer = document.querySelector("#grid-container");
         const gridItems = gridContainer.children;
 
-        const fadeInDelay = 100; // Animation delay in milliseconds
+        const fadeInDelay = 200; // Animation delay in milliseconds
         let delayCounter = 0; // Counter to control the animation timing
 
         for (let i = 0; i < gridItems.length; i++) {
@@ -63,8 +99,66 @@
         }
     });
 
-    // Get the modal and the button that opens the modal
-    const modal = document.getElementById("modal-container");
+    //////////////////////////// System settings context menus
+
+    // Get settings icon element
+    const openSettingsModalBtns = document.querySelectorAll("#system_settings_icon");
+    // Get the system context menu element
+    const contextMenu = document.getElementById("context-menu");
+
+    // Show the context menu when the settings icon is clicked
+    openSettingsModalBtns.forEach((openSettingsModalBtn) => {
+        openSettingsModalBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            const iconRect = event.target.getBoundingClientRect();
+            contextMenu.style.opacity = 0;
+
+            const menuWidth = contextMenu.clientWidth;
+            const windowWidth = window.innerWidth;
+
+            const leftPosition = (iconRect.left + window.scrollX);
+            const rightPosition = (iconRect.right - menuWidth + window.scrollX);
+
+            // Check if the context menu would be partially outside the window
+            const contextMenuLeft = (leftPosition + menuWidth) <= windowWidth ? leftPosition : rightPosition;
+
+            contextMenu.style.left = contextMenuLeft + "px";
+            contextMenu.style.top = (iconRect.bottom + window.scrollY + 15) + "px";
+            contextMenu.classList.remove("hidden");
+            setTimeout(() => {
+                contextMenu.style.opacity = 1;
+            }, 50);
+
+            const systemName = event.target.closest(".flex.flex-col").dataset.systemName;
+            updateDeleteModalContent(systemName);
+        });
+    });
+
+    // Add an event listener for the window resize event
+    window.addEventListener("resize", function () {
+        // Close the context menu by adding the "hidden" class
+        contextMenu.classList.add("hidden");
+    });
+
+    // Close the context menu when clicking outside of it
+    document.addEventListener("click", function (event) {
+        if (event.target.closest("#context-menu") === null && event.target.closest("#system_settings_icon") === null) {
+            contextMenu.classList.add("hidden");
+        }
+    });
+
+    function updateDeleteModalContent(systemName) {
+        const deleteModalTitle = document.querySelector("#delete-system-modal-container h1");
+        const deleteModalButton = document.querySelector("#delete-system-modal-container button");
+
+        deleteModalTitle.textContent = `Delete ${systemName}`;
+        deleteModalButton.textContent = `Delete ${systemName}`;
+    }
+
+    //////////////////////////// Add Modal Event Listeners
+
+    // Get the add system modal and the button that opens the modal
+    const modal = document.getElementById("add-system-modal-container");
     const openModalBtn = document.querySelector(".open-modal");
 
     openModalBtn.addEventListener("click", function () {
@@ -74,17 +168,40 @@
         }, 50);
     });
 
-   // Close the modal when clicking outside of the content
+    // Close the modal when clicking outside of the content
     modal.addEventListener("click", function (event) {
         if (event.target === modal || event.target.closest(".modal-content") === null) {
-            closeModal();
+            closeModal(modal);
         }
     });
 
-    function closeModal() {
-        modal.querySelector(".modal-content").classList.add("opacity-0");
+    //////////////////////////// Delete Modal Event Listeners
+
+    // Get the delete system modal and the button that opens the modal
+    const delete_modal = document.getElementById("delete-system-modal-container");
+    const openDeleteModalBtn = document.querySelector("#delete-system");
+
+    openDeleteModalBtn.addEventListener("click", function () {
+        delete_modal.classList.remove("hidden");
         setTimeout(() => {
-            modal.classList.add("hidden");
+            delete_modal.querySelector(".modal-content").classList.remove("opacity-0");
+        }, 50);
+    });
+
+    // Close the modal when clicking outside of the content
+    delete_modal.addEventListener("click", function (event) {
+        if (event.target === delete_modal || event.target.closest(".modal-content") === null) {
+            closeModal(delete_modal);
+        }
+    });
+
+
+    //////////////////////////// Modal close logic
+
+    function closeModal(inputModal) {
+        inputModal.querySelector(".modal-content").classList.add("opacity-0");
+        setTimeout(() => {
+            inputModal.classList.add("hidden");
         }, 300);
     }
 

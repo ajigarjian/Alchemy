@@ -95,6 +95,7 @@ def contact(request):
 
 ####################################### Internal Application once logged in ##############################################
 
+# Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
 def dashboard(request, client):
 
     if not request.user.is_authenticated:
@@ -106,7 +107,7 @@ def dashboard(request, client):
 
         colors = ['3E4756', '97ACCF', 'FFE1E9', 'CAAAB2', '6E7788', '5A3F46', '8D6F77', 'A2ACBD', 'CF9EAA', '986A76', '564147', 'CF9EAC', 'F3E7D0', 'BBB099', 'BEA5AB', 'BBB19B', '867D67']
 
-        # process the data for new user. Make their username the first part of their email
+        # process the data for new system. Use the client of the logged in user, and choose a random color
         system_name = request.POST["system_name"]
         client_object = Client.objects.get(client_name=client)
         color = random.choice(colors)
@@ -128,6 +129,17 @@ def dashboard(request, client):
             "client": client,
             "systems": systems
         })
+
+def delete_system(request):
+
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("alchemy:login"))
+    
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
+    
+    else:
+        system = request.POST[""]
 
 
 def overview(request):
