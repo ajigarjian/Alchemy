@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "internal/internal.html" %}
 
 {% block body %}
 
@@ -114,7 +114,7 @@
             <h1 class="text-base sm:text-xl font-black tracking-wide text-blue-500 mb-8">Next, provide some general information about the system you'd like Authorized.</h1>
         </div>
 
-        <form action="{% url 'alchemy:overview' %}" method="post" class="space-y-8">
+        <form action="{% url 'alchemy:overview' system=system.name %}" method="post" class="space-y-8">
             {% csrf_token %}
 
             <div>

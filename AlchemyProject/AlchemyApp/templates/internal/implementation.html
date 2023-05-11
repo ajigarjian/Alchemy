@@ -1,0 +1,88 @@
+{% extends "internal/internal.html" %}
+
+{% block body %}
+
+<div class="body_wrapper flex">
+
+    <div class="flex flex-col h-screen hidden md:block p-4 text-center border-r">
+        <ul class="h-full flex flex-col text-left">
+            {% for family in control_families %}
+            <li class="py-2">
+                <a href="{% url 'alchemy:implementation' system.name family.family_name %}" class="hover:text-blue-700 block {% if family == control_family %}text-blue-700 {%else%} text-gray-500 {% endif %}">
+                    <span class="text-sm">{{ family.family_name }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div id="wizard_container" class="py-8 flex flex-col items-center justify-center min-h-screen">
+    
+    <div id="family_header_box" class="overview_form min-w-100 md:w-192 bg-white p-10 rounded-lg shadow-lg mb-12">
+        
+        <div id="family_header" class="text-center">
+            <h1 class="text-2xl sm:text-4xl font-black tracking-wide text-blue-600 mb-2">{{control_family}}</h1>
+        </div>
+
+        <form id="org_info_form" action="#" method="post" class="space-y-8">
+            {% csrf_token %}
+            
+        </form>
+
+    </div>
+
+    <button id ="scrollButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+        <i id="scrollIcon" class="fas fa-chevron-down"></i>
+    </button>
+  
+</div>
+</div>
+  
+<!-- Javascript for interactive aspects of the onboarding wizard -->
+<script type="text/javascript">
+
+    // General selections
+    const primaryFunctionModal = document.getElementById("primaryFunctionModal"); //Saving the modal in the primary function view in a variable for later use
+
+    // Scrolling function for category selection view. When the circular scroll button in bottom right is clicked, it will either scroll down or up to show more of the categories
+    document.getElementById("scrollButton").addEventListener("click", function() {
+        const scrollButton = document.getElementById("scrollButton");
+        const scrollIcon = document.getElementById("scrollIcon");
+
+        // If the arrow is pointing down, it targets the new position which is one window-height down, and scrolls to it
+        if (scrollIcon.classList.contains("fa-chevron-down")) {
+            // Calculate the target scroll position, which is one viewport height from the current scroll position.
+            const targetScrollPosition = window.pageYOffset + window.innerHeight;
+            
+            // Scroll to the target scroll position smoothly.
+            window.scrollTo({
+                top: targetScrollPosition,
+                behavior: "smooth",
+            });
+        // Otherwise, it scrolls back to the top (implying the arrow is pointing up)
+        } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    })
+
+    // Second scrolling function for category selection view. Responsible for changing the arrow in the icon to up and down depending on where the user is vertically. 
+    window.addEventListener("scroll", () => {
+        const scrollButton = document.getElementById("scrollButton");
+        const scrollIcon = document.getElementById("scrollIcon");
+        const scrollHeight = document.documentElement.scrollHeight;
+        const clientHeight = document.documentElement.clientHeight;
+        const scrollTop = document.documentElement.scrollTop;
+
+        // When the user is near or at the bottom of the page, switches chevron to up, otherwise it will be pointing down
+        if (scrollHeight - clientHeight - scrollTop < 5) {
+            scrollIcon.classList.remove("fa-chevron-down");
+            scrollIcon.classList.add("fa-chevron-up");
+        } else {
+            scrollIcon.classList.remove("fa-chevron-up");
+            scrollIcon.classList.add("fa-chevron-down");
+        }
+    });
+
+</script>
+
+{% endblock %}
