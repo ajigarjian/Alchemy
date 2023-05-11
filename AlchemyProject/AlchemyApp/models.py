@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinLengthValidator, MaxLengthValidator
-from .managers import CustomUserManager #import from managers.py file
+from .managers import CustomUserManager
 
 # Create your models here.
 
@@ -17,7 +17,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     client = models.ForeignKey('AlchemyApp.Client', on_delete=models.CASCADE)
     
     is_staff = models.BooleanField(default=True) #to be able to log into django admin
-    is_superuser = models.BooleanField(default=False) #to be able to log into django admin AND have read/write access
+    is_superuser = models.BooleanField(default=True) #to be able to log into django admin AND have read/write access
 
     groups = models.ManyToManyField(
         'auth.Group',
@@ -41,7 +41,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["phone_number", "client"]
+    REQUIRED_FIELDS = ["phone_number", "client_id"]
 
     objects = CustomUserManager()
 
@@ -194,16 +194,46 @@ class Client(models.Model):
         return str(self.client_name)
 
 class System(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)  # In-scope system name
-    description = models.TextField(blank=True, null=True)  # System description
-    owner_name = models.CharField(max_length=255, blank=True, null=True)
-    owner_title = models.CharField(max_length=255, blank=True, null=True)
-    owner_email = models.EmailField(unique=True, blank=True, null=True)
+
+    ENVIRONMENT_CHOICES = [
+        ('On-Premises', 'On-Premises'),
+        ('Cloud-Based', 'Cloud-Based'),
+        ('Hybrid', 'Hybrid'),
+    ]
+
+    OPERATIONAL_STATUS_CHOICES = [
+        ('Under Development', 'Under Development'),
+        ('Operational', 'Operational'),
+        ('Decommissioned', 'Decommissioned'),
+    ]
+
+    FEDRAMP_COMPLIANCE_STATUS_CHOICES = [
+        ('Not Started', 'Not Started'),
+        ('In Progress', 'In Progress'),
+        ('Authorized', 'Authorized'),
+    ]
+
     phone_regex = RegexValidator(
         regex=r"^\+?1?\d{9,15}$",
         message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.",
     )
+
+    name = models.CharField(max_length=255, blank=True, null=True)  # In-scope system name
+    abbreviation = models.CharField(max_length=20, blank=True, null=True) #Short abbreviation
+    environment = models.CharField(max_length=20, choices=ENVIRONMENT_CHOICES, blank=True, null=True) #Type of hosting environment (on-prem, cloud, hybrid)
+
+    description = models.TextField(blank=True, null=True)  # System purpose description
+    authorization_boundary = models.TextField(blank=True, null=True) #  A brief description of the boundary that separates the system from other systems and networks.
+
+    operational_status = models.CharField(max_length=20, choices=OPERATIONAL_STATUS_CHOICES, blank=True, null=True) #If system is in dev, operational, or decommed
+    last_authorization_date = models.DateField(blank=True, null=True) #The date when the system was last granted an Authorization to Operate (ATO) or Provisional Authorization to Operate (P-ATO) by a federal agency or the Joint Authorization Board (JAB).
+    fedramp_compliance_status = models.CharField(max_length=20, choices=FEDRAMP_COMPLIANCE_STATUS_CHOICES, blank=True, null=True, default='not_started') #Current status in the FedRAMP authorization process (e.g., not started, in progress, or authorized). 
+    
+    owner_name = models.CharField(max_length=255, blank=True, null=True)
+    owner_title = models.CharField(max_length=255, blank=True, null=True)
+    owner_email = models.EmailField(unique=True, blank=True, null=True)
     owner_phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True, null=True)
+
     client = models.ForeignKey(Client, on_delete=models.CASCADE)  # Client to which the system belongs
     color = color = models.CharField(max_length=20)
     information_subcategories = models.ManyToManyField(
@@ -221,25 +251,6 @@ class System(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.client.client_name})"
-
-class NISTControl(models.Model):
-    control_name = models.CharField(max_length=255) #Control Name
-    control_family = models.ForeignKey('AlchemyApp.ControlFamily', on_delete=models.CASCADE) #Control Family  
-    control_number = models.IntegerField() #Control Number
-    control_enhancement = models.IntegerField(blank=True, null=True) #Control Enhancement (can be blank)
-    control_description = models.TextField() #Control description
-    supplemental_guidance = models.TextField() #Supplemental guidance
-
-    def __str__(self):
-        enhancement_text = ""
-        if self.control_enhancement:
-            enhancement_text = " (" + str(self.control_enhancement) + ")"
-
-        return str((self.control_family.family_abbreviation) + '-' + str(self.control_number) + enhancement_text)
-
-    class Meta:
-        verbose_name = "NIST Control"
-        verbose_name_plural = "NIST Controls"
 
 class ControlFamily(models.Model):
 
@@ -331,6 +342,65 @@ class ControlFamily(models.Model):
 
     def __str__(self):
         return f"{self.family_name}"
+
+class NISTControl(models.Model):
+    control_name = models.CharField(max_length=255) #Control Name
+    control_family = models.ForeignKey('AlchemyApp.ControlFamily', on_delete=models.CASCADE) #Control Family  
+    control_number = models.IntegerField() #Control Number
+    control_enhancement = models.IntegerField(blank=True, null=True) #Control Enhancement (can be blank)
+    control_description = models.TextField() #Control description
+    supplemental_guidance = models.TextField(blank=True, null=True) #Supplemental guidance
+
+    def __str__(self):
+        enhancement_text = ""
+        if self.control_enhancement:
+            enhancement_text = " (" + str(self.control_enhancement) + ")"
+
+        return str((self.control_family.family_abbreviation) + '-' + str(self.control_number) + enhancement_text)
+
+    class Meta:
+        verbose_name = "NIST Control"
+        verbose_name_plural = "NIST Controls"
+
+class ControlImplementation(models.Model):
+
+    IMPLEMENTATION_CHOICES = [
+        ('Implemented', 'Implemented'),
+        ('Partially Implemented', 'Partially Implemented'),
+        ('Planned', 'Planned'),
+        ('Alternative Implementation', 'Alternative Implementation'),
+        ('Not Applicable', 'Not Applicable')
+    ]
+
+    ORIGINATION_CHOICES = [
+        ('Service Provider Corporate', 'Service Provider Corporate'),
+        ('Service Provider System Specific', 'Service Provider System Specific'),
+        ('Service Provider Hybrid', 'Service Provider Hybrid'),
+        ('Configured by Customer', 'Configured by Customer'),
+        ('Provided by Customer', 'Provided by Customer'),
+        ('Shared', 'Shared'),
+        ('Inherited', 'Inherited')
+    ]
+
+    PROGRESS_CHOICES = [
+        ('Not Started', 'Not Started'),
+        ('In Progress', 'In Progress'),
+        ('Completed', 'Completed')
+    ]
+
+    system = models.ForeignKey('System', on_delete=models.CASCADE)
+    control = models.ForeignKey('NISTControl', on_delete=models.CASCADE) #Linked control
+    control_family = models.ForeignKey('ControlFamily', on_delete=models.CASCADE)
+    responsible_role = models.CharField(max_length=255) #Owners of control
+    status = models.CharField(max_length=30, choices=IMPLEMENTATION_CHOICES, blank=True, null=True)
+    origination = models.CharField(max_length=50, choices=ORIGINATION_CHOICES, blank=True, null=True)
+    statement = models.TextField(blank=True, null=True)  # Control Implementation description
+    progress = models.CharField(max_length=30, choices=PROGRESS_CHOICES, blank=True, null=True, default='Not Started')
+    last_updated = models.DateTimeField(auto_now=True)
+
+    # Making combination of client and name unique so that a given system cannot have two control implementations with the same control
+    class Meta:
+        unique_together = ('control', 'system') 
 
 class Question(models.Model):
 

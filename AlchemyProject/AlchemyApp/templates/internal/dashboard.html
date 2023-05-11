@@ -7,29 +7,31 @@
 {% block body %}
 
 
-<div class="w-screen h-screen md:flex bg-blue-100">
+<div class="w-screen h-screen bg-blue-100">
 
     <!-- Grid with system elements -->
     <div class="container mx-auto px-4 py-10">
         <div id="grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {% for system in systems %}
             <div data-system-name="{{ system.name }}" class="h-72 bg-white rounded-lg shadow-md hover:cursor-pointer transform hover:scale-105 transition duration-300 ease-in-out hover:shadow-lg opacity-0 translate-y-10 flex flex-col">
-                
-                <!-- Top section with color -->
-                <div style="background-color: #{{system.color}};" class="rounded-t-lg top_section h-3/4">
-
-                    <!-- Settings icon -->
-                    <div id="system_settings_icon" class="absolute top-2 right-4">
-                        <i class="fa-solid fa-ellipsis fa-xl text-black hover:text-white transition duration-300"></i>
+                <a href="{% url 'alchemy:dashboard' client=client system=system.name %}" class="w-full h-full flex flex-col">
+            
+                    <!-- Top section with color -->
+                    <div style="background-color: #{{system.color}};" class="rounded-t-lg top_section h-3/4">
+            
+                        <!-- Settings icon -->
+                        <div id="system_settings_icon" class="absolute top-2 right-4">
+                            <i class="fa-solid fa-ellipsis fa-xl text-black hover:text-white transition duration-300"></i>
+                        </div>
+            
                     </div>
-
-                </div>
-
-                <!-- Bottom section with system name -->
-                <div class="bottom_section h-1/4 flex justify-center items-center">
-                    <span class="text-xl font-bold text-blue-500 hover:text-blue-700 duration-300">{{system.name}}</span>
-                </div>
-            </div>
+            
+                    <!-- Bottom section with system name -->
+                    <div class="bottom_section h-1/4 flex justify-center items-center">
+                        <span class="text-xl font-bold text-blue-500 hover:text-blue-700 duration-300">{{system.name}}</span>
+                    </div>
+                </a>
+            </div>            
             {% endfor %}
             <div class="open-modal h-72 bg-white p-6 rounded-lg shadow-sm flex items-center justify-center hover:cursor-pointer hover:bg-gray-100 transform hover:scale-105 transition duration-300 ease-in-out hover:shadow-lg opacity-0 translate-y-10">
                 <i class="fas fa-plus text-blue-500 text-4xl"></i>
@@ -44,7 +46,7 @@
         <div class="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 p-6 mx-auto transition-opacity duration-300 opacity-0 modal-content">
             <!-- Modal content -->
             <h1 class="text-2xl font-bold text-blue-500 mb-4">Add System</h1>
-            <form action="{% url 'alchemy:dashboard' client %}" method="post">
+            <form action="{% url 'alchemy:dashboard' client=client %}" method="post">
                 {% csrf_token %}
                 <div class="mx-8">
                     <input type="text" name="system_name" id="system_name" placeholder="System Name" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200">
@@ -92,12 +94,12 @@
         <div class="bg-white rounded-lg w-96 p-8 mx-auto transition-opacity duration-300 opacity-0 modal-content">
             <!-- Modal content -->
             <h1 class="text-2xl font-bold text-blue-500 mb-6">Rename</h1>
-            <form id="change-name-form" action="#" method="post">
+            <form id="change-name-form" action="{% url 'alchemy:rename_system' %}" method="post">
                 {% csrf_token %}
                 <div class=" mb-8">
                     <input type="text" name="system_name" id="system_name_input" required class="mt-1 w-full p-2.5 text-sm border-0 border-b-2 border-gray-200 text-gray-900 focus:ring-0 focus:border-blue-500 hover:border-blue-400 transition duration-200" onfocus="this.select();">
                 </div>
-                <button id="change-name-button" name="change-name-button" type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded" value="">Save</button>
+                <button id="change-name-button" name="change-name-button" type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">Save</button>
             </form>
         </div>
     </div>
@@ -152,7 +154,7 @@
                 contextMenu.style.opacity = 1;
             }, 50);
 
-            const systemName = event.target.closest(".flex.flex-col").dataset.systemName;
+            const systemName = event.target.closest("[data-system-name]").getAttribute("data-system-name");
             updateModalContent(systemName);
         });
     });
@@ -173,13 +175,17 @@
     function updateModalContent(systemName) {
         const deleteModalTitle = document.querySelector("#delete-system-modal-container h1");
         const deleteModalButton = document.querySelector("#delete-system-button");
+        const renameModalButton = document.querySelector("#change-name-button");
         const systemNameInput = document.querySelector("#system_name_input");
 
         deleteModalTitle.textContent = `Delete ${systemName}`;
         deleteModalButton.textContent = `Delete ${systemName}`;
         deleteModalButton.value = systemName;
+
+        renameModalButton.value = systemName;
         systemNameInput.value = systemName;
     }
+
 
     //////////////////////////// Add Modal Event Listeners
 
@@ -209,7 +215,6 @@
 
     openDeleteModalBtn.addEventListener("click", function () {
         delete_modal.classList.remove("hidden");
-        updateModalContent(systemName);
         setTimeout(() => {
             delete_modal.querySelector(".modal-content").classList.remove("opacity-0");
         }, 50);

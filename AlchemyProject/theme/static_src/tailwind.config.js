@@ -6,6 +6,7 @@
  */
 
 module.exports = {
+    
     content: [
         /**
          * HTML. Paths to Django template files that will contain Tailwind CSS classes.
@@ -90,6 +91,11 @@ module.exports = {
                 '768': '768px',
                 '900': '900px',
             },
+
+            gridTemplateColumns: {
+                '2': 'repeat(2, minmax(0, 1fr))',
+                '4': 'repeat(4, minmax(0, 1fr))',
+            }
         },
     },
     plugins: [

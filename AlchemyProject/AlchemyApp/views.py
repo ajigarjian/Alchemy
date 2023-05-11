@@ -7,11 +7,15 @@ from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
 from django.contrib import messages #for register error message(s)
-from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System #for interacting with database
-from .forms import OrganizationForm
+from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation #for interacting with database
+from .forms import OrganizationForm, SystemForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required #to redirect user to login route if they try to access an app page past login
+from django.db.models import Count, Q, Max
+
+import os
+import openai
 
 ####################################### Public Application when not logged in ##############################################
 
@@ -95,9 +99,33 @@ def contact(request):
 
 ####################################### Internal Application once logged in ##############################################
 
+@login_required
+
+def implementation(request, system, family):
+
+    client = request.user.client
+    system_object = get_object_or_404(System, name=system, client=client)
+
+    control_family = get_object_or_404(ControlFamily, family_name=family)
+    controls = NISTControl.objects.filter(control_family=control_family)
+    control_implementations = ControlImplementation.objects.filter(system=system_object, control__control_family=control_family)
+
+# Get all the questions for the given family, otherwise, just get all the questions
+
+    # Get all control families for the sidebar
+    control_families = ControlFamily.objects.all()
+
+    return render(request, "internal/implementation.html", {
+        "system": system_object,
+        "control_family": control_family,
+        "controls": controls,
+        "control_implementations": control_implementations,
+        "control_families": control_families,
+    })
+
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
 @login_required
-def dashboard(request, client):
+def dashboard(request, client, system=None):
     
     systems = System.objects.filter(client__client_name=client)
 
@@ -123,10 +151,39 @@ def dashboard(request, client):
         return HttpResponseRedirect(reverse("alchemy:dashboard", args=[client]))
     
     else:
-        return render(request, "internal/dashboard.html", {
-            "client": client,
-            "systems": systems
-        })
+
+        if system is None:
+            return render(request, "internal/dashboard.html", {
+                "client": client,
+                "systems": systems
+            })
+
+        else:
+            selected_system = get_object_or_404(System, name=system, client__client_name=client)
+            families = ControlFamily.objects.all().order_by('family_abbreviation').annotate(
+                completed_controls_count=Count('controlimplementation', filter=Q(controlimplementation__progress='Completed')),
+                implemented_controls_count=Count('controlimplementation', filter=Q(controlimplementation__status='Implemented')),
+                family_controls_count=Count('controlimplementation'),
+                last_updated=Max('controlimplementation__last_updated'),
+            )
+
+            total_completed_implementations = ControlImplementation.objects.filter(system=selected_system, progress='Completed').count()
+            total_not = ControlImplementation.objects.filter(system=selected_system, status='Not Implemented').count()
+            total_partial = ControlImplementation.objects.filter(system=selected_system, status='Partially Implemented').count()
+            total_implemented = ControlImplementation.objects.filter(system=selected_system, status='Implemented').count()
+            total_controls = ControlImplementation.objects.all().count()
+
+            # Add your code to display the selected system's dashboard
+            return render(request, "internal/system_dashboard.html", {
+                "client": client,
+                "system": selected_system,
+                "families": families,
+                "total_controls": total_controls,
+                "total_completed_implementations": total_completed_implementations,
+                "total_not": total_not,
+                "total_partial": total_partial,
+                "total_implemented": total_implemented
+            })
 
 @login_required
 def delete_system(request):
@@ -141,14 +198,49 @@ def delete_system(request):
     return redirect('alchemy:dashboard', client=client)
 
 @login_required
-def overview(request):
+def rename_system(request):
 
-    information_types = InformationCategory.objects.prefetch_related('informationsubcategory_set').all()
+    client = request.user.client
 
-    return render(request, "overview.html", {
+    if request.method == 'POST':
+        old_system_name = request.POST['change-name-button']
+        new_system_name = request.POST['system_name']
+
+        system = get_object_or_404(System, name=old_system_name, client=client)
+        system.name = new_system_name
+        system.save(update_fields=["name"])
+
+    return redirect('alchemy:dashboard', client=client)
+
+@login_required
+def overview(request, system):
+
+    org = request.user.client
+    selected_system = get_object_or_404(System, name=system, client__client_name=org)
+
+    information_types = InformationCategory.objects.all()
+
+    return render(request, "internal/overview.html", {
+        "organization": org,
+        "system": selected_system,
         "information_types": information_types,
-        "organization": request.user.client,
         "org_form": OrganizationForm()
+    })
+
+@login_required
+def overview2(request, system):
+
+    org = request.user.client
+    selected_system = get_object_or_404(System, name=system, client__client_name=org)
+
+    information_types = InformationCategory.objects.all()
+
+    return render(request, "internal/overview2.html", {
+        "organization": org,
+        "system": selected_system,
+        "information_types": information_types,
+        "org_form": OrganizationForm(),
+        "system_form": SystemForm()
     })
 
 @csrf_exempt

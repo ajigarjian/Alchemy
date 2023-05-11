@@ -13,9 +13,15 @@ urlpatterns = [
 
    #Once logged in - app itself
    path("dashboard/<str:client>", views.dashboard, name="dashboard"),
+   path('dashboard/<str:client>/<str:system>', views.dashboard, name='dashboard'),
    path('delete_system', views.delete_system, name='delete_system'),
-   path("overview", views.overview, name="overview"),
+   path('rename_system', views.rename_system, name='rename_system'),
+
+   path("overview/<str:system>", views.overview, name="overview"),
+   path("overview2/<str:system>", views.overview2, name="overview2"),
    path("questions/<str:control_family_name>", views.questions, name="questions"),
+
+   path("implementation/<str:system>/<str:family>", views.implementation, name="implementation"),
 
     #API Calls
     path("answer", views.answer, name="answer"),
