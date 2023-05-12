@@ -14,8 +14,12 @@ from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required #to redirect user to login route if they try to access an app page past login
 from django.db.models import Count, Q, Max
 
-import os
-import openai
+import os, openai
+from dotenv import load_dotenv
+
+load_dotenv()
+
+openai.api_key = os.getenv("OPENAI_API_KEY", None)
 
 ####################################### Public Application when not logged in ##############################################
 
@@ -23,7 +27,26 @@ import openai
 def index(request):
 
     if not request.user.is_authenticated:
-        return render(request, "public/index.html")
+
+        if request.method == "POST":
+
+            input = request.POST["prompt_input"]
+
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
+                    {"role": "user", "content": input}
+                ],
+                temperature=0.2
+            )
+            return render(request, "public/index.html", {
+                "output": completion.choices[0].message.content,
+            })
+
+        return render(request, "public/index.html", {
+            "output": "",
+        })
     
     else:
         return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
