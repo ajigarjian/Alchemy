@@ -4,7 +4,7 @@
 
 <div class="body_wrapper flex">
 
-    <div class="flex flex-col h-screen hidden md:block p-4 text-center border-r">
+    <div class="flex flex-col h-screen hidden md:block p-4 text-center sticky top-0">
         <ul class="h-full flex flex-col text-left">
             {% for family in control_families %}
             <li class="py-2">
@@ -16,26 +16,54 @@
         </ul>
     </div>
 
-    <div id="wizard_container" class="py-8 flex flex-col items-center justify-center min-h-screen">
+    <div id="wizard_container" class="py-8 flex flex-col items-center justify-center min-h-screen flex-grow">
     
-    <div id="family_header_box" class="overview_form min-w-100 md:w-192 bg-white p-10 rounded-lg shadow-lg mb-12">
-        
-        <div id="family_header" class="text-center">
-            <h1 class="text-2xl sm:text-4xl font-black tracking-wide text-blue-600 mb-2">{{control_family}}</h1>
+        <div id="family_header_box" class="overview_form min-w-100 md:w-192 bg-white p-10 rounded-lg shadow-lg mb-12">
+            
+            <div id="family_header" class="text-center">
+                <h1 class="text-2xl sm:text-4xl font-black tracking-wide text-blue-600 mb-2">{{control_family}}</h1>
+            </div>
+
         </div>
 
-        <form id="org_info_form" action="#" method="post" class="space-y-8">
-            {% csrf_token %}
-            
-        </form>
+        <div id="controls_box" class="min-w-100 md:w-192 mb-12">
 
-    </div>
+            {% for implementation in control_implementations %}
+            <div>
+                <div id="control_header">
+                    <h1 class="text-2xl font-black tracking-wide text-blue-600 mb-2">{{implementation.control}} {{implementation.control.control_name }}</h1>
+                </div>
+                <div id="control_requirement">
+                    <h1 class="text text-blue-600 mb-2">{{implementation.control.control_description}}</h1>
+                </div>
 
-    <button id ="scrollButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
-        <i id="scrollIcon" class="fas fa-chevron-down"></i>
-    </button>
+                <div id="control_guidance">
+                </div>
+
+                <div id="control_examples">
+                </div>
+
+                <div id="control_solution">
+                </div>
+
+                <div id="control_status">
+                </div>
+
+                <div id="control_origination">
+                </div>
+
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <button id ="scrollButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+            <i id="scrollIcon" class="fas fa-chevron-down"></i>
+        </button>
   
-</div>
+    </div>
 </div>
   
 <!-- Javascript for interactive aspects of the onboarding wizard -->
