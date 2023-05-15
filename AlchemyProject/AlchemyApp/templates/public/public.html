@@ -6,11 +6,9 @@
 <html lang="en">
     <head>
         <title>{% block title %}Alchemy{% endblock %}</title>
-        <link rel="icon" href="{% static 'EagleIcon.jpeg' %}" type="image/jpeg" />
+        <link rel="icon" href="{% static 'lock.svg' %}" type="image/svg" />
 
         {% tailwind_css %}
-        {% block script %}
-        {% endblock %}
 
         <!-- for Font Awesome -->
         <script src="https://kit.fontawesome.com/20f03e31c1.js" crossorigin="anonymous"></script>
@@ -19,30 +17,59 @@
 
     <body class="bg-blue-100">
 
-        <nav class="w-full px-12 pt-10">
-            <div class="flex items-center justify-between">
+        <nav class="w-full pt-10 relative">
+            <div class="flex items-center justify-between px-12">
 
                 <div class>
-                    <a href="{% url 'alchemy:index' %}" class="font-serif text-4xl font-bold text-blue-500 hover:text-blue-700 duration-300">Alchemy</a>
+                    <a href="{% url 'alchemy:index' %}" class="font-serif text-2xl md:text-4xl font-bold text-blue-500 hover:text-blue-700 duration-300">Alchemy</a>
                 </div>
                
-                <div class="flex space-x-12 mr-4 font-semibold" id="navbar-menu">
-                    <a href="#" class="text-blue-500 hover:text-blue-700 duration-300">Who We Are</a>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'alchemy:logout' %}" class="text-blue-500 hover:text-blue-700 duration-300">Log Out</a>
-                    {% else %}
-                        <a href="{% url 'alchemy:login' %}" class="text-blue-500 hover:text-blue-700 duration-300">Log In</a>
-                    {% endif %}
-                    <div>
-                        <a href="{% url 'alchemy:contact' %}" class="p-4 rounded-md text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:shadow-outline duration-300">Get Started</a>
+                <div class="md:flex space-x-12 mr-4 font-semibold" id="navbar-menu">
+
+                    <div class="md:hidden">
+                        <i id="navbar-toggle" class="fa-solid fa-bars fa-xl text-blue-500 hover:cursor-pointer hover:text-blue-700 duration-300"></i>
+                    </div>
+
+                    <div id="navbar-collapse" class="md:flex md:flex-row md:items-center space-x-12 hidden">
+
+                        <a href="#" class="text-blue-500 hover:text-blue-700 duration-300">About</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'alchemy:logout' %}" class="text-blue-500 hover:text-blue-700 duration-300">Log Out</a>
+                        {% else %}
+                            <a href="{% url 'alchemy:login' %}" class="text-blue-500 hover:text-blue-700 duration-300">Log In</a>
+                        {% endif %}
+                        <div>
+                            <a href="{% url 'alchemy:contact' %}" class="p-4 rounded-md text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:shadow-outline duration-300">Get Started</a>
+                        </div>
                     </div>
                 </div>
+            </div>
 
+            <div id="navbar-dropdown" class="w-screen mt-4 px-12 font-semibold md:hidden hidden absolute z-10 bg-blue-100" style="border-bottom: 2px solid #3b83f6; border-top: 2px solid #3b83f6;">
+                <a href="#" class="block text-blue-500 hover:text-blue-700 duration-300" style="padding-top: 2rem; padding-bottom: 1rem;">About</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'alchemy:logout' %}" class="block py-4 text-blue-500 hover:text-blue-700 duration-300">Log Out</a>
+                {% else %}
+                    <a href="{% url 'alchemy:login' %}" class="block py-4 text-blue-500 hover:text-blue-700 duration-300">Log In</a>
+                {% endif %}
+                <a href="{% url 'alchemy:contact' %}" class="block pt-4 pb-8 text-blue-500 hover:text-blue-700 duration-300" style="padding-bottom: 2rem; padding-top: 1rem;">Get Started</a>
             </div>
         </nav>
     
         {% block body %}
         {% endblock %}
+
+        {% block script %}
+        {% endblock %}
+
+        <script>
+            const navbarToggle = document.querySelector("#navbar-toggle");
+            const navbarDropdown = document.querySelector("#navbar-dropdown");
+
+            navbarToggle.addEventListener("click", function() {
+                navbarDropdown.classList.toggle("hidden");
+            });
+        </script>
 
     </body>
 

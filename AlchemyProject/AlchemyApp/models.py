@@ -401,6 +401,9 @@ class ControlImplementation(models.Model):
     # Making combination of client and name unique so that a given system cannot have two control implementations with the same control
     class Meta:
         unique_together = ('control', 'system') 
+    
+    def __str__(self):
+        return str(str(self.system) + ": " + str(self.control))
 
 class Question(models.Model):
 
