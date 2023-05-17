@@ -99,7 +99,9 @@ module.exports = {
             gridTemplateColumns: {
                 '2': 'repeat(2, minmax(0, 1fr))',
                 '4': 'repeat(4, minmax(0, 1fr))',
-            }
+            },
+
+            rotate: {}, 
         },
     },
     plugins: [

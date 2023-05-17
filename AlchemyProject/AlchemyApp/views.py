@@ -19,8 +19,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-openai.api_key = os.getenv("OPENAI_API_KEY", None)
-
 ####################################### Public Application when not logged in ##############################################
 
 # Route to render the landing page
@@ -28,25 +26,7 @@ def index(request):
 
     if not request.user.is_authenticated:
 
-        if request.method == "POST":
-
-            input = request.POST["prompt_input"]
-
-            completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
-                    {"role": "user", "content": input}
-                ],
-                temperature=0.2
-            )
-            return render(request, "public/index.html", {
-                "output": completion.choices[0].message.content,
-            })
-
-        return render(request, "public/index.html", {
-            "output": "",
-        })
+        return render(request, "public/index.html")
     
     else:
         return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
@@ -119,11 +99,35 @@ def contact(request):
          return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
     return render(request, "public/contact.html")
 
+@csrf_exempt
+def openAI(request):
+
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    openai.api_key = os.getenv("OPENAI_API_KEY", None)
+    
+    #Get post content from POST
+    data = json.loads(request.body)
+    user_input = data.get("user_input")
+    control_language = data.get("control_language")
+
+    completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
+                    {"role": "user", "content": user_input}
+                ],
+                temperature=0.2
+        )
+
+    return JsonResponse({"message": "Post published successfully.",
+                        "output": completion.choices[0].message.content}, status=201)
 
 ####################################### Internal Application once logged in ##############################################
 
-@login_required
 
+@login_required
 def implementation(request, system, family):
 
     client = request.user.client
