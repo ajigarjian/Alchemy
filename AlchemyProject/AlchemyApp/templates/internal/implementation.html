@@ -61,10 +61,17 @@
                                     <i data-accordion-icon class="fas fa-chevron-down w-6 h-6 transition-transform duration-200"></i>
                                 </button>
                               </h2>
-                              <div id="accordion-examples-body-{{implementation.control.id}}" class="px-4 mt-2 hidden" aria-labelledby="accordion-examples-heading-{{implementation.control.id}}">
+                              <div id="accordion-examples-body-{{implementation.control.id}}" class="px-4 mt-2 hidden relative" aria-labelledby="accordion-examples-heading-{{implementation.control.id}}">
                                 <div class="px-8 py-6 ">
-                                    <p class="mb-2 text-gray-500">placeholder</p>
+                                    <p id="output-{{implementation.control.id}}" class="mb-2 text-gray-500">placeholder</p>
+                                
+                                    <form id="openai-form" data-id="{{implementation.control.id}}" data-description="{{implementation.control.control_description}}" onsubmit="openAICall(event)">
+                                        <button type="submit" class="absolute top-0 right-0 m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                            Generate
+                                        </button>
+                                    </form>
                                 </div>
+                                
                               </div>
                         </div>
                     
@@ -99,9 +106,6 @@
   
 <!-- Javascript for interactive aspects of the onboarding wizard -->
 <script type="text/javascript">
-
-    // General selections
-    const primaryFunctionModal = document.getElementById("primaryFunctionModal"); //Saving the modal in the primary function view in a variable for later use
 
     // Scrolling function for category selection view. When the circular scroll button in bottom right is clicked, it will either scroll down or up to show more of the categories
     document.getElementById("scrollButton").addEventListener("click", function() {
@@ -141,6 +145,31 @@
             scrollIcon.classList.add("fa-chevron-down");
         }
     });
+
+    function openAICall(event) {
+        event.preventDefault();  // Prevent the form from submitting normally
+        var form = event.target;  // Get the form that was submitted
+        var controlDescription = form.getAttribute('data-description');  // Get the control description
+        var controlId = form.getAttribute('data-id');
+        const user_input = '';
+
+        fetch ('/openAI', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_input: user_input,
+                //using placeholder AT-3 control language for now
+                control_language: controlDescription
+            })
+        })    
+
+        .then(response => response.json())
+        .then(result => {   
+            document.querySelector('#output-' + controlId).innerHTML = result.output;
+        });
+    }
 
 </script>
 
