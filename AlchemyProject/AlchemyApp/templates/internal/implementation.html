@@ -29,7 +29,7 @@
         <div id="controls_box" class="min-w-100 md:w-192 mb-12">
 
             {% for implementation in control_implementations %}
-            <div>
+            <div class="mb-12">
                 <div id="control_header">
                     <h1 class="text-2xl font-black tracking-wide text-blue-600 mb-2">{{implementation.control}} {{implementation.control.control_name }}</h1>
                 </div>
@@ -38,6 +38,37 @@
                 </div>
 
                 <div id="control_guidance">
+                    <div id="accordion-flush" data-accordion="open" data-active-classes="text-white bg-blue-500" data-inactive-classes="text-gray-500">
+    
+                        <div id="accordion-guidance-element-{{implementation.control.id}}">
+                            <h2 id="accordion-guidance-heading-{{implementation.control.id}}">
+                                <button type="button" class="flex items-center justify-between border w-full px-4 py-2 rounded-t-lg font-medium text-left text-gray-500" data-accordion-target="#accordion-guidance-body-{{implementation.control.id}}" aria-expanded="false" aria-controls="accordion-guidance-body-{{implementation.control.id}}">
+                                    <span class="text-xl font-bold transition-transform duration-200">Supplemental Guidance</span> 
+                                    <i data-accordion-icon class="fas fa-chevron-down w-6 h-6 transition-transform duration-200"></i>
+                                </button>
+                              </h2>
+                              <div id="accordion-guidance-body-{{implementation.control.id}}" class="px-4 mt-2 hidden" aria-labelledby="accordion-guidance-heading-{{implementation.control.id}}">
+                                <div class="px-8 py-6 ">
+                                    <p class="mb-2 text-gray-500">{{implementation.control.supplemental_guidance}}</p>
+                                </div>
+                              </div>
+                        </div>
+                    
+                        <div id="accordion-examples-element-{{implementation.control.id}}">
+                            <h2 id="accordion-examples-heading-{{implementation.control.id}}">
+                                <button type="button" class="flex items-center justify-between border w-full px-4 py-2 font-medium text-left text-gray-500" data-accordion-target="#accordion-examples-body-{{implementation.control.id}}" aria-expanded="false" aria-controls="accordion-examples-body-{{implementation.control.id}}">
+                                    <span class="text-xl font-bold transition-transform duration-200">Description Examples</span> 
+                                    <i data-accordion-icon class="fas fa-chevron-down w-6 h-6 transition-transform duration-200"></i>
+                                </button>
+                              </h2>
+                              <div id="accordion-examples-body-{{implementation.control.id}}" class="px-4 mt-2 hidden" aria-labelledby="accordion-examples-heading-{{implementation.control.id}}">
+                                <div class="px-8 py-6 ">
+                                    <p class="mb-2 text-gray-500">placeholder</p>
+                                </div>
+                              </div>
+                        </div>
+                    
+                    </div>
                 </div>
 
                 <div id="control_examples">
