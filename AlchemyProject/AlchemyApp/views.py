@@ -112,17 +112,44 @@ def openAI(request):
     user_input = data.get("user_input")
     control_language = data.get("control_language")
 
-    completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
-                    {"role": "user", "content": user_input}
-                ],
-                temperature=0.2
-        )
+    if request.user.is_authenticated:
 
-    return JsonResponse({"message": "Post published successfully.",
-                        "output": completion.choices[0].message.content}, status=201)
+        organization = request.user.client.client_name
+
+        completion = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
+                        {"role": "user", "content": """I am writing a FedRAMP SSP Control Implementation. 
+                        Please make up a company seeking fedramp authorization, and based on that imaginary organization create an example control implementation description for the following control language: """ 
+                        + control_language + 
+                        """. In your response, do not mention the imaginary company, nor restate any of the control language. 
+                        Also, be concise where possible. Finally, feel free to reference made-up systems, documentation, or third-party platforms to make the response seem more human-like. 
+                        Reference those systems/documentation/platforms via fake names. 
+                        Only reply with the implementation description and nothing else. 
+                        For context, the company with the system that must meet this control is named """ 
+                        + organization +
+                         """. Finally, randomize your responses so that if I ask you this question again, the answer is new. Thanks!"""}
+                    ],
+                    temperature=0.2
+            )
+
+        return JsonResponse({"message": "Post published successfully.",
+                            "output": completion.choices[0].message.content}, status=201)
+    
+    else:
+
+        completion = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
+                        {"role": "user", "content": user_input}
+                    ],
+                    temperature=0.2
+            )
+
+        return JsonResponse({"message": "Post published successfully.",
+                            "output": completion.choices[0].message.content}, status=201)
 
 ####################################### Internal Application once logged in ##############################################
 
