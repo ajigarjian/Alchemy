@@ -61,12 +61,12 @@
                                     <i data-accordion-icon class="fas fa-chevron-down w-6 h-6 transition-transform duration-200"></i>
                                 </button>
                               </h2>
-                              <div id="accordion-examples-body-{{implementation.control.id}}" class="px-4 mt-2 hidden relative" aria-labelledby="accordion-examples-heading-{{implementation.control.id}}">
+                              <div id="accordion-examples-body-{{implementation.control.id}}" class="px-4 mt-2 hidden" aria-labelledby="accordion-examples-heading-{{implementation.control.id}}">
                                 <div class="px-8 py-6 ">
-                                    <p id="output-{{implementation.control.id}}" class="mb-2 text-gray-500">placeholder</p>
+                                    <p id="output-{{implementation.control.id}}" class="mb-2 text-gray-500">Refresh the Generate button to view sample language!</p>
                                 
                                     <form id="openai-form" data-id="{{implementation.control.id}}" data-description="{{implementation.control.control_description}}" onsubmit="openAICall(event)">
-                                        <button type="submit" class="absolute top-0 right-0 m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                        <button type="submit" class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                             Generate
                                         </button>
                                     </form>

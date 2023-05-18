@@ -124,7 +124,7 @@ def openAI(request):
                         Please make up a company seeking fedramp authorization, and based on that imaginary organization create an example control implementation description for the following control language: """ 
                         + control_language + 
                         """. In your response, do not mention the imaginary company, nor restate any of the control language. 
-                        Also, be concise where possible. Finally, feel free to reference made-up systems, documentation, or third-party platforms to make the response seem more human-like. 
+                        Also, be concise where possible. Finally, feel free to reference made-up systems, documentation, or third-party platforms (that you can discern apply to this control, e.g. AWS KMS for an encryption-based control) to make the response seem more human-like. 
                         Reference those systems/documentation/platforms via fake names. 
                         Only reply with the implementation description and nothing else. 
                         For context, the company with the system that must meet this control is named """ 
