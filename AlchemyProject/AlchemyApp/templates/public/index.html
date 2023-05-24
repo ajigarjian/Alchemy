@@ -1,4 +1,5 @@
 {% extends "public/public.html" %}
+{% load static %}
 
 {% block body %}
 
@@ -50,9 +51,24 @@
         </div>
     </div>
 
-    <div id="compliance_container" class="my-32 w-11/12 h-full rounded-xl bg-blue-100">
-        <div class="px-14 pt-12">
-            <span class="text-4xl font-black tracking-wide text-blue-500">Built for Compliance</span>
+    <div id="compliance_container" class="flex justify-between my-32 w-11/12 h-full rounded-xl bg-blue-100">
+        <div class="w-2/5 px-14 pt-12">
+            <span class="text-4xl font-black tracking-wide text-blue-500">Built for FedRAMP Authorization</span>
+            <div class="mt-12">
+                <span class="text-2xl tracking-wide text-semibold text-blue-500">FedRAMP-template SSP exports with Alchemy's AI model trained and validated by industry specialists</span>
+            </div>
+            <a href="{% url 'alchemy:register' %}" class="mt-10 w-full text-center bg-blue-500 hover:bg-blue-700 text-white font-bold text-2xl py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block duration-300">Begin Now</a>
+        </div>
+        <div id="report_grid" class="flex-grow px-14 flex justify-between items-center">
+            <div class="opacity-0" style="width:30%; transform: translateX(50px);">
+                <img class="rounded-xl shadow-md" src="{% static 'SSP_Cover.png' %}">
+            </div>
+            <div class="opacity-0" style="width:30%; transform: translateX(50px);">
+                <img class="rounded-xl shadow-md" src="{% static 'SSP_General.png' %}">
+            </div>
+            <div class="opacity-0" style="width:30%; transform: translateX(50px);">
+                <img class="rounded-xl shadow-md" src="{% static 'SSP_Control.png' %}">
+            </div>
         </div>
     </div>
 </div>
@@ -117,23 +133,28 @@
     // 3. take the result and update the output paragraph with the response
 
 
-    function animateGridItems() {
-        const get_started_grid = document.querySelector("#get_started_grid");
-        const gridItems = get_started_grid.children;
+    function animateGridItems(grid, direction) {
+        const gridItems = grid.children;
 
         const windowHeight = window.innerHeight;
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
 
-        const fadeInDelay = 200; // Animation delay in milliseconds
+        const fadeInDelay = 400; // Animation delay in milliseconds
         let delayCounter = 0; // Counter to control the animation timing
 
         for (let i = 0; i < gridItems.length; i++) {
             const gridItem = gridItems[i];
             const gridItemTop = gridItem.getBoundingClientRect().top + scrollTop;
 
-            if (gridItemTop - windowHeight + 100 <= scrollTop) {
+            if (gridItemTop - windowHeight + 200 <= scrollTop) {
                 setTimeout(function() {
-                    gridItems[i].classList.remove("opacity-0", "translate-y-10");
+                    if (direction == "y") {
+                        gridItems[i].classList.remove("opacity-0", "translate-y-10");
+                    }
+                    else if (direction == "x") {
+                        gridItems[i].classList.remove("opacity-0");
+                        gridItems[i].style.transform = 'none'; 
+                    }
                 gridItems[i].classList.add("transition", "duration-1000", "ease-in-out");
                 }, delayCounter);
                 delayCounter += fadeInDelay;
@@ -141,11 +162,10 @@
         }
     }
 
-    // Call the animation function initially
-    animateGridItems();
-
-    // Scroll event listener to trigger animations on scroll
-    window.addEventListener("scroll", animateGridItems);
+    window.addEventListener("scroll", function(){
+        animateGridItems(document.querySelector("#get_started_grid"), "y");
+        animateGridItems(document.querySelector("#report_grid"), "x");
+    });
 
 </script>
 
