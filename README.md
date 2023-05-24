@@ -14,13 +14,17 @@
 2. Run "git clone https://github.com/ajigarjian/Alchemy.git" in the root folder you'd like the project to be (make sure you're in your venv first!)
 3. Now, your root folder should have the venv, as well as the recently downloaded files from the Github repository. Run 'pip install -r requirements.txt' to automatically download all the dependenices you'll need for the project (requirements.txt should be at the highest directory of the repo you downloaded).
 
+## 3. Create .env file
 
-## Run the code and git push/pull
+1. In the AlchemyApp folder, create a file and name it ".env".
+2. In the ".env" file, write the line OPENAI_API_KEY='xxx', where 'xxx' is the API key (text/email me for it, it is too sensitive to share online)
 
-4. Move into the AlchemyProject folder and run 'python manage.py runserver & python manage.py tailwind start'. The command has the tailwind addendum because we are using the tailwind css framework.
-5. The code should now be running on your browser!Create a new branch to work on using the command "git checkout -b new-branch-name". Replace 'new-branch-name' with a descriptive name for your branch.
-6. Make the changes you want to make to the files in the repository.
-7. Stage your changes for commit using the command "git add ." or "git add file-name" to stage specific files.
-8. Commit your changes using the command "git commit -m "Your commit message"".
-9. Push your changes to the remote repository using the command "git push origin new-branch-name". Replace 'new-branch-name' with the name of the branch you created in step 6.
-10. Finally, go to the GitHub repository in your browser and create a pull request to merge your changes into the main branch. Your changes should now be successfully merged into the main branch of the repository.
+## 4. Run the code and git push/pull
+
+1. Move into the AlchemyProject folder and run 'python manage.py runserver & python manage.py tailwind start'. The command has the tailwind addendum because we are using the tailwind css framework.
+2. The code should now be running on your browser!Create a new branch to work on using the command "git checkout -b new-branch-name". Replace 'new-branch-name' with a descriptive name for your branch.
+3. Make the changes you want to make to the files in the repository.
+4. Stage your changes for commit using the command "git add ." or "git add file-name" to stage specific files.
+5. Commit your changes using the command "git commit -m "Your commit message"".
+6. Push your changes to the remote repository using the command "git push origin new-branch-name". Replace 'new-branch-name' with the name of the branch you created in step 6.
+7. Finally, go to the GitHub repository in your browser and create a pull request to merge your changes into the main branch. Your changes should now be successfully merged into the main branch of the repository.
