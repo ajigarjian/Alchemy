@@ -28,5 +28,8 @@ urlpatterns = [
     path('get_answer', views.get_answer, name='get_answer'),
     path("create_update_org", views.create_update_org, name="create_update_org"),
 
-    path("openAI", views.openAI, name="openAI") 
+    path("openAI", views.openAI, name="openAI"),
+
+    path("update_implementation_status", views.update_implementation_status, name="update_implementation_status"),
+    path("update_origination_status", views.update_origination_status, name="update_origination_status")
  ]

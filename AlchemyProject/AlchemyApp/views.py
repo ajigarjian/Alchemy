@@ -7,7 +7,7 @@ from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
 from django.contrib import messages #for register error message(s)
-from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation #for interacting with database
+from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation, ImplementationStatus, ControlOrigination #for interacting with database
 from .forms import OrganizationForm, SystemForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
@@ -153,7 +153,6 @@ def openAI(request):
 
 ####################################### Internal Application once logged in ##############################################
 
-
 @login_required
 def implementation(request, system, family):
 
@@ -163,6 +162,8 @@ def implementation(request, system, family):
     control_family = get_object_or_404(ControlFamily, family_name=family)
     controls = NISTControl.objects.filter(control_family=control_family)
     control_implementations = ControlImplementation.objects.filter(system=system_object, control__control_family=control_family)
+    implementation_choices = ImplementationStatus.objects.all()
+    origination_choices = ControlOrigination.objects.all()
 
 # Get all the questions for the given family, otherwise, just get all the questions
 
@@ -174,6 +175,8 @@ def implementation(request, system, family):
         "control_family": control_family,
         "controls": controls,
         "control_implementations": control_implementations,
+        "implementation_choices": implementation_choices,
+        "origination_choices": origination_choices,
         "control_families": control_families,
     })
 
@@ -205,29 +208,33 @@ def dashboard(request, client, system=None):
         return HttpResponseRedirect(reverse("alchemy:dashboard", args=[client]))
     
     else:
-
         if system is None:
             return render(request, "internal/dashboard.html", {
                 "client": client,
                 "systems": systems
             })
-
         else:
             selected_system = get_object_or_404(System, name=system, client__client_name=client)
+
             families = ControlFamily.objects.all().order_by('family_abbreviation').annotate(
                 completed_controls_count=Count('controlimplementation', filter=Q(controlimplementation__progress='Completed')),
-                implemented_controls_count=Count('controlimplementation', filter=Q(controlimplementation__status='Implemented')),
                 family_controls_count=Count('controlimplementation'),
                 last_updated=Max('controlimplementation__last_updated'),
             )
+            
+            # Using __ to make a lookup that spans relationship
+            total_not = ControlImplementation.objects.filter(system=selected_system, statuses__status='Not Implemented').count()
+            total_partial = ControlImplementation.objects.filter(system=selected_system, statuses__status='Partially Implemented').count()
+            total_implemented = ControlImplementation.objects.filter(system=selected_system, statuses__status='Implemented').count()
+
+            # For counting all the controls we count the implementations where status is one of the status choices
+            total_controls = ControlImplementation.objects.filter(
+                system=selected_system, 
+                statuses__status__in=ImplementationStatus.STATUS_CHOICES
+            ).count()
 
             total_completed_implementations = ControlImplementation.objects.filter(system=selected_system, progress='Completed').count()
-            total_not = ControlImplementation.objects.filter(system=selected_system, status='Not Implemented').count()
-            total_partial = ControlImplementation.objects.filter(system=selected_system, status='Partially Implemented').count()
-            total_implemented = ControlImplementation.objects.filter(system=selected_system, status='Implemented').count()
-            total_controls = ControlImplementation.objects.all().count()
 
-            # Add your code to display the selected system's dashboard
             return render(request, "internal/system_dashboard.html", {
                 "client": client,
                 "system": selected_system,
@@ -320,6 +327,62 @@ def create_update_org(request):
             response_data = {'success': False, 'errors': form.errors}
 
         return JsonResponse(response_data)
+
+@csrf_exempt
+@login_required
+def update_implementation_status(request):
+    if request.method == 'POST':
+        # Parse the JSON data from the body of the HTTP request
+        data = json.loads(request.body.decode('utf-8'))
+
+        # Get the ControlImplementation instance and ImplementationStatus instance
+        implementation = ControlImplementation.objects.get(id=data['implementation_id'])
+        status = ImplementationStatus.objects.get(id=data['choice_id'])
+
+        if data['is_checked']:
+            # Add the status to the implementation
+            implementation.statuses.add(status)
+        else:
+            # Remove the status from the implementation
+            implementation.statuses.remove(status)
+        
+        # Save the implementation
+        implementation.save()
+
+        # Return a successful response
+        return JsonResponse({'status': 'success'}, status=200)
+
+    else:
+        # Return an error response if the request method is not POST
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+@login_required
+def update_origination_status(request):
+    if request.method == 'POST':
+        # Parse the JSON data from the body of the HTTP request
+        data = json.loads(request.body.decode('utf-8'))
+
+        # Get the ControlImplementation instance and ImplementationStatus instance
+        implementation = ControlImplementation.objects.get(id=data['implementation_id'])
+        origination = ControlOrigination.objects.get(id=data['origination_id'])
+
+        if data['is_checked']:
+            # Add the status to the implementation
+            implementation.originations.add(origination)
+        else:
+            # Remove the status from the implementation
+            implementation.originations.remove(origination)
+        
+        # Save the implementation
+        implementation.save()
+
+        # Return a successful response
+        return JsonResponse({'status': 'success'}, status=200)
+
+    else:
+        # Return an error response if the request method is not POST
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 # Route to render the given family Q&A wizard. Pull the relevant questions
 def questions(request, control_family_name=None):
