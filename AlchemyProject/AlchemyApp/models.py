@@ -362,16 +362,25 @@ class NISTControl(models.Model):
         verbose_name = "NIST Control"
         verbose_name_plural = "NIST Controls"
 
-class ControlImplementation(models.Model):
 
-    IMPLEMENTATION_CHOICES = [
+class ImplementationStatus(models.Model):
+    STATUS_CHOICES = [
         ('Implemented', 'Implemented'),
         ('Partially Implemented', 'Partially Implemented'),
         ('Planned', 'Planned'),
         ('Alternative Implementation', 'Alternative Implementation'),
         ('Not Applicable', 'Not Applicable')
     ]
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES)
 
+    def __str__(self):
+        return self.status
+
+    class Meta:
+        verbose_name = "Implementation Status"
+        verbose_name_plural = "Implementation Statuses"
+
+class ControlOrigination(models.Model):
     ORIGINATION_CHOICES = [
         ('Service Provider Corporate', 'Service Provider Corporate'),
         ('Service Provider System Specific', 'Service Provider System Specific'),
@@ -381,6 +390,17 @@ class ControlImplementation(models.Model):
         ('Shared', 'Shared'),
         ('Inherited', 'Inherited')
     ]
+    
+    origination = models.CharField(max_length=50, choices=ORIGINATION_CHOICES)
+
+    def __str__(self):
+        return self.origination
+
+    class Meta:
+        verbose_name = "Control Origination"
+        verbose_name_plural = "Control Originations"
+
+class ControlImplementation(models.Model):
 
     PROGRESS_CHOICES = [
         ('Not Started', 'Not Started'),
@@ -392,8 +412,8 @@ class ControlImplementation(models.Model):
     control = models.ForeignKey('NISTControl', on_delete=models.CASCADE) #Linked control
     control_family = models.ForeignKey('ControlFamily', on_delete=models.CASCADE)
     responsible_role = models.CharField(max_length=255) #Owners of control
-    status = models.CharField(max_length=30, choices=IMPLEMENTATION_CHOICES, blank=True, null=True)
-    origination = models.CharField(max_length=50, choices=ORIGINATION_CHOICES, blank=True, null=True)
+    statuses = models.ManyToManyField(ImplementationStatus)
+    originations = models.ManyToManyField(ControlOrigination)
     statement = models.TextField(blank=True, null=True)  # Control Implementation description
     progress = models.CharField(max_length=30, choices=PROGRESS_CHOICES, blank=True, null=True, default='Not Started')
     last_updated = models.DateTimeField(auto_now=True)

@@ -9,7 +9,7 @@
             {% for family in control_families %}
             <li class="py-2">
                 <a href="{% url 'alchemy:implementation' system.name family.family_name %}" class="hover:text-blue-700 block {% if family == control_family %}text-blue-700 {%else%} text-gray-500 {% endif %}">
-                    <span class="text-sm">{{ family.family_name }}</span>
+                    <span class="text-sm">{{ family.family_abbreviation }}</span>
                 </a>
             </li>
             {% endfor %}
@@ -18,7 +18,7 @@
 
     <div id="wizard_container" class="py-8 flex flex-col items-center justify-center min-h-screen flex-grow">
     
-        <div id="family_header_box" class="overview_form min-w-100 md:w-192 bg-white p-10 rounded-lg shadow-lg mb-12">
+        <div id="family_header_box" class="overview_form w-4/5 xl:w-256 bg-white p-10 rounded-lg shadow-lg mb-12">
             
             <div id="family_header" class="text-center">
                 <h1 class="text-2xl sm:text-4xl font-black tracking-wide text-blue-600 mb-2">{{control_family}}</h1>
@@ -26,23 +26,39 @@
 
         </div>
 
-        <div id="controls_box" class="min-w-100 md:w-192 mb-12">
+        <div id="controls_box" class="w-4/5 xl:w-256 mb-12">
 
             {% for implementation in control_implementations %}
-            <div class="mb-12">
+            <div class="mb-48">
                 <div id="control_header">
                     <h1 class="text-2xl font-black tracking-wide text-blue-600 mb-2">{{implementation.control}} {{implementation.control.control_name }}</h1>
                 </div>
                 <div id="control_requirement">
-                    <h1 class="text text-blue-600 mb-2">{{implementation.control.control_description}}</h1>
+                    <div id="control_description-{{implementation.control.id}}" class="relative line-clamp-3 text-blue-600">
+                        <p>{{implementation.control.control_description}}</p>
+                        {% if implementation.control.control_description|length > 350 %}
+                            <div id="show-gradient" class="absolute bottom-0 left-0 right-0 h-12 show-more-gradient"></div>
+                        {% endif %}
+                    </div>
+
+                    {% if implementation.control.control_description|length > 350 %}
+                    <div class="flex justify-center mt-2">
+                        <button type="button" data-id="{{implementation.control.id}}" class="show-more-less-btn font-bold text-blue-700 hover:text-blue-800 transition-colors duration-300">
+                            Show more
+                        </button>
+                    </div>                    
+                    {% endif %}
+
                 </div>
 
-                <div id="control_guidance">
+
+
+                <div id="control_guidance" class="mt-4">
                     <div id="accordion-flush" data-accordion="open" data-active-classes="text-white bg-blue-500" data-inactive-classes="text-gray-500">
     
                         <div id="accordion-guidance-element-{{implementation.control.id}}">
                             <h2 id="accordion-guidance-heading-{{implementation.control.id}}">
-                                <button type="button" class="flex items-center justify-between border w-full px-4 py-2 rounded-t-lg font-medium text-left text-gray-500" data-accordion-target="#accordion-guidance-body-{{implementation.control.id}}" aria-expanded="false" aria-controls="accordion-guidance-body-{{implementation.control.id}}">
+                                <button type="button" class="flex items-center justify-between w-full px-4 py-2 rounded-t-lg font-medium text-left text-gray-500" data-accordion-target="#accordion-guidance-body-{{implementation.control.id}}" aria-expanded="false" aria-controls="accordion-guidance-body-{{implementation.control.id}}">
                                     <span class="text-xl font-bold transition-transform duration-200">Supplemental Guidance</span> 
                                     <i data-accordion-icon class="fas fa-chevron-down w-6 h-6 transition-transform duration-200"></i>
                                 </button>
@@ -56,7 +72,7 @@
                     
                         <div id="accordion-examples-element-{{implementation.control.id}}">
                             <h2 id="accordion-examples-heading-{{implementation.control.id}}">
-                                <button type="button" class="flex items-center justify-between border w-full px-4 py-2 font-medium text-left text-gray-500" data-accordion-target="#accordion-examples-body-{{implementation.control.id}}" aria-expanded="false" aria-controls="accordion-examples-body-{{implementation.control.id}}">
+                                <button type="button" class="flex items-center justify-between w-full px-4 py-2 font-medium text-left text-gray-500" data-accordion-target="#accordion-examples-body-{{implementation.control.id}}" aria-expanded="false" aria-controls="accordion-examples-body-{{implementation.control.id}}">
                                     <span class="text-xl font-bold transition-transform duration-200">Description Examples</span> 
                                     <i data-accordion-icon class="fas fa-chevron-down w-6 h-6 transition-transform duration-200"></i>
                                 </button>
@@ -78,18 +94,56 @@
                     </div>
                 </div>
 
-                <div id="control_examples">
-                </div>
-
                 <div id="control_solution">
                 </div>
 
                 <div id="control_status">
+                    <h2 class="text-xl font-bold text-gray-500 mt-4 mb-2">Implementation Status</h2> 
+
+                    <ul class="grid w-full gap-x-2 gap-y-2 grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
+                        {% for choice in implementation_choices %}
+                            <li>
+                                <input id="implementation-checkbox-{{implementation.id}}-{{choice.id}}" type="checkbox" value="{{choice.status}}" class="hidden" onchange="updateImplementationStatus(this, {{implementation.id}}, {{choice.id}})" required=""
+                                    {% for status in implementation.statuses.all %}
+                                        {% if status.id == choice.id %}
+                                            checked
+                                        {% endif %}
+                                    {% endfor %}>
+                                <label for="implementation-checkbox-{{implementation.id}}-{{choice.id}}" class="inline-flex items-center justify-between w-full px-2 py-1 text-gray-500 bg-white rounded cursor-pointer hover:text-white hover:bg-blue-700 transition duration-200">
+                                    <div class="block w-full text-center text-xs flex items-center justify-center">
+                                        {% if choice.status == "Alternative Implementation" %}
+                                            Alt. Implementation
+                                        {% else %}
+                                            {{choice.status}}
+                                        {% endif %}
+                                    </div>
+                                </label>
+                            </li>
+                         {% endfor %}
+                    </ul>
                 </div>
 
                 <div id="control_origination">
-                </div>
+                    <h2 class="text-xl font-bold text-gray-500 mt-4 mb-2">Control Origination</h2> 
 
+                    <ul class="grid w-full gap-x-2 gap-y-2 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {% for choice in origination_choices %}
+                            <li>
+                                <input id="origination-checkbox-{{implementation.id}}-{{choice.id}}" type="checkbox" value="{{choice.origination}}" class="hidden"  onchange="updateOriginationStatus(this, {{implementation.id}}, {{choice.id}})" required=""
+                                    {% for origination in implementation.originations.all %}
+                                        {% if origination.id == choice.id %}
+                                            checked
+                                        {% endif %}
+                                    {% endfor %}>
+                                <label for="origination-checkbox-{{implementation.id}}-{{choice.id}}" class="inline-flex items-center justify-between w-full px-2 py-1 text-gray-500 bg-white rounded cursor-pointer hover:text-white hover:bg-blue-700 transition duration-200">
+                                    <div class="block w-full text-center text-xs flex items-center justify-center">
+                                            {{choice.origination}}
+                                    </div>
+                                </label>
+                            </li>
+                         {% endfor %}
+                    </ul>
+                </div>
 
             </div>
 
@@ -100,6 +154,18 @@
         <button id ="scrollButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
             <i id="scrollIcon" class="fas fa-chevron-down"></i>
         </button>
+
+        <div id="toast-success" class="fixed transition opacity-0 duration-300 bottom-4 flex items-center w-24 max-w-s p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
+            <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 mr-2 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+                <i class="fas fa-check"></i>
+                <span class="sr-only">Check icon</span>
+            </div>
+            <div class="ml-3 text-sm font-normal">Item moved successfully.</div>
+            <button type="button" class="flex justify-center items-center ml-2 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-success" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
   
     </div>
 </div>
@@ -146,28 +212,114 @@
         }
     });
 
-    function openAICall(event) {
-        event.preventDefault();  // Prevent the form from submitting normally
-        var form = event.target;  // Get the form that was submitted
-        var controlDescription = form.getAttribute('data-description');  // Get the control description
-        var controlId = form.getAttribute('data-id');
-        const user_input = '';
+    // Functionality for show more/show less text expansion/compression and fade in/out
+    document.querySelectorAll('.show-more-less-btn').forEach((btn) => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const descriptionDiv = document.querySelector('#control_description-' + id);
+            const gradientDiv = descriptionDiv.querySelector('#show-gradient');
+            if (this.innerText === 'Show more') {
+                descriptionDiv.classList.remove('line-clamp-3');
+                this.innerText = 'Show less';
+                gradientDiv.classList.remove('show-more-gradient');
+            } else {
+                descriptionDiv.classList.add('line-clamp-3');
+                this.innerText = 'Show more';
+                gradientDiv.classList.add('show-more-gradient');
+            }
+        });
+    });
 
-        fetch ('/openAI', {
+    // functionality to show toast messages when user edit is successful
+    function showToast(message, duration = 4000) {
+        // Get the toast element
+        const toast = document.querySelector("#toast-success");
+
+        // Get the close button
+        const closeButton = toast.querySelector("button[data-dismiss-target='#toast-success']");
+
+        // Set the toast message
+        toast.querySelector(".text-sm").innerText = message;
+
+        // Show the toast
+        toast.classList.remove("opacity-0");
+
+         // Remove the "hidden" class if it's present
+            if (toast.classList.contains("hidden")) {
+                toast.classList.remove("hidden");
+            }
+
+        // Remove the toast after `duration` ms
+        let timeoutId = setTimeout(() => {
+            toast.classList.add("opacity-0");
+        }, duration);
+
+        // Cancel the auto-dismiss when the close button is clicked, and hide the toast
+        closeButton.onclick = () => {
+            console.log(toast.classList);
+            clearTimeout(timeoutId);
+            toast.classList.add("opacity-0");
+            console.log(toast.classList);
+        };
+    }
+
+    // functionality to allow user to update control's implementation status
+    function updateImplementationStatus(checkbox, implementationId, choiceId) {
+        const isChecked = checkbox.checked;
+
+        fetch ('/update_implementation_status', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                user_input: user_input,
-                //using placeholder AT-3 control language for now
-                control_language: controlDescription
+                implementation_id: implementationId,
+                choice_id: choiceId,
+                is_checked: isChecked,
             })
-        })    
+        })
 
         .then(response => response.json())
-        .then(result => {   
-            document.querySelector('#output-' + controlId).innerHTML = result.output;
+        .then(result => {
+            if (result.status === 'success') {
+                showToast('The implementation status was updated successfully.');
+            } else {
+                console.error('There was an error updating the implementation status:', result.error);
+            }
+        })
+        .catch(error => {
+            // Handle any errors that occurred while making the fetch request
+            console.error('There was an error making the fetch request:', error);
+        });
+    }
+
+    // functionality to allow user to update control's origination status
+    function updateOriginationStatus(checkbox, implementationId, originationId) {
+        const isChecked = checkbox.checked;
+
+        fetch ('/update_origination_status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                implementation_id: implementationId,
+                origination_id: originationId,
+                is_checked: isChecked,
+            })
+        })
+
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'success') {
+                showToast('The origination status was updated successfully.');
+            } else {
+                console.error('There was an error updating the origination status:', result.error);
+            }
+        })
+        .catch(error => {
+            // Handle any errors that occurred while making the fetch request
+            console.error('There was an error making the fetch request:', error);
         });
     }
 
