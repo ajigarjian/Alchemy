@@ -21,7 +21,7 @@ urlpatterns = [
    path("overview2/<str:system>", views.overview2, name="overview2"),
    path("questions/<str:control_family_name>", views.questions, name="questions"),
 
-   path("implementation/<str:system>/<str:family>", views.implementation, name="implementation"),
+   path("implementation/<str:system>", views.implementation, name="implementation"),
 
     #API Calls
     path("answer", views.answer, name="answer"),
@@ -31,5 +31,6 @@ urlpatterns = [
     path("openAI", views.openAI, name="openAI"),
 
     path("update_implementation_status", views.update_implementation_status, name="update_implementation_status"),
-    path("update_origination_status", views.update_origination_status, name="update_origination_status")
+    path("update_origination_status", views.update_origination_status, name="update_origination_status"),
+    path("update_responsible_role", views.update_responsible_role, name="update_responsible_role"),
  ]

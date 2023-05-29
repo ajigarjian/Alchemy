@@ -133,7 +133,7 @@
                 </thead>
                 <tbody>
                     {% for family in families %}
-                    <tr class="text-sm hover:bg-gray-100 hover:translate-y-0.5 hover:cursor-pointer transition-all duration-200" onclick="window.location=' {% url 'alchemy:implementation' system.name family.family_name %} ';">
+                    <tr class="text-sm hover:bg-gray-100 hover:translate-y-0.5 hover:cursor-pointer transition-all duration-200" onclick="window.location=' {% url 'alchemy:implementation' system.name %} ';">
 
                         <td class="py-2 pl-2">{{family.family_abbreviation}}</td>
                         <td class="py-2">{{family.family_name}}</td>

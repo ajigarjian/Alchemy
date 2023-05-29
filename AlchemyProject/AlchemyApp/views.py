@@ -7,12 +7,13 @@ from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
 from django.contrib import messages #for register error message(s)
-from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation, ImplementationStatus, ControlOrigination #for interacting with database
+from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation, ImplementationStatus, ControlOrigination, ResponsibleRole #for interacting with database
 from .forms import OrganizationForm, SystemForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required #to redirect user to login route if they try to access an app page past login
 from django.db.models import Count, Q, Max
+from django.db.models import Subquery
 
 import os, openai
 from dotenv import load_dotenv
@@ -154,16 +155,15 @@ def openAI(request):
 ####################################### Internal Application once logged in ##############################################
 
 @login_required
-def implementation(request, system, family):
+def implementation(request, system):
 
     client = request.user.client
     system_object = get_object_or_404(System, name=system, client=client)
-
-    control_family = get_object_or_404(ControlFamily, family_name=family)
-    controls = NISTControl.objects.filter(control_family=control_family)
-    control_implementations = ControlImplementation.objects.filter(system=system_object, control__control_family=control_family)
+    control_implementations = ControlImplementation.objects.filter(system=system_object)
     implementation_choices = ImplementationStatus.objects.all()
     origination_choices = ControlOrigination.objects.all()
+
+    roles = ResponsibleRole.objects.all().distinct()
 
 # Get all the questions for the given family, otherwise, just get all the questions
 
@@ -172,12 +172,11 @@ def implementation(request, system, family):
 
     return render(request, "internal/implementation.html", {
         "system": system_object,
-        "control_family": control_family,
-        "controls": controls,
         "control_implementations": control_implementations,
         "implementation_choices": implementation_choices,
         "origination_choices": origination_choices,
         "control_families": control_families,
+        "roles": roles,
     })
 
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
@@ -373,6 +372,31 @@ def update_origination_status(request):
         else:
             # Remove the status from the implementation
             implementation.originations.remove(origination)
+        
+        # Save the implementation
+        implementation.save()
+
+        # Return a successful response
+        return JsonResponse({'status': 'success'}, status=200)
+
+    else:
+        # Return an error response if the request method is not POST
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+@login_required
+def update_responsible_role(request):
+    if request.method == 'POST':
+        # Parse the JSON data from the body of the HTTP request
+        data = json.loads(request.body.decode('utf-8'))
+
+        # Get the ControlImplementation instance and ImplementationStatus instance
+        implementation = ControlImplementation.objects.get(id=data['implementation_id'])
+        responsible_role = ResponsibleRole.objects.get(id=data['role_id'])
+
+        if data['is_checked']:
+            # Add the status to the implementation
+            implementation.responsible_role = responsible_role
         
         # Save the implementation
         implementation.save()

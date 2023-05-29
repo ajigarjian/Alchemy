@@ -400,6 +400,17 @@ class ControlOrigination(models.Model):
         verbose_name = "Control Origination"
         verbose_name_plural = "Control Originations"
 
+class ResponsibleRole(models.Model):
+    
+    responsible_role = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.responsible_role
+
+    class Meta:
+        verbose_name = "Responsible Role"
+        verbose_name_plural = "Responsible Roles"
+
 class ControlImplementation(models.Model):
 
     PROGRESS_CHOICES = [
@@ -411,7 +422,7 @@ class ControlImplementation(models.Model):
     system = models.ForeignKey('System', on_delete=models.CASCADE)
     control = models.ForeignKey('NISTControl', on_delete=models.CASCADE) #Linked control
     control_family = models.ForeignKey('ControlFamily', on_delete=models.CASCADE)
-    responsible_role = models.CharField(max_length=255) #Owners of control
+    responsible_role = models.ForeignKey('ResponsibleRole', blank=True, null=True, on_delete=models.CASCADE)
     statuses = models.ManyToManyField(ImplementationStatus)
     originations = models.ManyToManyField(ControlOrigination)
     statement = models.TextField(blank=True, null=True)  # Control Implementation description
