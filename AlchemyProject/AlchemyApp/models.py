@@ -343,6 +343,19 @@ class ControlFamily(models.Model):
     def __str__(self):
         return f"{self.family_name}"
 
+class NISTControlPart(models.Model):
+    control = models.ForeignKey('NISTControl', related_name='parts', on_delete=models.CASCADE)
+    part_letter = models.CharField(max_length=1)
+    part_description = models.TextField()
+
+    class Meta:
+        verbose_name = "NIST Control Part"
+        verbose_name_plural = "NIST Control Parts"
+
+    def __str__(self):
+        return f'{self.control}: {self.part_letter} - {self.part_description}'
+
+
 class NISTControl(models.Model):
     control_name = models.CharField(max_length=255) #Control Name
     control_family = models.ForeignKey('AlchemyApp.ControlFamily', on_delete=models.CASCADE) #Control Family  
@@ -361,7 +374,6 @@ class NISTControl(models.Model):
     class Meta:
         verbose_name = "NIST Control"
         verbose_name_plural = "NIST Controls"
-
 
 class ImplementationStatus(models.Model):
     STATUS_CHOICES = [
@@ -422,7 +434,7 @@ class ControlImplementation(models.Model):
     system = models.ForeignKey('System', on_delete=models.CASCADE)
     control = models.ForeignKey('NISTControl', on_delete=models.CASCADE) #Linked control
     control_family = models.ForeignKey('ControlFamily', on_delete=models.CASCADE)
-    responsible_role = models.ForeignKey('ResponsibleRole', blank=True, null=True, on_delete=models.CASCADE)
+    responsible_role = models.ForeignKey('ResponsibleRole', blank=True, null=True, on_delete=models.RESTRICT)
     statuses = models.ManyToManyField(ImplementationStatus)
     originations = models.ManyToManyField(ControlOrigination)
     statement = models.TextField(blank=True, null=True)  # Control Implementation description
@@ -431,7 +443,7 @@ class ControlImplementation(models.Model):
 
     # Making combination of client and name unique so that a given system cannot have two control implementations with the same control
     class Meta:
-        unique_together = ('control', 'system') 
+        unique_together = ('control', 'system')
     
     def __str__(self):
         return str(str(self.system) + ": " + str(self.control))

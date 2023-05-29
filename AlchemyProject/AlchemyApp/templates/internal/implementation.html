@@ -16,10 +16,10 @@
         </ul>
     </div> -->
 
-    <div id="wizard_container" class="py-8 flex flex-col items-center justify-center min-h-screen flex-grow">
+    <div id="wizard_container" class="py-8 px-6 flex flex-col items-center justify-center min-h-screen flex-grow">
 
         {% for family in control_families %}
-            <div class="family w-4/5 xl:w-256 mb-12">
+            <div class="family mb-12">
                 <h1 class="text-2xl sm:text-4xl font-black tracking-wide text-blue-600 mb-2">{{ family.family_name }}</h1>
                 {% for implementation in control_implementations %}
                     {% if implementation.control.control_family == family %}
@@ -44,14 +44,58 @@
                             
                                 <!-- Dropdown menu -->
                                 <div id="owner-dropdown-helper-{{implementation.id}}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-48 dark:bg-gray-700 dark:divide-gray-600">
-                                    <ul class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="owner-dropdown-button-{{implementation.id}}">
+                                    <ul class="max-h-48 p-2 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="owner-dropdown-button-{{implementation.id}}">
                                         {% for role in roles %}
                                             {% if role != None %}
-                                                <li>
+                                                <li class="p-2">
                                                     <input id="role_radio-{{implementation.id}}-{{role.id}}" name="helper-radio-{{implementation.id}}" type="radio" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" {% if implementation.responsible_role.id == role.id %}checked{% endif %} onchange="updateResponsibleRole(this, {{implementation.id}}, {{role.id}})">
-                                                    <label for="role_radio-{{implementation.id}}-{{role.id}}" class="font-medium text-gray-900 dark:text-gray-300 team-option">{{role}}</label>
+                                                    <label for="role_radio-{{implementation.id}}-{{role.id}}" class="font-medium ml-2 dark:text-gray-300 team-option">{{role}}</label>
                                                 </li>
                                             {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                    <div class="flex items-center p-3 text-sm font-medium text-blue-600 border-t border-gray-200 rounded-b-lg bg-gray-50 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-blue-500">
+                                        <i class="mr-2 fa-solid fa-plus hover:cursor-pointer" onclick="addRole({{implementation.id}})"></i>
+                                        <div>
+                                            <input type="text" id="add_role_input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Add new role">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="control_status2">
+                                <button id="status-dropdown-button-{{implementation.id}}" data-dropdown-toggle="status-dropdown-helper-{{implementation.id}}" class="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200" type="button">
+                                    <span class="button-text">
+                                        {% with statuses=implementation.statuses.all %}
+                                            {% if statuses %}
+                                                {{ statuses|join:", " }}
+                                            {% else %}
+                                                Implementation Status
+                                            {% endif %}
+                                        {% endwith %}
+                                    </span>
+                                    <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                            
+                                <!-- Dropdown menu -->
+                                <div id="status-dropdown-helper-{{implementation.id}}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
+                                    <ul class="px-4 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="status-dropdown-button-{{implementation.id}}">
+                                        {% for choice in implementation_choices %}
+                                            <li class="my-2">
+                                                <input id="implementation-checkbox-{{implementation.id}}-{{choice.id}}" type="checkbox" value="{{choice.status}}" class="hidden" onchange="updateImplementationStatus(this, {{implementation.id}}, {{choice.id}})" required=""
+                                                    {% for status in implementation.statuses.all %}
+                                                        {% if status.id == choice.id %}
+                                                            checked
+                                                        {% endif %}
+                                                    {% endfor %}>
+                                                <label for="implementation-checkbox-{{implementation.id}}-{{choice.id}}" class="inline-flex items-center justify-between relative p-1 text-gray-500 bg-white rounded cursor-pointer hover:text-white hover:bg-blue-700 transition duration-200">
+                                                    <div class="block w-full text-center text-xs flex items-center justify-center">
+                                                        {{choice.status}}
+                                                    </div>
+                                                </label>
+                                            </li>
                                         {% endfor %}
                                     </ul>
                                 </div>
@@ -59,20 +103,29 @@
                         </div>
 
                         <div id="control_requirement">
-                            <div id="control_description-{{implementation.control.id}}" class="relative line-clamp-3 text-blue-600">
+                            <div id="control_description-{{implementation.control.id}}" class="relative line-clamp-3 text-blue-600 mb-2">
                                 <p>{{implementation.control.control_description}}</p>
-                                {% if implementation.control.control_description|length > 350 %}
-                                    <div id="show-gradient" class="absolute bottom-0 left-0 right-0 h-12 show-more-gradient"></div>
-                                {% endif %}
                             </div>
-        
-                            {% if implementation.control.control_description|length > 350 %}
-                            <div class="flex justify-center mt-2">
-                                <button type="button" data-id="{{implementation.control.id}}" class="show-more-less-btn font-bold text-blue-700 hover:text-blue-800 transition-colors duration-300">
-                                    Show more
-                                </button>
-                            </div>                    
-                            {% endif %}
+                    
+                            {% for part in implementation.control.parts.all %}
+                                <div id="control_part_description-{{part.id}}" class="flex text-blue-600 mb-2">
+                                   <span class="mr-2 font-black tracking-wide text-blue-600">{{part.part_letter}}. </span><p>{{part.part_description}}</p>
+                                </div>
+                            {% endfor %}                   
+                        </div>
+
+                        <div id="control_statements mt-4 w-full">
+                            {% for part in implementation.control.parts.all %}
+                                <div class="mt-5">
+                                    <label for="question-answer" class="block mb-2 text-sm font-medium opacity-70">Part {{part.part_letter}}</label>
+                                    <textarea rows="4" class="question-answer block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Write your answer here..."></textarea>    
+                                </div>
+                            {% empty %}
+                            <div class="mt-5">
+                                <label for="question-answer" class="block mb-2 text-sm font-medium opacity-70">Control Statement</label>
+                                <textarea rows="4" class="question-answer block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Write your answer here..."></textarea>    
+                            </div>
+                            {% endfor %}
                         </div>
         
                         <div id="control_guidance" class="mt-4">
@@ -134,7 +187,7 @@
                                             </div>
                                         </label>
                                     </li>
-                                    {% endfor %}
+                                {% endfor %}
                             </ul>
                         </div>
         
@@ -363,6 +416,72 @@
             // Handle any errors that occurred while making the fetch request
             console.error('There was an error making the fetch request:', error);
         });
+    }
+
+    // functionality to allow user to add a responsible role to the overall list in the database
+    function addRole(implementationId) {
+
+        input = document.getElementById('add_role_input')
+        role_name = input.value;
+
+        if (role_name.length > 0) {
+            fetch ('/add_role', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    role_name: role_name,
+                })
+            })
+
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    showToast('The responsible role was successfully added.');
+
+                    // update the dropdown with the new role
+                    const ul = document.querySelector(`#owner-dropdown-helper-${implementationId} ul`);
+                    const newLi = document.createElement('li');
+                    const newInput = document.createElement('input');
+                    const newLabel = document.createElement('label');
+
+                    newInput.id = `role_radio-${implementationId}-${result.role_id}`;
+                    newInput.name = `helper-radio-${implementationId}`;
+                    newInput.type = 'radio';
+                    newInput.classList = 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500';
+                    newInput.checked = true;
+                    newInput.onchange = () => updateResponsibleRole(newInput, implementationId, result.role_id);
+
+                    newLabel.htmlFor = `role_radio-${implementationId}-${result.role_id}`;
+                    newLabel.classList = 'font-medium text-gray-900 dark:text-gray-300 team-option';
+                    newLabel.textContent = result.role_name;
+
+                    newLi.appendChild(newInput);
+                    newLi.appendChild(newLabel);
+                    ul.appendChild(newLi);
+
+                    // update the button text
+                    const buttonText = document.querySelector(`#owner-dropdown-button-${implementationId} .button-text`);
+                    buttonText.textContent = result.role_name;
+
+                    // Add an event listener to the new radio button
+                    newLi.addEventListener('change', () => {
+                        buttonText.textContent = result.role_name;
+                    });
+
+                    // clear the input
+                    input.value = '';
+                } else {
+                    console.error('There was an error adding the responsible role:', result.error);
+                }
+            })
+
+            .catch(error => {
+                // Handle any errors that occurred while making the fetch request
+                console.error('There was an error making the fetch request:', error);
+            });
+        }
     }
 
     window.addEventListener('DOMContentLoaded', (event) => {

@@ -7,7 +7,7 @@ from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
 from django.contrib import messages #for register error message(s)
-from .models import CustomUser, Client, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation, ImplementationStatus, ControlOrigination, ResponsibleRole #for interacting with database
+from .models import CustomUser, Client, NISTControl, NISTControlPart, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation, ImplementationStatus, ControlOrigination, ResponsibleRole #for interacting with database
 from .forms import OrganizationForm, SystemForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
@@ -159,7 +159,7 @@ def implementation(request, system):
 
     client = request.user.client
     system_object = get_object_or_404(System, name=system, client=client)
-    control_implementations = ControlImplementation.objects.filter(system=system_object)
+    control_implementations = ControlImplementation.objects.filter(system=system_object).order_by('control')
     implementation_choices = ImplementationStatus.objects.all()
     origination_choices = ControlOrigination.objects.all()
 
@@ -407,6 +407,20 @@ def update_responsible_role(request):
     else:
         # Return an error response if the request method is not POST
         return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+@login_required
+def add_role(request):
+    if request.method == 'POST':
+        # Parse the JSON data from the body of the HTTP request
+        data = json.loads(request.body.decode('utf-8'))
+
+        new_role_name = data['role_name']
+        if new_role_name:
+            role = ResponsibleRole(responsible_role=new_role_name)  # update with actual logic to add a role
+            role.save()
+            return JsonResponse({'status': 'success', 'role_id': role.id, 'role_name': role.responsible_role})
+    return JsonResponse({'status': 'error'}, status=400)
 
 # Route to render the given family Q&A wizard. Pull the relevant questions
 def questions(request, control_family_name=None):

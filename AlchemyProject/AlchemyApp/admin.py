@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db import connection
-from .models import CustomUser, Client, System, NISTControl, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, ControlImplementation, ImplementationStatus, ControlOrigination, ResponsibleRole
+from .models import CustomUser, Client, System, NISTControl, NISTControlPart, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, ControlImplementation, ImplementationStatus, ControlOrigination, ResponsibleRole
 
 def delete_selected_custom_users(modeladmin, request, queryset):
     for custom_user in queryset:
@@ -25,6 +25,7 @@ admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Client)
 admin.site.register(System)
 admin.site.register(NISTControl)
+admin.site.register(NISTControlPart)
 admin.site.register(ControlFamily)
 admin.site.register(Question)
 admin.site.register(Answer)
