@@ -4,6 +4,8 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from .managers import CustomUserManager
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 
@@ -353,8 +355,7 @@ class NISTControlPart(models.Model):
         verbose_name_plural = "NIST Control Parts"
 
     def __str__(self):
-        return f'{self.control}: {self.part_letter} - {self.part_description}'
-
+        return f'{self.control}: {self.part_letter}'
 
 class NISTControl(models.Model):
     control_name = models.CharField(max_length=255) #Control Name
@@ -374,6 +375,18 @@ class NISTControl(models.Model):
     class Meta:
         verbose_name = "NIST Control"
         verbose_name_plural = "NIST Controls"
+
+class ControlImplementationStatement(models.Model):
+    control_implementation = models.ForeignKey('AlchemyApp.ControlImplementation', related_name='control_statement_parts', on_delete=models.CASCADE)
+    control_part = models.ForeignKey('NISTControlPart', on_delete=models.CASCADE)
+    statement = models.TextField(blank=True, null=True)  # Control Part Implementation description
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('control_implementation', 'control_part')
+
+    def __str__(self):
+        return f'{self.control_implementation.system}: {self.control_part.control}.{self.control_part.part_letter} - {self.statement}'
 
 class ImplementationStatus(models.Model):
     STATUS_CHOICES = [
@@ -437,7 +450,7 @@ class ControlImplementation(models.Model):
     responsible_role = models.ForeignKey('ResponsibleRole', blank=True, null=True, on_delete=models.RESTRICT)
     statuses = models.ManyToManyField(ImplementationStatus)
     originations = models.ManyToManyField(ControlOrigination)
-    statement = models.TextField(blank=True, null=True)  # Control Implementation description
+    statement = models.TextField(blank=True, null=True)
     progress = models.CharField(max_length=30, choices=PROGRESS_CHOICES, blank=True, null=True, default='Not Started')
     last_updated = models.DateTimeField(auto_now=True)
 
@@ -447,6 +460,16 @@ class ControlImplementation(models.Model):
     
     def __str__(self):
         return str(str(self.system) + ": " + str(self.control))
+
+    def save(self, *args, **kwargs):
+        # if this is a new instance, the ID field will not be set
+        is_new = self.id is None
+
+        super().save(*args, **kwargs)  # Call the "real" save() method.
+
+        if is_new:  # if this is a new instance
+            for part in self.control.parts.all():
+                ControlImplementationStatement.objects.create(control_implementation=self, control_part=part)
 
 class Question(models.Model):
 

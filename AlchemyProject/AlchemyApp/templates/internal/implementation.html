@@ -16,88 +16,126 @@
         </ul>
     </div> -->
 
-    <div id="wizard_container" class="py-8 px-6 flex flex-col items-center justify-center min-h-screen flex-grow">
+    <div id="wizard_container" class="py-8 px-24 flex flex-col items-center justify-center min-h-screen flex-grow">
 
         {% for family in control_families %}
-            <div class="family mb-12">
-                <h1 class="text-2xl sm:text-4xl font-black tracking-wide text-blue-600 mb-2">{{ family.family_name }}</h1>
+            <div class="family mb-4">
+                <h1 class="text-2xl sm:text-4xl font-black tracking-wide text-blue-600 mb-6">{{ family.family_name }}</h1>
                 {% for implementation in control_implementations %}
                     {% if implementation.control.control_family == family %}
-                    <div class="control mb-48" data-id="{{implementation.id}}">
+                    <div class="control mb-12 border-2 p-4 rounded-lg" data-id="{{implementation.id}}">
                         <div id="control_header" class="flex justify-between items-center mb-6">
                             
-                            <h1 class="text-xl sm:text-2xl font-black tracking-wide text-blue-600">{{implementation.control}} {{implementation.control.control_name }}</h1>
+                            <h1 class="text-xl sm:text-2xl flex-grow mr-2 font-black tracking-wide text-blue-600 overflow-x-auto whitespace-nowrap">{{implementation.control}} | {{implementation.control.control_name }}</h1>
 
-                            <div id="control_owner">
-                                <button id="owner-dropdown-button-{{implementation.id}}" data-dropdown-toggle="owner-dropdown-helper-{{implementation.id}}" class="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200" type="button">
-                                    <span class="button-text">
-                                        {% if implementation.responsible_role %}
-                                            {{implementation.responsible_role}}
-                                        {% else %}
-                                            Responsible Role
-                                        {% endif %}
-                                    </span>
-                                    <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                            
-                                <!-- Dropdown menu -->
-                                <div id="owner-dropdown-helper-{{implementation.id}}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-48 dark:bg-gray-700 dark:divide-gray-600">
-                                    <ul class="max-h-48 p-2 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="owner-dropdown-button-{{implementation.id}}">
-                                        {% for role in roles %}
-                                            {% if role != None %}
+                            <div id="control_context" class="flex">
+                                <div id="control_owner" class="mr-2">
+                                    <button id="owner-dropdown-button-{{implementation.id}}" data-dropdown-toggle="owner-dropdown-helper-{{implementation.id}}" class="{% if implementation.responsible_role %} text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200" type="button">
+                                        <span class="button-text">
+                                            {% if implementation.responsible_role %}
+                                                {{implementation.responsible_role}}
+                                            {% else %}
+                                                Responsible Role
+                                            {% endif %}
+                                        </span>
+                                        <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                
+                                    <!-- Dropdown menu -->
+                                    <div id="owner-dropdown-helper-{{implementation.id}}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-48 dark:bg-gray-700 dark:divide-gray-600">
+                                        <ul class="max-h-48 p-2 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="owner-dropdown-button-{{implementation.id}}">
+                                            {% for role in roles %}
                                                 <li class="p-2">
                                                     <input id="role_radio-{{implementation.id}}-{{role.id}}" name="helper-radio-{{implementation.id}}" type="radio" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" {% if implementation.responsible_role.id == role.id %}checked{% endif %} onchange="updateResponsibleRole(this, {{implementation.id}}, {{role.id}})">
                                                     <label for="role_radio-{{implementation.id}}-{{role.id}}" class="font-medium ml-2 dark:text-gray-300 team-option">{{role}}</label>
                                                 </li>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </ul>
-                                    <div class="flex items-center p-3 text-sm font-medium text-blue-600 border-t border-gray-200 rounded-b-lg bg-gray-50 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-blue-500">
-                                        <i class="mr-2 fa-solid fa-plus hover:cursor-pointer" onclick="addRole({{implementation.id}})"></i>
-                                        <div>
-                                            <input type="text" id="add_role_input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Add new role">
+                                            {% endfor %}
+                                        </ul>
+                                        <div class="flex items-center p-3 text-sm font-medium text-blue-600 border-t border-gray-200 rounded-b-lg bg-gray-50 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-blue-500">
+                                            <i class="mr-2 fa-solid fa-plus hover:cursor-pointer" onclick="addRole({{implementation.id}})"></i>
+                                            <div>
+                                                <input type="text" id="add_role_input" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Add new role">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div id="control_status2">
-                                <button id="status-dropdown-button-{{implementation.id}}" data-dropdown-toggle="status-dropdown-helper-{{implementation.id}}" class="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200" type="button">
-                                    <span class="button-text">
-                                        {% with statuses=implementation.statuses.all %}
-                                            {% if statuses %}
-                                                {{ statuses|join:", " }}
-                                            {% else %}
-                                                Implementation Status
-                                            {% endif %}
-                                        {% endwith %}
-                                    </span>
-                                    <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                            
-                                <!-- Dropdown menu -->
-                                <div id="status-dropdown-helper-{{implementation.id}}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
-                                    <ul class="px-4 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="status-dropdown-button-{{implementation.id}}">
-                                        {% for choice in implementation_choices %}
-                                            <li class="my-2">
-                                                <input id="implementation-checkbox-{{implementation.id}}-{{choice.id}}" type="checkbox" value="{{choice.status}}" class="hidden" onchange="updateImplementationStatus(this, {{implementation.id}}, {{choice.id}})" required=""
-                                                    {% for status in implementation.statuses.all %}
-                                                        {% if status.id == choice.id %}
-                                                            checked
-                                                        {% endif %}
-                                                    {% endfor %}>
-                                                <label for="implementation-checkbox-{{implementation.id}}-{{choice.id}}" class="inline-flex items-center justify-between relative p-1 text-gray-500 bg-white rounded cursor-pointer hover:text-white hover:bg-blue-700 transition duration-200">
-                                                    <div class="block w-full text-center text-xs flex items-center justify-center">
-                                                        {{choice.status}}
-                                                    </div>
-                                                </label>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
+                                <div id="control_status" class="mr-2">
+                                    <button id="status-dropdown-button-{{implementation.id}}" data-dropdown-toggle="status-dropdown-helper-{{implementation.id}}" class="{% with statuses=implementation.statuses.all %}{% if statuses %}text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} {% endwith %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200 max-w-sm overflow-x-auto text-ellipsis whitespace-nowrap" type="button">
+                                        <span class="button-text">
+                                            {% with statuses=implementation.statuses.all %}
+                                                {% if statuses %}
+                                                    {{ statuses|join:", " }}
+                                                {% else %}
+                                                    Implementation Status
+                                                {% endif %}
+                                            {% endwith %}
+                                        </span>
+                                        <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                
+                                    <!-- Dropdown menu -->
+                                    <div id="status-dropdown-helper-{{implementation.id}}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
+                                        <ul class="px-4 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="status-dropdown-button-{{implementation.id}}">
+                                            {% for choice in implementation_choices %}
+                                                <li class="my-2">
+                                                    <input id="implementation-checkbox-{{implementation.id}}-{{choice.id}}" type="checkbox" value="{{choice.status}}" class="hidden" onchange="updateImplementationStatus(this, {{implementation.id}}, {{choice.id}})" required=""
+                                                        {% for status in implementation.statuses.all %}
+                                                            {% if status.id == choice.id %}
+                                                                checked
+                                                            {% endif %}
+                                                        {% endfor %}>
+                                                    <label for="implementation-checkbox-{{implementation.id}}-{{choice.id}}" class="inline-flex items-center justify-between relative p-1 text-gray-500 bg-white rounded cursor-pointer hover:text-white hover:bg-blue-700 transition duration-200">
+                                                        <div class="block w-full text-center text-xs flex items-center justify-center">
+                                                            {{choice.status}}
+                                                        </div>
+                                                    </label>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div id="control_origination">
+                                    <button id="origination-dropdown-button-{{implementation.id}}" data-dropdown-toggle="origination-dropdown-helper-{{implementation.id}}" class="{% with originations=implementation.originations.all %}{% if originations %}text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} {% endwith %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200 max-w-md overflow-x-auto text-ellipsis whitespace-nowrap" type="button">
+                                        <span class="button-text">
+                                            {% with originations=implementation.originations.all %}
+                                                {% if originations %}
+                                                    {{ originations|join:", " }}
+                                                {% else %}
+                                                    Control Origination
+                                                {% endif %}
+                                            {% endwith %}
+                                        </span>
+                                        <svg class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                
+                                    <!-- Dropdown menu -->
+                                    <div id="origination-dropdown-helper-{{implementation.id}}" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
+                                        <ul class="px-4 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="origination-dropdown-button-{{implementation.id}}">
+                                            {% for choice in origination_choices %}
+                                                <li class="my-2">
+                                                    <input id="origination-checkbox-{{implementation.id}}-{{choice.id}}" type="checkbox" value="{{choice.origination}}" class="hidden" onchange="updateOriginationStatus(this, {{implementation.id}}, {{choice.id}})" required=""
+                                                        {% for origination in implementation.originations.all %}
+                                                            {% if origination.id == choice.id %}
+                                                                checked
+                                                            {% endif %}
+                                                        {% endfor %}>
+                                                    <label for="origination-checkbox-{{implementation.id}}-{{choice.id}}" class="inline-flex items-center justify-between relative p-1 text-gray-500 bg-white rounded cursor-pointer hover:text-white hover:bg-blue-700 transition duration-200">
+                                                        <div class="block w-full text-center text-xs flex items-center justify-center">
+                                                            {{choice.origination}}
+                                                        </div>
+                                                    </label>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -113,19 +151,72 @@
                                 </div>
                             {% endfor %}                   
                         </div>
-
-                        <div id="control_statements mt-4 w-full">
+                         
+                        <div id="control_statements" class="mt-6">
                             {% for part in implementation.control.parts.all %}
-                                <div class="mt-5">
-                                    <label for="question-answer" class="block mb-2 text-sm font-medium opacity-70">Part {{part.part_letter}}</label>
-                                    <textarea rows="4" class="question-answer block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Write your answer here..."></textarea>    
+                            <div id="statement-{{part}}" class="w-full mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                                <div class="flex items-center justify-between px-3 py-2 border-b dark:border-gray-600">
+                                    <div class="flex flex-wrap items-center dark:divide-gray-600">
+                                        
+                                        <div class="flex items-center space-x-1 sm:pr-4">
+                                            <label for="question-answer" class="mr-2 font-black tracking-wide text-gray-500">{{part.part_letter}}.</label>
+
+                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" data-id="{{implementation.control.id}}" onclick="openAICall(event, {{implementation.control.id}}, {{system.id}}, '{{implementation.control.control_description|escapejs}}', '{{part.part_description|escapejs}}', {{part.id}})">
+                                                <i class="fa-solid fa-wand-magic-sparkles w-5 h-5"></i>
+                                                <span class="sr-only">Generate AI Text</span>
+                                            </button>
+
+                                            <button class="flex ml-auto p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
+                                                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                                </svg>
+                                                <span class="sr-only">Copy text</span>
+                                            </button>
+                                        </div>
+                                        
+                                    </div>
+                                    
                                 </div>
+    
+                                <div class="px-4 py-2 bg-white rounded-b-lg dark:bg-gray-800">
+                                    <textarea id="statement-text-{{part.id}}" rows="4" class="question-answer block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="Write your statement here..."></textarea>
+                                </div>
+                            </div>
                             {% empty %}
-                            <div class="mt-5">
-                                <label for="question-answer" class="block mb-2 text-sm font-medium opacity-70">Control Statement</label>
-                                <textarea rows="4" class="question-answer block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Write your answer here..."></textarea>    
+                            <div id="statement-general" class="w-full mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                                <div class="flex items-center justify-between px-3 py-2 border-b dark:border-gray-600">
+                                    <div class="flex flex-wrap items-center dark:divide-gray-600">
+                                        
+                                        <div class="flex items-center space-x-1 sm:pr-4">
+
+                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
+                                                <i class="fa-solid fa-wand-magic-sparkles w-5 h-5"></i>
+                                                <span class="sr-only">Generate AI Text</span>
+                                            </button>
+
+                                            <button class="flex ml-auto p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
+                                                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                                                </svg>
+                                                <span class="sr-only">Copy text</span>
+                                            </button>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                </div>
+    
+                                <div class="px-4 py-2 bg-white rounded-b-lg dark:bg-gray-800">
+                                    <textarea id="statement-text-general" rows="4" class="question-answer block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="Write your statement here..."></textarea>
+                                </div>
                             </div>
                             {% endfor %}
+
+                            <button class="mt-4 inline-flex items-center px-5 py-2.5 font-medium text-center text-white bg-blue-500 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-700 transition duration-200" onclick="updateImplementationDescription(this, {{implementation.id}})">
+                                Save
+                            </button>
                         </div>
         
                         <div id="control_guidance" class="mt-4">
@@ -144,73 +235,7 @@
                                         </div>
                                       </div>
                                 </div>
-                            
-                                <div id="accordion-examples-element-{{implementation.control.id}}">
-                                    <h2 id="accordion-examples-heading-{{implementation.control.id}}">
-                                        <button type="button" class="flex items-center justify-between w-full px-4 py-2 font-medium text-left text-gray-500" data-accordion-target="#accordion-examples-body-{{implementation.control.id}}" aria-expanded="false" aria-controls="accordion-examples-body-{{implementation.control.id}}">
-                                            <span class="text-xl font-bold transition-transform duration-200">Description Examples</span> 
-                                            <i data-accordion-icon class="fas fa-chevron-down w-6 h-6 transition-transform duration-200"></i>
-                                        </button>
-                                      </h2>
-                                      <div id="accordion-examples-body-{{implementation.control.id}}" class="px-4 mt-2 hidden" aria-labelledby="accordion-examples-heading-{{implementation.control.id}}">
-                                        <div class="px-8 py-6 ">
-                                            <p id="output-{{implementation.control.id}}" class="mb-2 text-gray-500">Refresh the Generate button to view sample language!</p>
-                                        
-                                            <form id="openai-form" data-id="{{implementation.control.id}}" data-description="{{implementation.control.control_description}}" onsubmit="openAICall(event)">
-                                                <button type="submit" class="m-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                                    Generate
-                                                </button>
-                                            </form>
-                                        </div>
-                                        
-                                      </div>
-                                </div>
-                            
                             </div>
-                        </div>
-                        
-                        <div id="control_status" class="mt-4 w-full">
-                            <h2 class="text-xl font-bold text-gray-500 mt-4 mb-2">Implementation Status</h2> 
-        
-                            <ul class="flex">
-                                {% for choice in implementation_choices %}
-                                    <li class="mx-1">
-                                        <input id="implementation-checkbox-{{implementation.id}}-{{choice.id}}" type="checkbox" value="{{choice.status}}" class="hidden" onchange="updateImplementationStatus(this, {{implementation.id}}, {{choice.id}})" required=""
-                                            {% for status in implementation.statuses.all %}
-                                                {% if status.id == choice.id %}
-                                                    checked
-                                                {% endif %}
-                                            {% endfor %}>
-                                        <label for="implementation-checkbox-{{implementation.id}}-{{choice.id}}" class="inline-flex items-center justify-between relative p-2 text-gray-500 bg-white rounded cursor-pointer hover:text-white hover:bg-blue-700 transition duration-200">
-                                            <div class="block w-full text-center text-xs flex items-center justify-center">
-                                                {{choice.status}}
-                                            </div>
-                                        </label>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-        
-                        <div id="control_origination" class="w-full">
-                            <h2 class="text-xl font-bold text-gray-500 mt-4 mb-2">Control Origination</h2> 
-        
-                            <ul class="flex">
-                                {% for choice in origination_choices %}
-                                    <li class="mx-1">
-                                        <input id="origination-checkbox-{{implementation.id}}-{{choice.id}}" type="checkbox" value="{{choice.origination}}" class="hidden"  onchange="updateOriginationStatus(this, {{implementation.id}}, {{choice.id}})" required=""
-                                            {% for origination in implementation.originations.all %}
-                                                {% if origination.id == choice.id %}
-                                                    checked
-                                                {% endif %}
-                                            {% endfor %}>
-                                        <label for="origination-checkbox-{{implementation.id}}-{{choice.id}}" class="inline-flex items-center justify-between relative p-2 text-gray-500 bg-white rounded cursor-pointer hover:text-white hover:bg-blue-700 transition duration-200">
-                                            <div class="block w-full text-center text-xs flex items-center justify-center">
-                                                    {{choice.origination}}
-                                            </div>
-                                        </label>
-                                    </li>
-                                    {% endfor %}
-                            </ul>
                         </div>
                     </div>
                     {% endif %}
@@ -327,6 +352,8 @@
             toast.classList.add("opacity-0");
         };
     }
+    // <!-- text-white bg-blue-500 hover:bg-blue-700 --> 
+    // <!-- text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 -->
 
     // functionality to allow user to update control's implementation status
     function updateImplementationStatus(checkbox, implementationId, choiceId) {
@@ -348,6 +375,22 @@
         .then(result => {
             if (result.status === 'success') {
                 showToast('The implementation status was updated successfully.');
+
+                // Update the button text
+                const button = document.querySelector(`#status-dropdown-button-${implementationId}`);
+                const button_text = document.querySelector(`#status-dropdown-button-${implementationId} .button-text`);
+                button_text.textContent = result.updated_statuses.join(", ") || "Implementation Status";
+
+                if (result.updated_statuses.length > 0){
+                    // Change button color to blue if there are any statuses
+                    button.classList.remove("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
+                    button.classList.add("text-white", "bg-blue-500", "hover:bg-blue-700");
+                } else {
+                    // Change button color to white if there are no statuses
+                    button.classList.add("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
+                    button.classList.remove("text-white", "bg-blue-500", "hover:bg-blue-700");
+                }
+
             } else {
                 console.error('There was an error updating the implementation status:', result.error);
             }
@@ -378,6 +421,22 @@
         .then(result => {
             if (result.status === 'success') {
                 showToast('The origination status was updated successfully.');
+
+                // Update the button text
+                const button = document.querySelector(`#origination-dropdown-button-${implementationId}`);
+                const button_text = document.querySelector(`#origination-dropdown-button-${implementationId} .button-text`);
+                button_text.textContent = result.updated_originations.join(", ") || "Control Origination";
+
+                if (result.updated_originations.length > 0){
+                    // Change button color to blue if there are any statuses
+                    button.classList.remove("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
+                    button.classList.add("text-white", "bg-blue-500", "hover:bg-blue-700");
+                } else {
+                    // Change button color to white if there are no statuses
+                    button.classList.add("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
+                    button.classList.remove("text-white", "bg-blue-500", "hover:bg-blue-700");
+                }
+
             } else {
                 console.error('There was an error updating the origination status:', result.error);
             }
@@ -408,6 +467,20 @@
         .then(result => {
             if (result.status === 'success') {
                 showToast('The responsible role was updated successfully.');
+
+                // Update the button text
+                const button = document.querySelector(`#owner-dropdown-button-${implementationId}`);
+
+                if (result.updated_role.length > 0){
+                    // Change button color to blue if there are any statuses
+                    button.classList.remove("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
+                    button.classList.add("text-white", "bg-blue-500", "hover:bg-blue-700");
+                } else {
+                    // Change button color to white if there are no statuses
+                    button.classList.add("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
+                    button.classList.remove("text-white", "bg-blue-500", "hover:bg-blue-700");
+                }
+
             } else {
                 console.error('There was an error updating the responsible role:', result.error);
             }
@@ -511,6 +584,36 @@
             });
         });
     });
+
+    function openAICall(event, control, system, descriptionBase, descriptionPart, part) {
+
+        console.log('test');
+
+        // Fetch API call to Django URL
+        fetch('/generate_ai_statement', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'control': control,
+                'system': system,
+                'description_base': descriptionBase,
+                'description_part': descriptionPart
+            })
+        })
+        
+        .then(response => response.json())
+        .then(result => {
+            console.log('hi');
+            // On success, update the textarea with the returned text
+            // Please adjust this selector to target the correct textarea based on your HTML structure
+            console.log(result.output);
+            document.querySelector(`#statement-text-${part}`).value = result.output;
+        })
+        .catch(error => console.log('Error:', error));
+    }
+
 
 </script>
 

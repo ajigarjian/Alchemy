@@ -34,4 +34,6 @@ urlpatterns = [
     path("update_origination_status", views.update_origination_status, name="update_origination_status"),
     path("update_responsible_role", views.update_responsible_role, name="update_responsible_role"),
     path("add_role", views.add_role, name="add_role"),
+
+    path("generate_ai_statement", views.generate_ai_statement, name="generate_ai_statement"),
  ]
