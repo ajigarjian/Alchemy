@@ -7,7 +7,7 @@ from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
 from django.contrib import messages #for register error message(s)
-from .models import CustomUser, Client, NISTControl, NISTControlPart, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation, ImplementationStatus, ControlOrigination, ResponsibleRole #for interacting with database
+from .models import CustomUser, Client, NISTControl, NISTControlPart, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation, ControlImplementationStatement, ImplementationStatus, ControlOrigination, ResponsibleRole #for interacting with database
 from .forms import OrganizationForm, SystemForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
@@ -348,8 +348,11 @@ def update_implementation_status(request):
         # Save the implementation
         implementation.save()
 
-        # Return a successful response
-        return JsonResponse({'status': 'success'}, status=200)
+        # Get the updated statuses
+        updated_statuses = [status.status for status in implementation.statuses.all()]
+
+        # Return a successful response with the updated statuses
+        return JsonResponse({'status': 'success', 'updated_statuses': updated_statuses}, status=200)
 
     else:
         # Return an error response if the request method is not POST
@@ -376,8 +379,11 @@ def update_origination_status(request):
         # Save the implementation
         implementation.save()
 
+        # Get the updated originations
+        updated_originations = [origination.origination for origination in implementation.originations.all()]
+
         # Return a successful response
-        return JsonResponse({'status': 'success'}, status=200)
+        return JsonResponse({'status': 'success', 'updated_originations': updated_originations}, status=200)
 
     else:
         # Return an error response if the request method is not POST
@@ -401,8 +407,11 @@ def update_responsible_role(request):
         # Save the implementation
         implementation.save()
 
+        # Get the updated role
+        updated_role = implementation.responsible_role.responsible_role
+
         # Return a successful response
-        return JsonResponse({'status': 'success'}, status=200)
+        return JsonResponse({'status': 'success', 'updated_role': updated_role}, status=200)
 
     else:
         # Return an error response if the request method is not POST
@@ -421,6 +430,40 @@ def add_role(request):
             role.save()
             return JsonResponse({'status': 'success', 'role_id': role.id, 'role_name': role.responsible_role})
     return JsonResponse({'status': 'error'}, status=400)
+
+@csrf_exempt
+@login_required
+def generate_ai_statement(request):
+
+    print("test")
+
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    openai.api_key = os.getenv("OPENAI_API_KEY", None)
+    
+    #Get post content from POST
+    data = json.loads(request.body)
+
+    control = NISTControl.objects.get(id=data['control'])
+    system = System.objects.get(id=data['system'])
+    control_description = data.get("description_base") + " " + data.get("description_part")
+
+    client = request.user.client.client_name
+
+    completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
+                    {"role": "user", "content": """I am an information security employee working for the company """ + client +  """. I am filling out a FedRAMP SSP document so that we may get our system """ + system.name + """ FedRAMP Authorized. Please create an example control implementation description for the FedRAMP control """ + control.control_family.family_name + "-" + str(control.control_number) + """, whose control language is: """ + control_description + 
+                    """. In your response, be concise where possible. Feel free to reference real third-party platforms (that you can discern apply to this control, e.g. AWS KMS for an encryption-based control) to make the response seem more human-like. 
+                    Only reply with the implementation description and nothing else (jump right into the language) - and reference the company/system where relevant. Finally, randomize your responses so that if I ask you this question again, the answer is new. Thanks!"""}
+                ],
+                temperature=0.2
+        )
+
+    return JsonResponse({"message": "Post published successfully.",
+                        "output": completion.choices[0].message.content}, status=201)
 
 # Route to render the given family Q&A wizard. Pull the relevant questions
 def questions(request, control_family_name=None):
