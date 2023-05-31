@@ -190,7 +190,7 @@
                                         
                                         <div class="flex items-center space-x-1 sm:pr-4">
 
-                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
+                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" data-id="{{implementation.control.id}}" onclick="openAICall(event, {{implementation.control.id}}, {{system.id}}, '{{implementation.control.control_description|escapejs}}', '', 'general')">
                                                 <i class="fa-solid fa-wand-magic-sparkles w-5 h-5"></i>
                                                 <span class="sr-only">Generate AI Text</span>
                                             </button>
@@ -605,7 +605,7 @@
         
         .then(response => response.json())
         .then(result => {
-            console.log('hi');
+            showToast('The control implementation language was generated successfully.');
             // On success, update the textarea with the returned text
             // Please adjust this selector to target the correct textarea based on your HTML structure
             console.log(result.output);
