@@ -167,12 +167,15 @@
                                             </button>
 
                                             <button class="flex ml-auto p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
-                                                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                                                </svg>
+                                                <i class="fa-regular fa-copy fa-lg"></i>
                                                 <span class="sr-only">Copy text</span>
                                             </button>
+
+                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" data-id="{{implementation.control.id}}" onclick="saveText({{part.id}})">
+                                                <i class="far fa-save fa-lg"></i>
+                                                <span class="sr-only">Save Text</span>
+                                            </button>
+                                            
                                         </div>
                                         
                                     </div>
@@ -196,11 +199,13 @@
                                             </button>
 
                                             <button class="flex ml-auto p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
-                                                <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                                                </svg>
+                                                <i class="fa-regular fa-copy fa-lg"></i>
                                                 <span class="sr-only">Copy text</span>
+                                            </button>
+
+                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" data-id="{{implementation.control.id}}" onclick="saveText({{part.id}})">
+                                                <i class="far fa-save fa-lg"></i>
+                                                <span class="sr-only">Save Text</span>
                                             </button>
                                         </div>
                                         
