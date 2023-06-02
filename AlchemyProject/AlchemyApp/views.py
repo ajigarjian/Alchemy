@@ -100,58 +100,6 @@ def contact(request):
          return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
     return render(request, "public/contact.html")
 
-@csrf_exempt
-def openAI(request):
-
-    if request.method != "POST":
-        return JsonResponse({"error": "POST request required."}, status=400)
-
-    openai.api_key = os.getenv("OPENAI_API_KEY", None)
-    
-    #Get post content from POST
-    data = json.loads(request.body)
-    user_input = data.get("user_input")
-    control_language = data.get("control_language")
-
-    if request.user.is_authenticated:
-
-        organization = request.user.client.client_name
-
-        completion = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
-                        {"role": "user", "content": """I am writing a FedRAMP SSP Control Implementation. 
-                        Please make up a company seeking fedramp authorization, and based on that imaginary organization create an example control implementation description for the following control language: """ 
-                        + control_language + 
-                        """. In your response, do not mention the imaginary company, nor restate any of the control language. 
-                        Also, be concise where possible. Finally, feel free to reference made-up systems, documentation, or third-party platforms (that you can discern apply to this control, e.g. AWS KMS for an encryption-based control) to make the response seem more human-like. 
-                        Reference those systems/documentation/platforms via fake names. 
-                        Only reply with the implementation description and nothing else. 
-                        For context, the company with the system that must meet this control is named """ 
-                        + organization +
-                         """. Finally, randomize your responses so that if I ask you this question again, the answer is new. Thanks!"""}
-                    ],
-                    temperature=0.2
-            )
-
-        return JsonResponse({"message": "Post published successfully.",
-                            "output": completion.choices[0].message.content}, status=201)
-    
-    else:
-
-        completion = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
-                        {"role": "user", "content": user_input}
-                    ],
-                    temperature=0.2
-            )
-
-        return JsonResponse({"message": "Post published successfully.",
-                            "output": completion.choices[0].message.content}, status=201)
-
 ####################################### Internal Application once logged in ##############################################
 
 @login_required
@@ -162,6 +110,7 @@ def implementation(request, system):
     control_implementations = ControlImplementation.objects.filter(system=system_object).order_by('control')
     implementation_choices = ImplementationStatus.objects.all()
     origination_choices = ControlOrigination.objects.all()
+    implementation_statements = ControlImplementationStatement.objects.all()
 
     roles = ResponsibleRole.objects.all().distinct()
 
@@ -177,6 +126,7 @@ def implementation(request, system):
         "origination_choices": origination_choices,
         "control_families": control_families,
         "roles": roles,
+        "implementation_statements": implementation_statements,
     })
 
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
@@ -433,9 +383,46 @@ def add_role(request):
 
 @csrf_exempt
 @login_required
-def generate_ai_statement(request):
+def save_control_text(request):
+    if request.method == 'POST':
+        # Parse the JSON data from the body of the HTTP request
+        data = json.loads(request.body.decode('utf-8'))
 
-    print("test")
+        # Get the ControlImplementation instance, related part, and the text put in by the user
+        implementation = ControlImplementation.objects.get(id=data['implementation_id'])
+        statement = data['statement']
+        data_part = data['part_id']
+        
+        if data_part != 'General':
+            part = NISTControlPart.objects.get(id=data['part_id'])
+            control_statement_part = get_object_or_404(ControlImplementationStatement, control_implementation=implementation, control_part=part)
+
+            # Update the statement text
+            control_statement_part.statement = statement
+            
+            # Save the implementation
+            control_statement_part.save()
+
+            # Return a successful response
+            return JsonResponse({'status': 'success'}, status=200)
+        
+        else:
+            #Update the statement text
+            implementation.statement = statement
+
+             # Save the implementation
+            implementation.save()
+
+            # Return a successful response
+            return JsonResponse({'status': 'success'}, status=200)
+
+    else:
+        # Return an error response if the request method is not POST
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@csrf_exempt
+@login_required
+def generate_ai_statement(request):
 
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)

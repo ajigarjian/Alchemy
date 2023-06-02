@@ -28,12 +28,12 @@ urlpatterns = [
     path('get_answer', views.get_answer, name='get_answer'),
     path("create_update_org", views.create_update_org, name="create_update_org"),
 
-    path("openAI", views.openAI, name="openAI"),
-
     path("update_implementation_status", views.update_implementation_status, name="update_implementation_status"),
     path("update_origination_status", views.update_origination_status, name="update_origination_status"),
     path("update_responsible_role", views.update_responsible_role, name="update_responsible_role"),
     path("add_role", views.add_role, name="add_role"),
 
     path("generate_ai_statement", views.generate_ai_statement, name="generate_ai_statement"),
+
+    path("save_control_text", views.save_control_text, name="save_control_text"),
  ]
