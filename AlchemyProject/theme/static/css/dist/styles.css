@@ -2010,6 +2010,10 @@ select {
   z-index: 10;
 }
 
+.z-20 {
+  z-index: 20;
+}
+
 .col-span-2 {
   grid-column: span 2 / span 2;
 }
@@ -2147,6 +2151,9 @@ select {
   margin-bottom: 2rem;
 }
 
+.ml-1 {
+  margin-left: 0.25rem;
+}
 .ml-2 {
   margin-left: 0.5rem;
 }
@@ -2534,6 +2541,10 @@ select {
   max-height: 12rem;
 }
 
+.max-h-72 {
+  max-height: 18rem;
+}
+
 .flex-shrink-0 {
   flex-shrink: 0;
 }
@@ -2845,6 +2856,15 @@ select {
   border-bottom-right-radius: 0.5rem;
 }
 
+.rounded-l-lg {
+  border-top-left-radius: 0.5rem; /* 8px */
+  border-bottom-left-radius: 0.5rem; /* 8px */
+}
+
+.rounded-bl-lg	{
+  border-bottom-left-radius: 0.5rem; /* 8px */
+}
+
 .border {
   border-width: 1px;
 }
@@ -2867,6 +2887,14 @@ select {
 
 .border-r {
   border-right-width: 1px;
+}
+
+.border-l-gray-50 {
+  border-left-color: rgb(249 250 251);
+} 
+
+.border-l-2 {
+  border-left-width: 2px;
 }
 
 .border-gray-200 {
@@ -2902,6 +2930,11 @@ select {
 .border-blue-600 {
   --tw-border-opacity: 1;
   border-color: rgb(7 99 235 / var(--tw-border-opacity));
+}
+
+.border-blue-700 {
+  --tw-border-opacity: 1;
+  border-color: rgb(29 78 216 / var(--tw-border-opacity));
 }
 
 .border-red-400 {
@@ -3666,18 +3699,6 @@ select {
 
 .group:hover .group-hover\:block {
   display: block;
-}
-
-input[type='checkbox']:checked + label {
-  border-color: rgb(59 130 246); /* This is the color for border-blue-600 in default Tailwind CSS */
-  color: #fff; /* This is white color for the text */
-  background-color: rgb(59 130 246); /* This is the color for bg-blue-600 in default Tailwind CSS */
-}
-
-input[type='checkbox']:checked:hover + label {
-  border-color: rgb(29 78 216); /* This is the color for border-blue-600 in default Tailwind CSS */
-  color: white; /* This is white color for the text */
-  background-color: rgb(29 78 216);  /* This is the color for bg-blue-600 in default Tailwind CSS */
 }
 
 @media (min-width: 640px) {
@@ -5131,6 +5152,18 @@ left: 75%;
 }
 .left-full {
 left: 100%;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 .animate-spin {
