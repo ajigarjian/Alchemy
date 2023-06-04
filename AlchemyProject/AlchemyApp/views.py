@@ -14,6 +14,7 @@ from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required #to redirect user to login route if they try to access an app page past login
 from django.db.models import Count, Q, Max
 from django.db.models import Subquery
+from django.core import serializers
 
 import os, openai
 from dotenv import load_dotenv
@@ -102,32 +103,68 @@ def contact(request):
 
 ####################################### Internal Application once logged in ##############################################
 
+@csrf_exempt
 @login_required
 def implementation(request, system):
 
     client = request.user.client
     system_object = get_object_or_404(System, name=system, client=client)
     control_implementations = ControlImplementation.objects.filter(system=system_object).order_by('control')
-    implementation_choices = ImplementationStatus.objects.all()
-    origination_choices = ControlOrigination.objects.all()
-    implementation_statements = ControlImplementationStatement.objects.all()
 
-    roles = ResponsibleRole.objects.all().distinct()
+    # Case where the search has been updated and an AJAX Call has been POSTed. This branch updates the control implementations rendered
+    if request.method == 'POST':
 
-# Get all the questions for the given family, otherwise, just get all the questions
+        # Load the AJAX call data for each of the search filters
+        data = json.loads(request.body)
+        
+        role = data.get('role')
+        origination_statuses = data.get('origination_statuses')
+        implementation_statuses = data.get('implementation_statuses')
+        control_family_name = data.get('family')
 
-    # Get all control families for the sidebar
-    control_families = ControlFamily.objects.all()
+        # For each search filter, check if data exists. If it does, filter the control implementations accordingly.
+        if role:
+            role_object = get_object_or_404(ResponsibleRole, responsible_role=role)
+            control_implementations = control_implementations.filter(responsible_role=role_object)
 
-    return render(request, "internal/implementation.html", {
-        "system": system_object,
-        "control_implementations": control_implementations,
-        "implementation_choices": implementation_choices,
-        "origination_choices": origination_choices,
-        "control_families": control_families,
-        "roles": roles,
-        "implementation_statements": implementation_statements,
-    })
+        if origination_statuses:
+            control_implementations = control_implementations.filter(originations__origination__in=originations_statuses)
+
+        if implementation_statuses:
+            control_implementations = control_implementations.filter(statuses__status__in=implementation_statuses)
+
+        if family:
+            control_family = get_object_or_404(ControlFamily, name=control_family_name)
+            control_implementations = control_implementations.filter(control_family=control_family)
+        
+        serialized_data = ImplementationSerializer(implementations, many=True).data
+
+        return JsonResponse(serialized_data, safe=False)
+
+    # Case where the page is initially rendered from the dashboard with all controls being rendered for a given system
+    else:
+
+        implementation_choices = ImplementationStatus.objects.all()
+        origination_choices = ControlOrigination.objects.all()
+        implementation_statements = ControlImplementationStatement.objects.all()
+        roles = ResponsibleRole.objects.all().distinct()
+
+    # Get all the questions for the given family, otherwise, just get all the questions
+
+        # Get all control families for the sidebar
+        control_families = ControlFamily.objects.all()
+
+        return render(request, "internal/implementation.html", {
+            "system": system_object,
+            "control_implementations": control_implementations,
+            "implementation_choices": implementation_choices,
+            "origination_choices": origination_choices,
+            "control_families": control_families,
+            "roles": roles,
+            "implementation_statements": implementation_statements,
+        })
+    
+
 
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
 @login_required
@@ -299,10 +336,11 @@ def update_implementation_status(request):
         implementation.save()
 
         # Get the updated statuses
-        updated_statuses = [status.status for status in implementation.statuses.all()]
+        updated_statuses_names = [status.status for status in implementation.statuses.all()]
+        updated_statuses_ids = [status.id for status in implementation.statuses.all()]
 
         # Return a successful response with the updated statuses
-        return JsonResponse({'status': 'success', 'updated_statuses': updated_statuses}, status=200)
+        return JsonResponse({'status': 'success', 'updated_statuses_ids': updated_statuses_ids, 'updated_statuses_names': updated_statuses_names}, status=200)
 
     else:
         # Return an error response if the request method is not POST
@@ -330,10 +368,11 @@ def update_origination_status(request):
         implementation.save()
 
         # Get the updated originations
-        updated_originations = [origination.origination for origination in implementation.originations.all()]
+        updated_originations_names = [origination.origination for origination in implementation.originations.all()]
+        updated_originations_ids = [origination.id for origination in implementation.originations.all()]
 
         # Return a successful response
-        return JsonResponse({'status': 'success', 'updated_originations': updated_originations}, status=200)
+        return JsonResponse({'status': 'success', 'updated_originations_ids': updated_originations_ids, 'updated_originations_names': updated_originations_names}, status=200)
 
     else:
         # Return an error response if the request method is not POST
@@ -358,10 +397,11 @@ def update_responsible_role(request):
         implementation.save()
 
         # Get the updated role
-        updated_role = implementation.responsible_role.responsible_role
+        updated_role_name = implementation.responsible_role.responsible_role
+        updated_role_id = implementation.responsible_role.id
 
         # Return a successful response
-        return JsonResponse({'status': 'success', 'updated_role': updated_role}, status=200)
+        return JsonResponse({'status': 'success', 'updated_role_id': updated_role_id, 'updated_role_name': updated_role_name}, status=200)
 
     else:
         # Return an error response if the request method is not POST
