@@ -458,6 +458,14 @@ class ControlImplementation(models.Model):
     class Meta:
         unique_together = ('control', 'system')
     
+    @property
+    def origination_ids(self):
+        return [o.id for o in self.originations.all()]
+
+    @property
+    def status_ids(self):
+        return [s.id for s in self.statuses.all()]
+    
     def __str__(self):
         return str(str(self.system) + ": " + str(self.control))
 

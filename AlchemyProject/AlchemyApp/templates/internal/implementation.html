@@ -3,88 +3,77 @@
 {% block body %}
 
 <div class="body_wrapper">
-<!-- 
-    <div class="flex flex-col h-screen hidden md:block p-4 text-center sticky top-0">
-        <ul class="h-full flex flex-col text-left">
-            {% for family in control_families %}
-            <li class="py-2">
-                <a href="{% url 'alchemy:implementation' system.name %}" class="hover:text-blue-700 block {% if family == control_family %}text-blue-700 {%else%} text-gray-500 {% endif %}">
-                    <span class="text-sm">{{ family.family_abbreviation }}</span>
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
-    </div> -->
+
 
     <div id="wizard_container" class="py-8 px-24 flex flex-col items-center justify-center min-h-screen flex-grow">
 
         <div id="control_search" class="w-full mb-8">
-                <div class="flex">
+            <div class="flex">
 
-                    <button id="search-family-dropdown-button" data-dropdown-toggle="search-family-dropdown" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Families<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
-                    <div id="search-family-dropdown" class="z-10 hidden max-h-72 w-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
-                        <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-family-dropdown-button">
-                            {% for family in control_families %}
-                                <li>
-                                    <div class="flex items-center">
-                                    <input id="search-family-{{family.id}}" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                                    <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{family.family_name}}</label>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <button id="search-role-dropdown-button" data-dropdown-toggle="search-role-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Roles<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
-                    <div id="search-role-dropdown" class="z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                        <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-role-dropdown-button">
-                            {% for role in roles %}
-                                <li>
-                                    <div class="flex items-center">
-                                    <input id="search-family-{{family.id}}" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                                    <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{role}}</label>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <button id="search-origination-dropdown-button" data-dropdown-toggle="search-origination-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Originations<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
-                    <div id="search-origination-dropdown" class="z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                        <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-origination-dropdown-button">
-                            {% for choice in origination_choices %}
-                                <li>
-                                    <div class="flex items-center">
-                                    <input id="search-family-{{family.id}}" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                                    <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{choice.origination}}</label>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <button id="search-implementation-dropdown-button" data-dropdown-toggle="search-implementation-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Implementation Statuses<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
-                    <div id="search-implementation-dropdown" class="z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                        <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-implementation-dropdown-button">
-                            {% for choice in implementation_choices %}
-                                <li>
-                                    <div class="flex items-center">
-                                    <input id="search-family-{{family.id}}" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                                    <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{choice.status}}</label>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    
-                    <div class="relative w-full">
-                        <input type="search" id="search-dropdown" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-left-color: rgb(249 250 251); border-left-width: 2px;" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="Search Control Requirements, Guidance, Implementations..." required>
-                        <button type="submit" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: rgb(29 78 216);" class="absolute top-0 right-0 p-2.5 text-sm font-medium text-white bg-blue-700 border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                            <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            <span class="sr-only">Search</span>
-                        </button>
-                    </div>
+                <button id="search-family-dropdown-button" data-dropdown-toggle="search-family-dropdown" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Families<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
+                <div id="search-family-dropdown" class="dropdown z-10 hidden max-h-72 w-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
+                    <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-family-dropdown-button">
+                        {% for family in control_families %}
+                            <li>
+                                <div class="flex items-center">
+                                <input id="search-family-{{family.id}}" type="checkbox" value="{{family}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{family.family_name}}</label>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
                 </div>
+
+                <button id="search-role-dropdown-button" data-dropdown-toggle="search-role-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Roles<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
+                <div id="search-role-dropdown" class="dropdown z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                    <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-role-dropdown-button">
+                        {% for role in roles %}
+                            <li>
+                                <div class="flex items-center">
+                                <input id="search-family-{{family.id}}" type="checkbox" value="{{role.id}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{role}}</label>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <button id="search-origination-dropdown-button" data-dropdown-toggle="search-origination-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Originations<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
+                <div id="search-origination-dropdown" class="dropdown z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                    <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-origination-dropdown-button">
+                        {% for choice in origination_choices %}
+                            <li>
+                                <div class="flex items-center">
+                                <input id="search-family-{{family.id}}" type="checkbox" value="{{choice}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{choice.origination}}</label>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <button id="search-implementation-dropdown-button" data-dropdown-toggle="search-implementation-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Implementation Statuses<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
+                <div id="search-implementation-dropdown" class="dropdown z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                    <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-implementation-dropdown-button">
+                        {% for choice in implementation_choices %}
+                            <li>
+                                <div class="flex items-center">
+                                <input id="search-family-{{family.id}}" type="checkbox" value="{{choice}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{choice.status}}</label>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="relative w-full">
+                    <input type="search" id="search-dropdown" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-left-color: rgb(249 250 251); border-left-width: 2px;" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="Search Control Requirements, Guidance, Implementations..." required>
+                    <button type="submit" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: rgb(29 78 216);" class="absolute top-0 right-0 p-2.5 text-sm font-medium text-white bg-blue-700 border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <span class="sr-only">Search</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
         {% for family in control_families %}
@@ -92,7 +81,12 @@
                 <h1 class="text-2xl sm:text-4xl font-black tracking-wide text-blue-600 mb-6">{{ family.family_name }}</h1>
                 {% for implementation in control_implementations %}
                     {% if implementation.control.control_family == family %}
-                    <div id="control-implementation-{{implementation.id}}" class="control mb-12 border-2 p-4 rounded-lg" data-id="{{implementation.id}}">
+                    <div id="control-implementation-{{implementation.id}}" class="control mb-12 border-2 p-4 rounded-lg" 
+                    data-implementation-id="{{implementation.id}}" 
+                    data-implementation-family="{{implementation.control_family.id}}" 
+                    data-implementation-role="{{implementation.responsible_role.id}}" 
+                    data-implementation-statuses="{{implementation.status_ids|join:','}}" 
+                    data-implementation-originations="{{implementation.origination_ids|join:','}}">
                         <div id="control_header" class="flex justify-between items-center mb-6">
                             
                             <h1 class="text-xl sm:text-2xl flex-grow mr-2 font-black tracking-wide text-blue-600 overflow-x-auto whitespace-nowrap">{{implementation.control}} | {{implementation.control.control_name }}</h1>
@@ -436,18 +430,21 @@
                 is_checked: isChecked,
             })
         })
-
         .then(response => response.json())
         .then(result => {
             if (result.status === 'success') {
                 showToast('The implementation status was updated successfully.');
 
+                // Update the parent-level control implementation responsible implemented statuseses data attribute
+                const controlImplementationDiv = document.querySelector(`#control-implementation-${implementationId}`);
+                controlImplementationDiv.dataset.implementationStatuses = result.updated_statuses_ids
+
                 // Update the button text
                 const button = document.querySelector(`#status-dropdown-button-${implementationId}`);
                 const button_text = document.querySelector(`#status-dropdown-button-${implementationId} .button-text`);
-                button_text.textContent = result.updated_statuses.join(", ") || "Implementation Status";
+                button_text.textContent = result.updated_statuses_names.join(", ") || "Implementation Status";
 
-                if (result.updated_statuses.length > 0){
+                if (result.updated_statuses_names.length > 0){
                     // Change button color to blue if there are any statuses
                     button.classList.remove("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
                     button.classList.add("text-white", "bg-blue-500", "hover:bg-blue-700");
@@ -488,12 +485,16 @@
             if (result.status === 'success') {
                 showToast('The origination status was updated successfully.');
 
+                // Update the parent-level control implementation responsible implemented statuseses data attribute
+                const controlImplementationDiv = document.querySelector(`#control-implementation-${implementationId}`);
+                controlImplementationDiv.dataset.originationStatuses = result.updated_originations_ids;
+
                 // Update the button text
                 const button = document.querySelector(`#origination-dropdown-button-${implementationId}`);
                 const button_text = document.querySelector(`#origination-dropdown-button-${implementationId} .button-text`);
-                button_text.textContent = result.updated_originations.join(", ") || "Control Origination";
+                button_text.textContent = result.updated_originations_names.join(", ") || "Control Origination";
 
-                if (result.updated_originations.length > 0){
+                if (result.updated_originations_names.length > 0){
                     // Change button color to blue if there are any statuses
                     button.classList.remove("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
                     button.classList.add("text-white", "bg-blue-500", "hover:bg-blue-700");
@@ -534,10 +535,14 @@
             if (result.status === 'success') {
                 showToast('The responsible role was updated successfully.');
 
+                // Update the parent-level control implementation responsible role data attribute
+                const controlImplementationDiv = document.querySelector(`#control-implementation-${implementationId}`);
+                controlImplementationDiv.dataset.implementationRole = result.updated_role_id;
+
                 // Update the button text
                 const button = document.querySelector(`#owner-dropdown-button-${implementationId}`);
-
-                if (result.updated_role.length > 0){
+                
+                if (result.updated_role_name.length > 0){
                     // Change button color to blue if there are any statuses
                     button.classList.remove("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
                     button.classList.add("text-white", "bg-blue-500", "hover:bg-blue-700");
@@ -712,6 +717,22 @@
         })
         .catch(error => console.log('Error:', error));
     }
+
+    function handleRoleFilter(event) {
+        const dropdown = event.currentTarget;
+        console.log('Dropdown:', dropdown);  // For debugging
+        const selectedRoleIds = Array.from(dropdown.querySelectorAll('input:checked')).map(input => input.value);
+        console.log('Selected role ids:', selectedRoleIds);  // For debugging
+        document.querySelectorAll('.control').forEach(control => {
+            const controlRoleId = control.getAttribute('data-implementation-role');
+            const shouldShowControl = selectedRoleIds.includes(controlRoleId);
+            control.classList.toggle('hidden', !shouldShowControl);
+        });
+    }
+
+    document.querySelectorAll('.dropdown').forEach(dropdown => {
+        dropdown.addEventListener('change', handleRoleFilter);
+    });
 
 </script>
 
