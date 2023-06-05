@@ -2594,6 +2594,11 @@ select {
   resize: both;
 }
 
+.divide-x {
+  border-right-width: 1px;
+  border-left-width: 0px;
+}
+
 .divide-y {
   border-top-width: 1px;
   border-bottom-width: 0px;
@@ -2865,6 +2870,11 @@ select {
   border-bottom-left-radius: 0.5rem; /* 8px */
 }
 
+.rounded-r-md {
+  border-top-right-radius: 0.375rem; /* 6px */
+  border-bottom-right-radius: 0.375rem; /* 6px */
+}
+
 .border {
   border-width: 1px;
 }
@@ -2887,6 +2897,10 @@ select {
 
 .border-r {
   border-right-width: 1px;
+}
+
+.border-l {
+  border-left-width: 1px;
 }
 
 .border-l-gray-50 {
