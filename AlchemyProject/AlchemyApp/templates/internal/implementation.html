@@ -11,8 +11,20 @@
             <div class="flex">
 
                 <button id="search-family-dropdown-button" data-dropdown-toggle="search-family-dropdown" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Families<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
-                <div id="search-family-dropdown" class="dropdown z-10 hidden max-h-72 w-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
-                    <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-family-dropdown-button">
+                <div id="search-family-dropdown" class="z-10 p-4 hidden max-h-72 w-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
+                    <ul class=" space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-family-dropdown-button">
+
+                        <div class="flex justify-center">
+                            <div class="dropdown-header inline-flex rounded-md shadow-sm text-xs" role="group">
+                                <button type="button" class="select-all p-2 font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700" data-dropdown="search-family-dropdown">
+                                Select All
+                                </button>
+                                <button type="button" style="border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem;" class="clear p-2 font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700" data-dropdown="search-family-dropdown">
+                                Clear
+                                </button>
+                            </div>
+                        </div>
+
                         {% for family in control_families %}
                             <li>
                                 <div class="flex items-center">
@@ -25,27 +37,25 @@
                 </div>
 
                 <button id="search-role-dropdown-button" data-dropdown-toggle="search-role-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Roles<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
-                <div id="search-role-dropdown" class="dropdown z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                    <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-role-dropdown-button">
+                <div id="search-role-dropdown" class="dropdown p-4 z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
+                        
+                    <div class="flex justify-center">
+                        <div class="dropdown-header inline-flex rounded-md shadow-sm text-xs" role="group">
+                            <button type="button" class="select-all p-2 font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700" data-dropdown="search-role-dropdown">
+                            Select All
+                            </button>
+                            <button type="button" style="border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem;" class="clear p-2 font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700" data-dropdown="search-role-dropdown">
+                            Clear
+                            </button>
+                        </div>
+                    </div>
+  
+                    <ul class="space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-role-dropdown-button">
                         {% for role in roles %}
                             <li>
                                 <div class="flex items-center">
-                                <input id="search-family-{{family.id}}" type="checkbox" value="{{role.id}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                                <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{role}}</label>
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <button id="search-origination-dropdown-button" data-dropdown-toggle="search-origination-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Originations<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
-                <div id="search-origination-dropdown" class="dropdown z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                    <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-origination-dropdown-button">
-                        {% for choice in origination_choices %}
-                            <li>
-                                <div class="flex items-center">
-                                <input id="search-family-{{family.id}}" type="checkbox" value="{{choice}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                                <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{choice.origination}}</label>
+                                <input id="search-role-{{role.id}}" type="checkbox" value="{{role.id}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="search-role-{{role.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{role}}</label>
                                 </div>
                             </li>
                         {% endfor %}
@@ -53,13 +63,51 @@
                 </div>
 
                 <button id="search-implementation-dropdown-button" data-dropdown-toggle="search-implementation-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Implementation Statuses<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
-                <div id="search-implementation-dropdown" class="dropdown z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                    <ul class="p-3 space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-implementation-dropdown-button">
+                <div id="search-implementation-dropdown" class="dropdown p-4 z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
+
+                    <div class="flex justify-center">
+                        <div class="dropdown-header inline-flex rounded-md shadow-sm text-xs" role="group">
+                            <button type="button" class="select-all p-2 font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700" data-dropdown="search-implementation-dropdown">
+                            Select All
+                            </button>
+                            <button type="button" style="border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem;" class="clear p-2 font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700" data-dropdown="search-implementation-dropdown">
+                            Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <ul class="space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-implementation-dropdown-button">
                         {% for choice in implementation_choices %}
                             <li>
                                 <div class="flex items-center">
-                                <input id="search-family-{{family.id}}" type="checkbox" value="{{choice}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                                <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{choice.status}}</label>
+                                <input id="search-implementation-{{choice.id}}" type="checkbox" value="{{choice.id}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="search-implementation-{{choice.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{choice.status}}</label>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <button id="search-origination-dropdown-button" data-dropdown-toggle="search-origination-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Originations<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
+                <div id="search-origination-dropdown" class="dropdown p-4 z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
+
+                    <div class="flex justify-center">
+                        <div class="dropdown-header inline-flex rounded-md shadow-sm text-xs " role="group">
+                            <button type="button" class="select-all p-2 font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700" data-dropdown="search-origination-dropdown">
+                            Select All
+                            </button>
+                            <button type="button" style="border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem;" class="clear p-2 font-medium text-gray-900 bg-white border border-gray-200 rounded-r-md hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700" data-dropdown="search-origination-dropdown">
+                            Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <ul class="space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-origination-dropdown-button">
+                        {% for choice in origination_choices %}
+                            <li>
+                                <div class="flex items-center">
+                                <input id="search-origination-{{choice.id}}" type="checkbox" value="{{choice.id}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <label for="search-origination-{{choice.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{choice.origination}}</label>
                                 </div>
                             </li>
                         {% endfor %}
@@ -77,7 +125,7 @@
         </div>
 
         {% for family in control_families %}
-            <div class="family mb-4">
+            <div class="family mb-4 w-full">
                 <h1 class="text-2xl sm:text-4xl font-black tracking-wide text-blue-600 mb-6">{{ family.family_name }}</h1>
                 {% for implementation in control_implementations %}
                     {% if implementation.control.control_family == family %}
@@ -126,7 +174,7 @@
                                 </div>
 
                                 <div id="control_status" class="mr-2">
-                                    <button id="status-dropdown-button-{{implementation.id}}" data-dropdown-toggle="status-dropdown-helper-{{implementation.id}}" class="{% with statuses=implementation.statuses.all %}{% if statuses %}text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} {% endwith %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200 max-w-sm overflow-x-auto text-ellipsis whitespace-nowrap" type="button">
+                                    <button id="status-dropdown-button-{{implementation.id}}" data-dropdown-toggle="status-dropdown-helper-{{implementation.id}}" class="{% with statuses=implementation.statuses.all %}{% if statuses %}text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} {% endwith %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200 max-w-xs overflow-x-auto text-ellipsis whitespace-nowrap" type="button">
                                         <span class="button-text">
                                             {% with statuses=implementation.statuses.all %}
                                                 {% if statuses %}
@@ -162,7 +210,7 @@
                                 </div>
 
                                 <div id="control_origination">
-                                    <button id="origination-dropdown-button-{{implementation.id}}" data-dropdown-toggle="origination-dropdown-helper-{{implementation.id}}" class="{% with originations=implementation.originations.all %}{% if originations %}text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} {% endwith %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200 max-w-md overflow-x-auto text-ellipsis whitespace-nowrap" type="button">
+                                    <button id="origination-dropdown-button-{{implementation.id}}" data-dropdown-toggle="origination-dropdown-helper-{{implementation.id}}" class="{% with originations=implementation.originations.all %}{% if originations %}text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} {% endwith %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200 max-w-xs overflow-x-auto text-ellipsis whitespace-nowrap" type="button">
                                         <span class="button-text">
                                             {% with originations=implementation.originations.all %}
                                                 {% if originations %}
@@ -307,7 +355,7 @@
             <i id="scrollIcon" class="fas fa-chevron-down"></i>
         </button>
 
-        <div id="toast-success" class="fixed transition opacity-0 duration-300 bottom-4 flex items-center w-24 max-w-s p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
+        <div id="toast-success" class="fixed transition opacity-0 duration-300 bottom-4 flex items-center w-24 max-w-sm p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
             <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 mr-2 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
                 <i class="fas fa-check"></i>
                 <span class="sr-only">Check icon</span>
@@ -541,6 +589,8 @@
 
                 // Update the button text
                 const button = document.querySelector(`#owner-dropdown-button-${implementationId}`);
+                const button_text = document.querySelector(`#owner-dropdown-button-${implementationId} .button-text`);
+                button_text.textContent = result.updated_role_name || "Responsible Role";
                 
                 if (result.updated_role_name.length > 0){
                     // Change button color to blue if there are any statuses
@@ -718,21 +768,86 @@
         .catch(error => console.log('Error:', error));
     }
 
-    function handleRoleFilter(event) {
+    let filters = {
+        'search-role-dropdown': [],
+        'search-origination-dropdown': [],
+        'search-implementation-dropdown': [],
+    };
+
+    // SEARCH AREA FUNCTIONALITY  ---------------------------------------------------
+    
+    // Add event listeners for "Select All" and "Clear" buttons
+    document.querySelectorAll('.select-all').forEach(selectAllButton => {
+        selectAllButton.addEventListener('click', event => {
+            const dropdownId = event.target.getAttribute('data-dropdown');
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            handleFilterChange({currentTarget: dropdown}); // Trigger filter update
+        });
+    });
+
+    document.querySelectorAll('.clear').forEach(clearButton => {
+        clearButton.addEventListener('click', event => {
+            const dropdownId = event.target.getAttribute('data-dropdown');
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            handleFilterChange({currentTarget: dropdown}); // Trigger filter update
+        });
+    });
+
+
+
+    function handleFilterChange(event) {
         const dropdown = event.currentTarget;
-        console.log('Dropdown:', dropdown);  // For debugging
-        const selectedRoleIds = Array.from(dropdown.querySelectorAll('input:checked')).map(input => input.value);
-        console.log('Selected role ids:', selectedRoleIds);  // For debugging
+        const selectedIds = Array.from(dropdown.querySelectorAll('input:checked')).map(input => input.value);
+        filters[dropdown.id] = selectedIds;
+
         document.querySelectorAll('.control').forEach(control => {
-            const controlRoleId = control.getAttribute('data-implementation-role');
-            const shouldShowControl = selectedRoleIds.includes(controlRoleId);
+            const shouldShowControl = Object.keys(filters).every(dropdownId => {
+                let attribute = '';
+
+                switch(dropdownId) {
+                    case 'search-role-dropdown':
+                        attribute = 'data-implementation-role';
+                        break;
+                    case 'search-origination-dropdown':
+                        attribute = 'data-implementation-originations';
+                        break;
+                    case 'search-implementation-dropdown':
+                        attribute = 'data-implementation-statuses';
+                        break;
+                    default:
+                        console.log('Unexpected dropdown id: ' + dropdown.id);
+                        return true;
+                }
+
+                const controlAttrValue = control.getAttribute(attribute);
+                const selectedIdsForDropdown = filters[dropdownId];
+
+                if (selectedIdsForDropdown.length === 0) {
+                    return true;
+                }
+
+                if (attribute === 'data-implementation-role') {
+                    return selectedIdsForDropdown.includes(controlAttrValue);
+                } else {
+                    const controlValues = controlAttrValue.split(',');
+                    return selectedIdsForDropdown.some(id => controlValues.includes(id));
+                }
+            });
+
             control.classList.toggle('hidden', !shouldShowControl);
         });
     }
 
     document.querySelectorAll('.dropdown').forEach(dropdown => {
-        dropdown.addEventListener('change', handleRoleFilter);
+        dropdown.addEventListener('change', handleFilterChange);
     });
+
 
 </script>
 
