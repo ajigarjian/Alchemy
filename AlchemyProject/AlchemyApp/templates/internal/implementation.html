@@ -10,8 +10,8 @@
         <div id="control_search" class="w-full mb-8">
             <div class="flex">
 
-                <button id="search-family-dropdown-button" data-dropdown-toggle="search-family-dropdown" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Families<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
-                <div id="search-family-dropdown" class="z-10 p-4 hidden max-h-72 w-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
+                <button id="search-family-dropdown-button" data-dropdown-toggle="search-family-dropdown" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600 transition duration-200" type="button">Families<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
+                <div id="search-family-dropdown" class="dropdown z-10 p-4 hidden max-h-72 w-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600">
                     <ul class=" space-y-3 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="search-family-dropdown-button">
 
                         <div class="flex justify-center">
@@ -28,7 +28,7 @@
                         {% for family in control_families %}
                             <li>
                                 <div class="flex items-center">
-                                <input id="search-family-{{family.id}}" type="checkbox" value="{{family}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                <input id="search-family-{{family.id}}" type="checkbox" value="{{family.id}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                                 <label for="search-family-{{family.id}}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{family.family_name}}</label>
                                 </div>
                             </li>
@@ -36,7 +36,7 @@
                     </ul>
                 </div>
 
-                <button id="search-role-dropdown-button" data-dropdown-toggle="search-role-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Roles<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
+                <button id="search-role-dropdown-button" data-dropdown-toggle="search-role-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600 transition duration-200" type="button">Roles<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
                 <div id="search-role-dropdown" class="dropdown p-4 z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
                         
                     <div class="flex justify-center">
@@ -62,7 +62,7 @@
                     </ul>
                 </div>
 
-                <button id="search-implementation-dropdown-button" data-dropdown-toggle="search-implementation-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Implementation Statuses<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
+                <button id="search-implementation-dropdown-button" data-dropdown-toggle="search-implementation-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600 transition duration-200" type="button">Implementation Statuses<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
                 <div id="search-implementation-dropdown" class="dropdown p-4 z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
 
                     <div class="flex justify-center">
@@ -88,7 +88,7 @@
                     </ul>
                 </div>
 
-                <button id="search-origination-dropdown-button" data-dropdown-toggle="search-origination-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600" type="button">Originations<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
+                <button id="search-origination-dropdown-button" data-dropdown-toggle="search-origination-dropdown" class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-sm font-medium text-center text-gray-900 bg-gray-100 border border-gray-300 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700 dark:text-white dark:border-gray-600 transition duration-200" type="button">Originations<i class="fas fa-chevron-down w-4 h-4 ml-2 transition-transform duration-200"></i></button>
                 <div id="search-origination-dropdown" class="dropdown p-4 z-10 hidden max-h-72 overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700">
 
                     <div class="flex justify-center">
@@ -115,7 +115,8 @@
                 </div>
                 
                 <div class="relative w-full">
-                    <input type="search" id="search-dropdown" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-left-color: rgb(249 250 251); border-left-width: 2px;" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="Search Control Requirements, Guidance, Implementations..." required>
+                    <input type="search" id="search-bar" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-left-color: rgb(249 250 251); border-left-width: 2px;" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="Search Control Requirements, Guidance, Implementations..." required>
+
                     <button type="submit" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: rgb(29 78 216);" class="absolute top-0 right-0 p-2.5 text-sm font-medium text-white bg-blue-700 border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                         <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         <span class="sr-only">Search</span>
@@ -785,6 +786,7 @@
                 checkbox.checked = true;
             });
             handleFilterChange({currentTarget: dropdown}); // Trigger filter update
+            checkFilterStatus(dropdown); // Check filter status
         });
     });
 
@@ -796,11 +798,11 @@
                 checkbox.checked = false;
             });
             handleFilterChange({currentTarget: dropdown}); // Trigger filter update
+            checkFilterStatus(dropdown); // Check filter status
         });
     });
 
-
-
+    // Add function that hides/shows controls depending on the family, role, origination, or implementation checkboxes selected
     function handleFilterChange(event) {
         const dropdown = event.currentTarget;
         const selectedIds = Array.from(dropdown.querySelectorAll('input:checked')).map(input => input.value);
@@ -811,6 +813,9 @@
                 let attribute = '';
 
                 switch(dropdownId) {
+                    case 'search-family-dropdown':
+                        attribute = 'data-implementation-family';
+                        break;
                     case 'search-role-dropdown':
                         attribute = 'data-implementation-role';
                         break;
@@ -832,7 +837,7 @@
                     return true;
                 }
 
-                if (attribute === 'data-implementation-role') {
+                if (attribute === 'data-implementation-role' || attribute === 'data-implementation-family') {
                     return selectedIdsForDropdown.includes(controlAttrValue);
                 } else {
                     const controlValues = controlAttrValue.split(',');
@@ -844,9 +849,35 @@
         });
     }
 
+    // Adding the handleFilterChange function to the dropdowns upon checkbox changes
     document.querySelectorAll('.dropdown').forEach(dropdown => {
         dropdown.addEventListener('change', handleFilterChange);
+        dropdown.addEventListener('change', function () {
+            checkFilterStatus(dropdown);
+        });
     });
+
+    // Changes color of search buttons if a checkbox is selected for better user visibility
+    function checkFilterStatus(dropdown) {
+        const id = dropdown.getAttribute('id');
+        const button = document.querySelector(`button[data-dropdown-toggle="${id}"]`);
+        const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+        let isChecked = false;
+
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                isChecked = true;
+            }
+        });
+
+        if (isChecked) {
+            button.classList.add('bg-blue-500', 'text-white', 'hover:bg-blue-700');
+            button.classList.remove('bg-gray-100', 'text-gray-900', 'hover:bg-gray-200');
+        } else {
+            button.classList.remove('bg-blue-500', 'text-white', 'hover:bg-blue-700');
+            button.classList.add('bg-gray-100', 'text-gray-900', 'hover:bg-gray-200');
+        }
+    }
 
 
 </script>
