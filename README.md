@@ -6,7 +6,7 @@
 2. Upon clicking into the folder, follow the guidance here to create a virtual environment: https://docs.python.org/3/library/venv.html
     - Essentially, run "python -m venv /path/to/new/virtual/environment" in the command line, where the path is the path on your computer into the root folder of your project (note: ensure Python version is at least 3.3 and below 6.6 - if Python2 already exists on comptuer, use "python3 in command instead of python)
 3. Now you have a virtual environment named "venv" in your root folder. To activate the venv, navigate to the root folder with the venv folder via the command line, and run "source venv/bin/activate" on Mac or Unix, and "venv\Scripts\activate.bat" on Windows. Now you'll notice in your command line that you're in your virtual environment! Whenever you work on this project, make sure you are doing so with your venv activated.
-4. Note - you can exit your venv at any time in the command line by tuyping "deactivate"
+4. Note - you can exit your venv at any time in the command line by typing "deactivate"
 
 ## 2. Download the existing project files
 
