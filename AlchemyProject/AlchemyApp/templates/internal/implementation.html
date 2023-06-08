@@ -2,10 +2,34 @@
 
 {% block body %}
 
-<div class="body_wrapper">
+<div class="body_wrapper flex">
 
+    <div id="sidebar-multi-level-sidebar" class="fixed z-40 w-60 my-8 h-fit transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+        <div class="h-full px-3 py-4 rounded-lg overflow-y-auto bg-gray-50 dark:bg-gray-800">
+            <ul class="space-y-2">
+                {% for family in control_families %}
+                <li id="sidebar-family-{{family.id}}" class="family-nav">
+                    <button type="button" class="flex text-sm items-center justify-between w-full py-1 px-2 text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-{{family.id}}" data-collapse-toggle="dropdown-{{family.id}}">
+                        <span class="flex-1 w-6 ml-3 text-left" sidebar-toggle-item>{{family.family_abbreviation}}</span>
+                        <svg sidebar-toggle-item class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
 
-    <div id="wizard_container" class="py-8 px-24 flex flex-col items-center justify-center min-h-screen flex-grow">
+                    <ul id="dropdown-{{family.id}}" class="hidden space-y-2">
+
+                        {% for control in family.family_controls.all %}
+                            <li id="sidebar-control-{{control.id}}" class="rounded-lg">
+                                <a href="#control-implementation-{{control.control_implementation.id}}" class="flex text-xs items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-4 group hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700">{{control}}: {{control.control_name}}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+ 
+    <div id="wizard_container" class="py-8 pl-64 pr-12 flex flex-col items-center justify-center min-h-screen flex-grow">
 
         <div id="control_search" class="w-full mb-8">
             <div class="flex">
@@ -115,7 +139,7 @@
                 </div>
                 
                 <div class="relative w-full">
-                    <input type="search" id="search-bar" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-left-color: rgb(249 250 251); border-left-width: 2px;" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="Search Control Requirements, Guidance, Implementations..." required>
+                    <input type="search" id="search-bar" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-left-color: rgb(249 250 251); border-left-width: 2px;" class="block p-2.5 w-full z-20 text-sm text-gray-900 bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-l-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:border-blue-500" placeholder="Search Control Statements..." required>
 
                     <button type="submit" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: rgb(29 78 216);" class="absolute top-0 right-0 p-2.5 text-sm font-medium text-white bg-blue-700 border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                         <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -131,11 +155,12 @@
                 {% for implementation in control_implementations %}
                     {% if implementation.control.control_family == family %}
                     <div id="control-implementation-{{implementation.id}}" class="control mb-12 border-2 p-4 rounded-lg" 
-                    data-implementation-id="{{implementation.id}}" 
-                    data-implementation-family="{{implementation.control_family.id}}" 
-                    data-implementation-role="{{implementation.responsible_role.id}}" 
-                    data-implementation-statuses="{{implementation.status_ids|join:','}}" 
-                    data-implementation-originations="{{implementation.origination_ids|join:','}}">
+                        data-implementation-id="{{implementation.id}}" 
+                        data-implementation-control-id="{{implementation.control.id}}"
+                        data-implementation-family="{{implementation.control_family.id}}" 
+                        data-implementation-role="{{implementation.responsible_role.id}}" 
+                        data-implementation-statuses="{{implementation.status_ids|join:','}}" 
+                        data-implementation-originations="{{implementation.origination_ids|join:','}}">
                         <div id="control_header" class="flex justify-between items-center mb-6">
                             
                             <h1 class="text-xl sm:text-2xl flex-grow mr-2 font-black tracking-wide text-blue-600 overflow-x-auto whitespace-nowrap">{{implementation.control}} | {{implementation.control.control_name }}</h1>
@@ -279,7 +304,7 @@
                                                 <span class="sr-only">Copy text</span>
                                             </button>
 
-                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" onclick="saveControlText({{implementation.id}}, {{part.id}})">
+                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" onclick="updateControlText({{implementation.id}}, {{part.id}})">
                                                 <i class="far fa-save fa-lg"></i>
                                                 <span class="sr-only">Save Text</span>
                                             </button>
@@ -291,7 +316,9 @@
                                 </div>
     
                                 <div class="px-4 py-2 bg-white rounded-b-lg dark:bg-gray-800">
-                                    <textarea id="statement-text-{{part.id}}" rows="4" class="question-answer block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="Write your statement here...">{% for statement in implementation_statements %}{% if statement.control_implementation == implementation and statement.control_part == part %}{{ statement.statement }}{% endif %}{% endfor %}</textarea>
+                                    <textarea id="statement-text-{{part.id}}" rows="4" class="question-answer block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="Write your statement here..."
+                                    data-part-id="{{ part.id }}"
+                                    data-implementation-text="{% for statement in implementation_statements %}{% if statement.control_implementation == implementation and statement.control_part == part %}{{ statement.statement }}{% endif %}{% endfor %}">{% for statement in implementation_statements %}{% if statement.control_implementation == implementation and statement.control_part == part %}{{ statement.statement }}{% endif %}{% endfor %}</textarea>
                                 </div>
                             </div>
                             {% empty %}
@@ -311,7 +338,7 @@
                                                 <span class="sr-only">Copy text</span>
                                             </button>
 
-                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" data-id="{{implementation.control.id}}" onclick="saveControlText({{implementation.id}}, 'General')">
+                                            <button type="button" class="p-2 text-gray-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" data-id="{{implementation.control.id}}" onclick="updateControlText({{implementation.id}}, 'General')">
                                                 <i class="far fa-save fa-lg"></i>
                                                 <span class="sr-only">Save Text</span>
                                             </button>
@@ -322,7 +349,9 @@
                                 </div>
     
                                 <div class="px-4 py-2 bg-white rounded-b-lg dark:bg-gray-800">
-                                    <textarea id="statement-text-general-{{implementation.id}}" rows="4" class="question-answer block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="Write your statement here...">{{implementation.statement}}</textarea>
+                                    <textarea id="statement-text-general-{{implementation.id}}" rows="4" class="question-answer block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="Write your statement here..."
+                                    data-part-id="General"
+                                    data-implementation-text="{{implementation.statement}}">{{implementation.statement}}</textarea>
                                 </div>
                             </div>
                             {% endfor %}
@@ -679,35 +708,9 @@
         }
     }
 
-    window.addEventListener('DOMContentLoaded', (event) => {
-        // Get all the control blocks
-        const controls = Array.from(document.querySelectorAll('.control'));
-
-        controls.forEach(control => {
-            // Get the implementation id from the control div
-            const implementationId = control.dataset.id;
-
-            // Get the button and the text element inside it
-            const button = control.querySelector(`#owner-dropdown-button-${implementationId}`);
-            const buttonText = button.querySelector('.button-text');
-
-            // Get all the radio inputs for this implementation
-            const radios = Array.from(control.querySelectorAll(`input[name="helper-radio-${implementationId}"]`));
-
-            // Listen for change events on each radio input
-            radios.forEach(radio => {
-                radio.addEventListener('change', () => {
-                    // Get the label associated with the selected radio input
-                    const label = document.querySelector(`label[for="${radio.id}"]`);
-
-                    // Update the button text to the label text
-                    buttonText.textContent = label.textContent;
-                });
-            });
-        });
-    });
-
     function openAICall(event, implementationId, control, system, descriptionBase, descriptionPart, part) {
+
+        showToast('Generating control implementation language...');
 
         // Fetch API call to Django URL
         fetch('/generate_ai_statement', {
@@ -738,14 +741,21 @@
         .catch(error => console.log('Error:', error));
     }
 
-    function saveControlText(implementationId, partId) {
+    // Updates the new statement for a control implementation when a user clicks save
+    function updateControlText(implementationId, partId) {
+
+        let statement;
+
+        let divId = `statement-text-`;
 
         if (partId == 'General') {
             statement = document.querySelector(`#statement-text-general-${implementationId}`).value;
+            divId += `general-${implementationId}`;
         }
 
         else {
             statement = document.querySelector(`#statement-text-${partId}`).value;
+            divId += `${partId}`;
         }
 
         // Fetch API call to Django URL
@@ -763,20 +773,101 @@
 
         .then(response => response.json())
         .then(result => {
+            // Access the implementation div
+            let implementationDiv = document.getElementById(divId);
+            implementationDiv.dataset.implementationText = result.updated_statement;
+
             showToast('The control implementation language was saved successfully.');
             
         })
         .catch(error => console.log('Error:', error));
     }
 
+    // SEARCH AREA FUNCTIONALITY  ---------------------------------------------------
+
+    // Filter object for dropdown selections
     let filters = {
+        'search-family-dropdown': [],
         'search-role-dropdown': [],
         'search-origination-dropdown': [],
-        'search-implementation-dropdown': [],
+        'search-implementation-dropdown': []
     };
 
-    // SEARCH AREA FUNCTIONALITY  ---------------------------------------------------
-    
+    // Function to determine if a control should be visible or not
+    function shouldShowControl(control) {
+        // Dropdown filters
+        const shouldShowForDropdown = Object.keys(filters).every(dropdownId => {
+            let attribute = '';
+
+            switch(dropdownId) {
+                case 'search-family-dropdown':
+                    attribute = 'data-implementation-family';
+                    break;
+                case 'search-role-dropdown':
+                    attribute = 'data-implementation-role';
+                    break;
+                case 'search-origination-dropdown':
+                    attribute = 'data-implementation-originations';
+                    break;
+                case 'search-implementation-dropdown':
+                    attribute = 'data-implementation-statuses';
+                    break;
+                default:
+                    console.log('Unexpected dropdown id: ' + dropdownId);
+                    return true;
+            }
+
+            const controlAttrValue = control.getAttribute(attribute);
+            const selectedIdsForDropdown = filters[dropdownId];
+
+            if (selectedIdsForDropdown.length === 0) {
+                return true;
+            }
+
+            if (attribute === 'data-implementation-role' || attribute === 'data-implementation-family') {
+                return selectedIdsForDropdown.includes(controlAttrValue);
+            } else {
+                const controlValues = controlAttrValue.split(',');
+                return selectedIdsForDropdown.some(id => controlValues.includes(id));
+            }
+        });
+
+        // Search bar filter
+        const searchPhrase = document.getElementById('search-bar').value.toLowerCase();
+        let childElements = control.querySelectorAll('[data-implementation-text]');
+        let found = false;
+        for(let child of childElements) {
+            let controlText = child.dataset.implementationText.toLowerCase();
+            if(controlText.indexOf(searchPhrase) !== -1) {
+                found = true;
+                break;
+            }
+        }
+        
+        return shouldShowForDropdown && found;
+    }
+
+    // Event listeners for dropdown filters
+    document.querySelectorAll('.dropdown').forEach(dropdown => {
+        dropdown.addEventListener('change', event => {
+            const selectedIds = Array.from(dropdown.querySelectorAll('input:checked')).map(input => input.value);
+            filters[dropdown.id] = selectedIds;
+
+            document.querySelectorAll('.control').forEach(control => {
+                control.classList.toggle('hidden', !shouldShowControl(control));
+            });
+
+            checkFilterStatus(dropdown);
+        });
+    });
+
+    // Event listener for search bar
+    document.getElementById('search-bar').addEventListener('input', function(e) {
+        document.querySelectorAll('.control').forEach(control => {
+            control.classList.toggle('hidden', !shouldShowControl(control));
+        });
+    });
+
     // Add event listeners for "Select All" and "Clear" buttons
     document.querySelectorAll('.select-all').forEach(selectAllButton => {
         selectAllButton.addEventListener('click', event => {
@@ -785,8 +876,8 @@
             dropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = true;
             });
-            handleFilterChange({currentTarget: dropdown}); // Trigger filter update
             checkFilterStatus(dropdown); // Check filter status
+            handleFilterChange({currentTarget: dropdown}); // Trigger filter update
         });
     });
 
@@ -794,68 +885,20 @@
         clearButton.addEventListener('click', event => {
             const dropdownId = event.target.getAttribute('data-dropdown');
             const dropdown = document.getElementById(dropdownId);
+
+            // Uncheck all checkboxes first
             dropdown.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 checkbox.checked = false;
             });
-            handleFilterChange({currentTarget: dropdown}); // Trigger filter update
-            checkFilterStatus(dropdown); // Check filter status
-        });
-    });
 
-    // Add function that hides/shows controls depending on the family, role, origination, or implementation checkboxes selected
-    function handleFilterChange(event) {
-        const dropdown = event.currentTarget;
-        const selectedIds = Array.from(dropdown.querySelectorAll('input:checked')).map(input => input.value);
-        filters[dropdown.id] = selectedIds;
-
-        document.querySelectorAll('.control').forEach(control => {
-            const shouldShowControl = Object.keys(filters).every(dropdownId => {
-                let attribute = '';
-
-                switch(dropdownId) {
-                    case 'search-family-dropdown':
-                        attribute = 'data-implementation-family';
-                        break;
-                    case 'search-role-dropdown':
-                        attribute = 'data-implementation-role';
-                        break;
-                    case 'search-origination-dropdown':
-                        attribute = 'data-implementation-originations';
-                        break;
-                    case 'search-implementation-dropdown':
-                        attribute = 'data-implementation-statuses';
-                        break;
-                    default:
-                        console.log('Unexpected dropdown id: ' + dropdown.id);
-                        return true;
-                }
-
-                const controlAttrValue = control.getAttribute(attribute);
-                const selectedIdsForDropdown = filters[dropdownId];
-
-                if (selectedIdsForDropdown.length === 0) {
-                    return true;
-                }
-
-                if (attribute === 'data-implementation-role' || attribute === 'data-implementation-family') {
-                    return selectedIdsForDropdown.includes(controlAttrValue);
-                } else {
-                    const controlValues = controlAttrValue.split(',');
-                    return selectedIdsForDropdown.some(id => controlValues.includes(id));
-                }
-            });
-
-            control.classList.toggle('hidden', !shouldShowControl);
-        });
-    }
-
-    // Adding the handleFilterChange function to the dropdowns upon checkbox changes
-    document.querySelectorAll('.dropdown').forEach(dropdown => {
-        dropdown.addEventListener('change', handleFilterChange);
-        dropdown.addEventListener('change', function () {
+            // Check filter status after unchecking
             checkFilterStatus(dropdown);
+
+            // Then handle filter change
+            handleFilterChange({currentTarget: dropdown});
         });
     });
+
 
     // Changes color of search buttons if a checkbox is selected for better user visibility
     function checkFilterStatus(dropdown) {
@@ -878,6 +921,43 @@
             button.classList.add('bg-gray-100', 'text-gray-900', 'hover:bg-gray-200');
         }
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+  
+        // grab all the control elements on the page
+        let controls = document.querySelectorAll('.control');
+        
+        // setup an intersection observer to handle when controls come into view
+        let observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    let controlId = entry.target.getAttribute('data-implementation-control-id');
+                    let familyId = entry.target.getAttribute('data-implementation-family');
+
+                    // collapse all families in the sidebar
+                    document.querySelectorAll('[id^="dropdown-"]').forEach(dropdown => {
+                        dropdown.classList.add('hidden');
+                    });
+
+                    // remove highlight from all family and control labels
+                    document.querySelectorAll('.family-nav li').forEach(item => {
+                        item.classList.remove('bg-gray-200'); // add your own highlight style
+                    });
+
+                    // expand the current family in the sidebar and don't highlight it
+                    document.querySelector('#dropdown-' + familyId).classList.remove('hidden');
+
+                    // highlight the current control in the sidebar
+                    document.querySelector('#sidebar-control-' + controlId).classList.add('bg-gray-200');
+                }
+            });
+        }, { threshold: 0.8 }); // adjust threshold as needed
+
+        // observe all the controls
+        controls.forEach(control => {
+            observer.observe(control);
+        });
+    });
 
 
 </script>

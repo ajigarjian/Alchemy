@@ -443,8 +443,10 @@ def save_control_text(request):
             # Save the implementation
             control_statement_part.save()
 
+            print(statement)
+
             # Return a successful response
-            return JsonResponse({'status': 'success'}, status=200)
+            return JsonResponse({'status': 'success', 'updated_statement': statement}, status=200)
         
         else:
             #Update the statement text
@@ -453,8 +455,10 @@ def save_control_text(request):
              # Save the implementation
             implementation.save()
 
+            print(statement)
+
             # Return a successful response
-            return JsonResponse({'status': 'success'}, status=200)
+            return JsonResponse({'status': 'success', 'updated_statement': statement}, status=200)
 
     else:
         # Return an error response if the request method is not POST
