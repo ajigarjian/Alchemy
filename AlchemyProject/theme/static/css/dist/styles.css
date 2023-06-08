@@ -5206,7 +5206,10 @@ left: 100%;
   }
 }
 
-
+/* Makes all scrolling animate in the entire website */
+html {
+  scroll-behavior: smooth;
+}
 
 
 
