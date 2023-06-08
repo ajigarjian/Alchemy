@@ -2062,6 +2062,11 @@ select {
   margin-right: 4rem;
 }
 
+.mx-24 {
+  margin-left: 6rem;
+  margin-right: 6rem;
+}
+
 .mx-5 {
   margin-left: 1.25rem;
   margin-right: 1.25rem;
@@ -2763,6 +2768,14 @@ select {
 .gap-y-16 {
   -moz-row-gap: 4rem;
        row-gap: 4rem;
+}
+
+.space-y-1 {
+  margin-top: 0.25rem;
+}
+
+.space-y-2 {
+  margin-top: 0.50rem;
 }
 
 .space-y-3 {

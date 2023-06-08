@@ -359,7 +359,7 @@ class NISTControlPart(models.Model):
 
 class NISTControl(models.Model):
     control_name = models.CharField(max_length=255) #Control Name
-    control_family = models.ForeignKey('AlchemyApp.ControlFamily', on_delete=models.CASCADE) #Control Family  
+    control_family = models.ForeignKey('AlchemyApp.ControlFamily', related_name='family_controls', on_delete=models.CASCADE) #Control Family  
     control_number = models.IntegerField() #Control Number
     control_enhancement = models.IntegerField(blank=True, null=True) #Control Enhancement (can be blank)
     control_description = models.TextField() #Control description
@@ -445,7 +445,7 @@ class ControlImplementation(models.Model):
     ]
 
     system = models.ForeignKey('System', on_delete=models.CASCADE)
-    control = models.ForeignKey('NISTControl', on_delete=models.CASCADE) #Linked control
+    control = models.ForeignKey('NISTControl', related_name='control_implementations', on_delete=models.CASCADE) #Linked control
     control_family = models.ForeignKey('ControlFamily', on_delete=models.CASCADE)
     responsible_role = models.ForeignKey('ResponsibleRole', blank=True, null=True, on_delete=models.RESTRICT)
     statuses = models.ManyToManyField(ImplementationStatus)
