@@ -1,1 +1,1 @@
-web: gunicorn AlchemyProject.wsgi --log-file -
+web: gunicorn AlchemyProject.wsgi
