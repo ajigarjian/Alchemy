@@ -34,10 +34,23 @@ SECRET_KEY = os.environ.get(
     default=secrets.token_urlsafe(nbytes=64),
 )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# The `DYNO` env var is set on Heroku CI, but it's not a real Heroku app, so we have to
+# also explicitly exclude CI:
+# https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
+IS_HEROKU_APP = os.environ.get('DYNO') is not None and os.environ.get('CI') is None
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: don't run with debug turned on in production!
+if not IS_HEROKU_APP:
+    DEBUG = True
+
+# On Heroku, it's safe to use a wildcard for `ALLOWED_HOSTS``, since the Heroku router performs
+# validation of the Host header in the incoming HTTP request. On other platforms you may need
+# to list the expected hostnames explicitly to prevent HTTP Host header attacks. See:
+# https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-ALLOWED_HOSTS
+if IS_HEROKU_APP:
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = []
 
 #Added to provide functionality for Django-tailwind
 TAILWIND_APP_NAME = 'theme'
@@ -170,10 +183,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+     BASE_DIR / 'AlchemyApp' / 'static',
 ]
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -182,17 +195,3 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# # The `DYNO` env var is set on Heroku CI, but it's not a real Heroku app, so we have to
-# # also explicitly exclude CI:
-# # https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
-# IS_HEROKU_APP = os.environ.get('DYNO') is not None and os.environ.get('CI') is None
-
-# # On Heroku, it's safe to use a wildcard for `ALLOWED_HOSTS``, since the Heroku router performs
-# # validation of the Host header in the incoming HTTP request. On other platforms you may need
-# # to list the expected hostnames explicitly to prevent HTTP Host header attacks. See:
-# # https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-ALLOWED_HOSTS
-# if IS_HEROKU_APP:
-#     ALLOWED_HOSTS = ["*"]
-# else:
-#     ALLOWED_HOSTS = []
