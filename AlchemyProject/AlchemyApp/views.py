@@ -152,7 +152,7 @@ def implementation(request, system):
     # Get all the questions for the given family, otherwise, just get all the questions
 
         # Get all control families for the sidebar
-        control_families = ControlFamily.objects.all()
+        control_families = ControlFamily.objects.all().order_by('family_abbreviation')
 
         return render(request, "internal/implementation.html", {
             "system": system_object,

@@ -276,7 +276,7 @@
                         </div>
 
                         <div id="control_requirement">
-                            <div id="control_description-{{implementation.control.id}}" class="relative line-clamp-3 text-blue-600 mb-2">
+                            <div id="control_description-{{implementation.control.id}}" class="text-blue-600 mb-2">
                                 <p>{{implementation.control.control_description}}</p>
                             </div>
                     
@@ -953,7 +953,7 @@
                     document.querySelector('#sidebar-control-' + implementationId).classList.add('bg-gray-200');
                 }
             });
-        }, { threshold: 0.8 }); // adjust threshold as needed
+        }, { threshold: 0.5 }); // adjust threshold as needed
 
         // observe all the controls
         controls.forEach(control => {

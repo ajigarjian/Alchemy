@@ -379,7 +379,7 @@ class NISTControl(models.Model):
 class ControlImplementationStatement(models.Model):
     control_implementation = models.ForeignKey('AlchemyApp.ControlImplementation', related_name='control_statement_parts', on_delete=models.CASCADE)
     control_part = models.ForeignKey('NISTControlPart', on_delete=models.CASCADE)
-    statement = models.TextField(blank=True, null=True)  # Control Part Implementation description
+    statement = models.TextField(blank=True, default='')  # Control Part Implementation description
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
