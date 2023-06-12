@@ -1,1 +1,1 @@
-web: gunicorn AlchemyProject.wsgi
+web: gunicorn AlchemyParent.AlchemyProject.wsgi
