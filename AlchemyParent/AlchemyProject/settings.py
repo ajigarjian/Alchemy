@@ -41,8 +41,7 @@ SECRET_KEY = os.environ.get(
 IS_HEROKU_APP = os.environ.get('DYNO') is not None and os.environ.get('CI') is None
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if not IS_HEROKU_APP:
-    DEBUG = True
+DEBUG = False
 
 # On Heroku, it's safe to use a wildcard for `ALLOWED_HOSTS``, since the Heroku router performs
 # validation of the Host header in the incoming HTTP request. On other platforms you may need
