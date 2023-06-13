@@ -1,1 +1,1 @@
-web: gunicorn AlchemyParent.AlchemyProject.wsgi
+web: python manage.py migrate && python manage.py collectstatic && gunicorn AlchemyProject.wsgi
