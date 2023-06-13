@@ -109,7 +109,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'AlchemyProject.wsgi.application'
+WSGI_APPLICATION = 'AlchemyParent.AlchemyProject.wsgi.application
 
 
 # Database
