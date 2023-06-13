@@ -1,1 +1,1 @@
-web: gunicorn --pythonpath AlchemyProject AlchemyProject.wsgi
+web: gunicorn AlchemyParent.AlchemyProject.wsgi
