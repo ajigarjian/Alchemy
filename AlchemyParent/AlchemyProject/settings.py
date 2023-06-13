@@ -64,7 +64,7 @@ INTERNAL_IPS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'AlchemyApp', #Added after creating App within Project
+    'AlchemyParent.AlchemyApp', #Added after creating App within Project
     'tailwind', #Added to provide functionality for Django-tailwind
     'theme', #Added to provide functionality for Django-tailwind
     'django.contrib.admin',
