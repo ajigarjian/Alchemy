@@ -64,7 +64,7 @@ INTERNAL_IPS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'AlchemyApp', #Added after creating App within Project
+    'AlchemyParent.AlchemyApp', #Added after creating App within Project
     'tailwind', #Added to provide functionality for Django-tailwind
     'theme', #Added to provide functionality for Django-tailwind
     'django.contrib.admin',
@@ -101,7 +101,7 @@ TEMPLATES = [
             ],
 
         'libraries':{ #Added to detect custom templatetags folder with __init__.py added and _template_filters.py to create custom get_item tag function
-            'template_filters': 'AlchemyApp.templatetags.template_filters',
+            'template_filters': 'AlchemyParent.AlchemyApp.templatetags.template_filters',
             
             }
 
@@ -141,11 +141,11 @@ else:
 # Added this in to create run custom authentication backend before default one for users trying to log in
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Django's default authentication backend
-    'AlchemyApp.backends.CustomUserAuthenticationBackend',  # Our custom authentication backend
+    'AlchemyParent.AlchemyApp.backends.CustomUserAuthenticationBackend',  # Our custom authentication backend
 ]
 
 
-AUTH_USER_MODEL = 'AlchemyApp.CustomUser'
+AUTH_USER_MODEL = 'AlchemyParent.AlchemyApp.CustomUser'
 
 # Changing the default login url from /accounts/login to /login for @login_required.
 LOGIN_URL = '/login'
@@ -187,7 +187,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-     BASE_DIR / 'AlchemyApp' / 'static',
+     BASE_DIR / 'AlchemyParent.AlchemyApp' / 'static',
 ]
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
