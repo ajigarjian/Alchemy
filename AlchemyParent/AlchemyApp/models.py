@@ -253,6 +253,16 @@ class System(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.client.client_name})"
+    
+    def save(self, *args, **kwargs):
+        is_new = self.id is None  # Check if this is a new instance
+        super().save(*args, **kwargs)  # Call the "real" save() method.
+        if is_new:  # If this is a new instance
+            self.create_control_implementations()
+
+    def create_control_implementations(self):
+        for nist_control in NISTControl.objects.all():
+            ControlImplementation.objects.create(system=self, control=nist_control, control_family=nist_control.control_family)
 
 class ControlFamily(models.Model):
 
@@ -450,7 +460,7 @@ class ControlImplementation(models.Model):
     responsible_role = models.ForeignKey('ResponsibleRole', blank=True, null=True, on_delete=models.RESTRICT)
     statuses = models.ManyToManyField(ImplementationStatus)
     originations = models.ManyToManyField(ControlOrigination)
-    statement = models.TextField(blank=True, null=True)
+    statement = models.TextField(blank=True, default='')
     progress = models.CharField(max_length=30, choices=PROGRESS_CHOICES, blank=True, null=True, default='Not Started')
     last_updated = models.DateTimeField(auto_now=True)
 

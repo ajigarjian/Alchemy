@@ -16,6 +16,8 @@ urlpatterns = [
    path('dashboard/<str:client>/<str:system>', views.dashboard, name='dashboard'),
    path('delete_system', views.delete_system, name='delete_system'),
    path('rename_system', views.rename_system, name='rename_system'),
+   path('get_control_origination_data', views.get_control_origination_data, name='get_control_origination_data'),
+   path('get_status_data', views.get_status_data, name='get_status_data'),
 
    path("overview/<str:system>", views.overview, name="overview"),
    path("overview2/<str:system>", views.overview2, name="overview2"),
@@ -35,4 +37,6 @@ urlpatterns = [
     path("save_control_text", views.save_control_text, name="save_control_text"),
 
     path("generate_ai_statement", views.generate_ai_statement, name="generate_ai_statement"),
+
+    
  ]

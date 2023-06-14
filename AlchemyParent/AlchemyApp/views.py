@@ -232,6 +232,40 @@ def dashboard(request, client, system=None):
                 "total_implemented": total_implemented
             })
 
+@csrf_exempt
+@login_required
+def get_control_origination_data(request):
+    system_data = json.loads(request.body.decode('utf-8'))
+    system_id = system_data['system_id']
+
+    # Filter ControlImplementation objects by system
+    data = ControlImplementation.objects.filter(system_id=system_id).values('responsible_role__responsible_role').annotate(count=Count('id'))
+    role_names = [item['responsible_role__responsible_role'] if item['responsible_role__responsible_role'] is not None else 'None' for item in data]
+    role_counts = [item['count'] for item in data]
+    
+    return JsonResponse(data={
+        'labels': role_names,
+        'data': role_counts,
+    })
+
+@csrf_exempt
+@login_required
+def get_status_data(request):
+    system_data = json.loads(request.body.decode('utf-8'))
+    system_id = system_data['system_id']
+
+    # Filter ControlImplementation objects by system
+    data = ControlImplementation.objects.filter(system_id=system_id).values('statuses__status').annotate(count=Count('id'))
+    status_names = [item['statuses__status'] if item['statuses__status'] is not None else 'None' for item in data]
+    status_counts = [item['count'] for item in data]
+
+    print(status_names)
+    
+    return JsonResponse(data={
+        'labels': status_names,
+        'data': status_counts,
+    })
+
 @login_required
 def delete_system(request):
 
