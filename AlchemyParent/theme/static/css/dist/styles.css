@@ -2187,6 +2187,18 @@ select {
   margin-right: 1.5rem;
 }
 
+.mr-8 {
+  margin-right: 2rem;
+}
+
+.mr-12 {
+  margin-right: 3rem;
+}
+
+.mr-16 {
+  margin-right: 4rem;
+}
+
 .mt-0 {
   margin-top: 0px;
 }
@@ -2504,6 +2516,22 @@ select {
 
 .min-w-36 {
   min-width: 9rem;
+}
+
+.min-w-40 {
+  min-width: 10rem;
+}
+
+.min-w-44 {
+  min-width: 11rem;
+}
+
+.min-w-48 {
+  min-width: 12rem;
+}
+
+.min-w-52 {
+  min-width: 13rem;
 }
 
 .min-w-512 {

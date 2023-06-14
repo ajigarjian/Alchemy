@@ -4,7 +4,7 @@
 
 <div class="body_wrapper flex">
 
-    <div id="sidebar-multi-level-sidebar" class="fixed z-40 w-60 my-8 h-fit transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+    <div id="sidebar-multi-level-sidebar" class="fixed z-40 w-60 my-8 h-144 transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
         <div class="h-full px-3 py-4 rounded-lg overflow-y-auto bg-gray-50 dark:bg-gray-800">
             <ul class="space-y-2">
                 {% for family in control_families %}
@@ -31,7 +31,7 @@
         </div>
     </div>
  
-    <div id="wizard_container" class="py-8 pl-64 pr-12 flex flex-col items-center justify-center min-h-screen flex-grow">
+    <div id="wizard_container" class="py-8 pl-64 pr-12 flex flex-col items-center justify-center min-h-screen flex-grow w-256">
 
         <div id="control_search" class="w-full mb-8">
             <div class="flex">
@@ -165,11 +165,11 @@
                         data-implementation-originations="{{implementation.origination_ids|join:','}}">
                         <div id="control_header" class="flex justify-between items-center mb-6">
                             
-                            <h1 class="text-xl sm:text-2xl flex-grow mr-2 font-black tracking-wide text-blue-600 overflow-x-auto whitespace-nowrap">{{implementation.control}} | {{implementation.control.control_name }}</h1>
+                            <h1 class="text-xl flex-grow mr-2 font-black tracking-wide text-blue-600 overflow-x-auto whitespace-nowrap">{{implementation.control}} | {{implementation.control.control_name }}</h1>
 
                             <div id="control_context" class="flex">
-                                <div id="control_owner" class="mr-2">
-                                    <button id="owner-dropdown-button-{{implementation.id}}" data-dropdown-toggle="owner-dropdown-helper-{{implementation.id}}" class="{% if implementation.responsible_role %} text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200" type="button">
+                                <div id="control_owner" class="mr-2 min-w-44">
+                                    <button id="owner-dropdown-button-{{implementation.id}}" data-dropdown-toggle="owner-dropdown-helper-{{implementation.id}}" class="{% if implementation.responsible_role %} text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center min-w-44 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200" type="button">
                                         <span class="button-text">
                                             {% if implementation.responsible_role %}
                                                 {{implementation.responsible_role}}
