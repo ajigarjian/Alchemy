@@ -14,7 +14,7 @@
                         <svg sidebar-toggle-item class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                     </button>
 
-                    <ul id="dropdown-{{family.id}}" class="hidden space-y-2">
+                    <ul id="dropdown-{{family.id}}" class="hidden max-h-72 overflow-y-auto space-y-2">
 
                         {% for implementation in control_implementations %}
                             {% if implementation.control.control_family == family %}
@@ -383,8 +383,8 @@
             </div>
         {% endfor %}
 
-        <button id ="scrollButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
-            <i id="scrollIcon" class="fas fa-chevron-down"></i>
+        <button id ="scrollButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hidden">
+            <i id="scrollIcon" class="fas fa-chevron-up"></i>
         </button>
 
         <div id="toast-success" class="fixed transition opacity-0 duration-300 bottom-4 flex items-center w-24 max-w-sm p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
@@ -408,40 +408,23 @@
     // Scrolling function for category selection view. When the circular scroll button in bottom right is clicked, it will either scroll down or up to show more of the categories
     document.getElementById("scrollButton").addEventListener("click", function() {
         const scrollButton = document.getElementById("scrollButton");
-        const scrollIcon = document.getElementById("scrollIcon");
+    });
 
-        // If the arrow is pointing down, it targets the new position which is one window-height down, and scrolls to it
-        if (scrollIcon.classList.contains("fa-chevron-down")) {
-            // Calculate the target scroll position, which is one viewport height from the current scroll position.
-            const targetScrollPosition = window.pageYOffset + window.innerHeight;
-            
-            // Scroll to the target scroll position smoothly.
-            window.scrollTo({
-                top: targetScrollPosition,
-                behavior: "smooth",
-            });
-        // Otherwise, it scrolls back to the top (implying the arrow is pointing up)
-        } else {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-    })
-
-    // Second scrolling function for category selection view. Responsible for changing the arrow in the icon to up and down depending on where the user is vertically. 
+    // Add a scroll event listener to the window to show the scroll button once a user has started scrolling.
     window.addEventListener("scroll", () => {
-        const scrollButton = document.getElementById("scrollButton");
-        const scrollIcon = document.getElementById("scrollIcon");
-        const scrollHeight = document.documentElement.scrollHeight;
-        const clientHeight = document.documentElement.clientHeight;
-        const scrollTop = document.documentElement.scrollTop;
-
-        // When the user is near or at the bottom of the page, switches chevron to up, otherwise it will be pointing down
-        if (scrollHeight - clientHeight - scrollTop < 5) {
-            scrollIcon.classList.remove("fa-chevron-down");
-            scrollIcon.classList.add("fa-chevron-up");
+        if (window.pageYOffset > 1000) {
+            // If the user has started scrolling, show the scroll button.
+            scrollButton.classList.remove("hidden");
         } else {
-            scrollIcon.classList.remove("fa-chevron-up");
-            scrollIcon.classList.add("fa-chevron-down");
+            // If the user has scrolled back to the top, hide the scroll button.
+
+            scrollButton.classList.add("hidden");
         }
+    });
+
+    // Modify the click event listener on the scroll button to always scroll the page back to the top.
+    scrollButton.addEventListener("click", function() {
+        window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
     // Functionality for show more/show less text expansion/compression and fade in/out
@@ -928,7 +911,9 @@
   
         // grab all the control elements on the page
         let controls = document.querySelectorAll('.control');
-        
+
+        let observerOptions = { threshold: 0.5 };
+
         // setup an intersection observer to handle when controls come into view
         let observer = new IntersectionObserver((entries, observer) => {
             entries.forEach(entry => {
@@ -943,24 +928,42 @@
 
                     // remove highlight from all family and control labels
                     document.querySelectorAll('.family-nav li').forEach(item => {
-                        item.classList.remove('bg-gray-200'); // add your own highlight style
+                        item.classList.remove('bg-gray-200');
                     });
 
                     // expand the current family in the sidebar and don't highlight it
-                    document.querySelector('#dropdown-' + familyId).classList.remove('hidden');
+                    let currentDropdown = document.querySelector('#dropdown-' + familyId);
+                    currentDropdown.classList.remove('hidden');
 
                     // highlight the current control in the sidebar
-                    document.querySelector('#sidebar-control-' + implementationId).classList.add('bg-gray-200');
+                    let currentControl = document.querySelector('#sidebar-control-' + implementationId);
+                    currentControl.classList.add('bg-gray-200');
+
+                    // ensure highlighted control is visible in the sidebar dropdown
+                    let dropdownHeight = currentDropdown.getBoundingClientRect().height;
+                    currentDropdown.scrollTop = (currentControl.offsetTop - currentDropdown.offsetTop) - dropdownHeight/2 + currentControl.getBoundingClientRect().height/2;
                 }
             });
-        }, { threshold: 0.5 }); // adjust threshold as needed
+        }, observerOptions); // adjust threshold as needed
 
-        // observe all the controls
+        // listen to click events on anchor tags to disable the observer during scrolling
+        document.querySelectorAll('.family-nav a').forEach(a => {
+            a.addEventListener('click', function() {
+                observer.disconnect();
+                setTimeout(function() {
+                    // observe all the controls
+                    controls.forEach(control => {
+                        observer.observe(control);
+                    });
+                }, 1000); // adjust delay as needed
+            });
+        });
+
+        // initially observe all the controls
         controls.forEach(control => {
             observer.observe(control);
         });
     });
-
 
 </script>
 
