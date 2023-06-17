@@ -8,7 +8,7 @@
     <div id="body-wrapper" class="container mx-auto px-4 py-10 opacity-0 translate-y-10 transition duration-1000 ease-in-out">
         <div id="grid-container" class="grid md:grid-cols-4 gap-8 mb-12">
 
-            <div class="md:row-span-2 md:col-span-2 h-144 bg-white border-2 rounded-lg transform transition duration-300 ease-in-out hover:shadow-lg group">
+            <div id="general_info_box" class="md:col-span-3 bg-white border-2 rounded-lg transform transition duration-300 ease-in-out hover:shadow-lg group">
                 <a href="{% url 'alchemy:overview2' system=system.name %}">
                     <div class="system-header p-8 rounded-t-lg h-14 w-full hover:bg-gray-100 hover:cursor-pointer transition duration-300 ease-in-out flex items-center">
                         <span class="text-2xl font-bold text-blue-500 select-none">General System Information</span>
@@ -26,15 +26,7 @@
                                 System Name
                             </div>
                             <div class="font-semibold">
-                                {{system.name}}
-                            </div>
-                        </div>
-                        <div id="system_abbv_wrapper" class="col-span-2 flex justify-between hover:translate-y-0.5 hover:bg-gray-100 transition duration-200 ease-in-out px-4 py-2">
-                            <div class="font-semibold text-xl text-blue-700">
-                                System Abbreviation
-                            </div>
-                            <div class="font-semibold">
-                                {{system.abbreviation}}
+                                {{system.name}} ({{system.abbreviation}})
                             </div>
                         </div>
                         <div id="system_env_wrapper" class="col-span-2 flex justify-between hover:translate-y-0.5 hover:bg-gray-100 transition duration-200 ease-in-out px-4 py-2">
@@ -55,34 +47,26 @@
                         </div>
                         <div id="system_owner_wrapper" class="col-span-2 flex justify-between hover:translate-y-0.5 hover:bg-gray-100 transition duration-200 ease-in-out px-4 py-2">
                             <div class="font-semibold text-xl text-blue-700">
-                                Owner Name 
+                                Owner Name & Title 
                             </div>
                             <div class="font-semibold">
-                                {{system.owner_name}}
-                            </div>
-                        </div>
-                        <div id="system_title_wrapper" class="col-span-2 flex justify-between hover:translate-y-0.5 hover:bg-gray-100 transition duration-200 ease-in-out px-4 py-2">
-                            <div class="font-semibold text-xl text-blue-700">
-                                Owner Title 
-                            </div>
-                            <div class="font-semibold">
-                                {{system.owner_title}}
+                                {{system.owner_name}}, {{system.owner_title}}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="md:col-span-2 bg-white border-2 rounded-lg transform transition duration-300 ease-in-out hover:shadow-lg group">
+            <div class="md:col-span-1 bg-white border-2 rounded-lg transform transition duration-300 ease-in-out hover:shadow-lg group">
                 <div class="system-header p-8 rounded-t-lg h-14 w-full hover:bg-gray-100 hover:cursor-pointer transition duration-300 ease-in-out flex items-center">
-                    <span class="text-2xl font-bold text-blue-500 select-none">System Impact Level</span>
+                    <span class="text-2xl font-bold text-blue-500 select-none">Impact Level</span>
 
                     <div class="system_settings_icon absolute top-4 right-4 hidden group-hover:block transition duration-300 ease-in-out">
                         <i class="fa-solid fa-ellipsis fa-xl text-blue-100 hover:text-blue-500 transition duration-300"></i>
                     </div>
                 </div>
 
-                <div class="system-body w-2/5 p-4 h-4/5 flex">
+                <div class="system-body p-4 h-4/5 flex">
                     <div class="system-impact-level flex h-full w-full justify-center items-center">
                         <span class="text-4xl font-bold text-blue-700 -translate-y-5">
                             High
@@ -103,9 +87,23 @@
                 <div class="system-body p-4">
                     <canvas id="origination_chart"></canvas>
                 </div>
-            </div>   
+            </div> 
+            
+            <div class="md:col-span-2 bg-white border-2 rounded-lg transform transition-all duration-300 ease-in-out hover:shadow-lg group">
+        
+                <div class="system-header p-8 mb-2 rounded-t-lg h-14 w-full hover:bg-gray-100 hover:cursor-pointer transition-all duration-300 ease-in-out flex items-center">
+                    <span class="text-2xl font-bold text-blue-500 select-none">Control Implementations</span>
+                    <div class="system_settings_icon absolute top-4 right-4 hidden group-hover:block transition-all duration-300 ease-in-out">
+                        <i class="fa-solid fa-ellipsis fa-xl text-blue-100 hover:text-blue-500 transition-all duration-300"></i>
+                    </div>
+                </div>
+        
+                <div class="system-body px-4 h-[calc(100%-4.5rem)]">
+                    <canvas id="implementation_chart"></canvas>
+                </div> 
+            </div>
 
-            <!-- Control Implementations Table -->
+    <!-- Control Implementations Table -->
     <div class="md:col-span-4 h-144 bg-white border-2 rounded-lg transform transition-all duration-300 ease-in-out hover:shadow-lg group">
         
         <div class="system-header p-8 mb-2 rounded-t-lg h-14 w-full hover:bg-gray-100 hover:cursor-pointer transition-all duration-300 ease-in-out flex items-center">
@@ -155,21 +153,7 @@
         </div> 
     </div>
 
-    <div class="md:col-span-2 h-144 bg-white border-2 rounded-lg transform transition-all duration-300 ease-in-out hover:shadow-lg group">
-        
-        <div class="system-header p-8 mb-2 rounded-t-lg h-14 w-full hover:bg-gray-100 hover:cursor-pointer transition-all duration-300 ease-in-out flex items-center">
-            <span class="text-2xl font-bold text-blue-500 select-none">Control Implementations</span>
-            <div class="system_settings_icon absolute top-4 right-4 hidden group-hover:block transition-all duration-300 ease-in-out">
-                <i class="fa-solid fa-ellipsis fa-xl text-blue-100 hover:text-blue-500 transition-all duration-300"></i>
-            </div>
-        </div>
-
-        <div class="system-body px-4 h-[calc(100%-4.5rem)]">
-            <canvas id="implementation_chart"></canvas>
-        </div> 
-    </div>
-
-    <div class="md:col-span-2 h-144 bg-white border-2 rounded-lg transform transition-all duration-300 ease-in-out hover:shadow-lg group">
+    <div class="md:col-span-4 h-144 bg-white border-2 rounded-lg transform transition-all duration-300 ease-in-out hover:shadow-lg group">
         
         <div class="system-header p-8 mb-2 rounded-t-lg h-14 w-full hover:bg-gray-100 hover:cursor-pointer transition-all duration-300 ease-in-out flex items-center">
             <span class="text-2xl font-bold text-blue-500 select-none">Control Implementations by Family</span>
@@ -284,7 +268,7 @@
                 var ctx = document.getElementById('implementation_family_chart').getContext('2d');
                 
                 // Flatten the data into arrays for each status, preserving order.
-                var statuses = ['Implemented', 'Partially Implemented', 'Planned', 'Alternative Implementation', 'Not Applicable'];
+                var statuses = ['None', 'Implemented', 'Partially Implemented', 'Planned', 'Alternative Implementation', 'Not Applicable'];
                 var flattenedData = statuses.map(status => data.data.map(familyData => familyData[status]));
                 
                 // Create a dataset for each status.

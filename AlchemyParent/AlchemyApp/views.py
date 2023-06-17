@@ -280,7 +280,10 @@ def get_implementation_family_data(request):
         for status in ImplementationStatus.STATUS_CHOICES:
             status_count = implementations.filter(statuses__status=status[0]).count()
             status_dict[status[1]] = status_count
-        print(status_dict)
+
+        # Add 'None' to the status dictionary with the count of implementations without any status.
+        total_status_counts = sum(status_dict.values())
+        status_dict['None'] = implementations.count() - total_status_counts
         
         labels.append(family.family_abbreviation)
         data.append(status_dict)
