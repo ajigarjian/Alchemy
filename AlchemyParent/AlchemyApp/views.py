@@ -1,8 +1,7 @@
 import json #for api calls
 import random #for generating system color for client dashboard
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseRedirect
-from django.http import JsonResponse #for API calls
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse #for API calls
 from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
@@ -12,10 +11,8 @@ from .forms import OrganizationForm, SystemForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required #to redirect user to login route if they try to access an app page past login
-from django.db.models import Count, Q, Max
-from django.db.models import Subquery
+from django.db.models import Count, Case, When, Q, Max, IntegerField, Subquery
 from django.core import serializers
-
 import os, openai
 from dotenv import load_dotenv
 
@@ -258,13 +255,40 @@ def get_status_data(request):
     data = ControlImplementation.objects.filter(system_id=system_id).values('statuses__status').annotate(count=Count('id'))
     status_names = [item['statuses__status'] if item['statuses__status'] is not None else 'None' for item in data]
     status_counts = [item['count'] for item in data]
-
-    print(status_names)
     
     return JsonResponse(data={
         'labels': status_names,
         'data': status_counts,
     })
+
+@csrf_exempt
+@login_required
+def get_implementation_family_data(request):
+    data = json.loads(request.body)
+    system_id = data.get('system_id', None)
+    system = System.objects.get(id=system_id)
+
+    labels = []
+    data = []
+
+    families = ControlFamily.objects.all().order_by('family_abbreviation')
+    for family in families:
+        implementations = ControlImplementation.objects.filter(control__control_family=family, system=system)
+        
+        status_dict = {}
+
+        for status in ImplementationStatus.STATUS_CHOICES:
+            status_count = implementations.filter(statuses__status=status[0]).count()
+            status_dict[status[1]] = status_count
+        print(status_dict)
+        
+        labels.append(family.family_abbreviation)
+        data.append(status_dict)
+
+    print(labels)
+    print(data)
+
+    return JsonResponse({'labels': labels, 'data': data}, safe=False)
 
 @login_required
 def delete_system(request):
@@ -477,8 +501,6 @@ def save_control_text(request):
             # Save the implementation
             control_statement_part.save()
 
-            print(statement)
-
             # Return a successful response
             return JsonResponse({'status': 'success', 'updated_statement': statement}, status=200)
         
@@ -488,8 +510,6 @@ def save_control_text(request):
 
              # Save the implementation
             implementation.save()
-
-            print(statement)
 
             # Return a successful response
             return JsonResponse({'status': 'success', 'updated_statement': statement}, status=200)

@@ -168,8 +168,8 @@
                             <h1 class="text-xl flex-grow mr-2 font-black tracking-wide text-blue-600 overflow-x-auto whitespace-nowrap">{{implementation.control}} | {{implementation.control.control_name }}</h1>
 
                             <div id="control_context" class="flex">
-                                <div id="control_owner" class="mr-2 min-w-44">
-                                    <button id="owner-dropdown-button-{{implementation.id}}" data-dropdown-toggle="owner-dropdown-helper-{{implementation.id}}" class="{% if implementation.responsible_role %} text-white bg-blue-500 hover:bg-blue-700 {% else %} text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex items-center min-w-44 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200" type="button">
+                                <div id="control_owner" class="mr-2">
+                                    <button id="owner-dropdown-button-{{implementation.id}}" data-dropdown-toggle="owner-dropdown-helper-{{implementation.id}}" class="{% if implementation.responsible_role %} text-white bg-blue-500 hover:bg-blue-700 {% else %} min-w-44 text-blue-500 bg-white border border-blue-500 hover:bg-gray-100 {% endif %} focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-1 text-center inline-flex overflow-x-auto text-ellipsis whitespace-nowrap items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition duration-200" type="button">
                                         <span class="button-text">
                                             {% if implementation.responsible_role %}
                                                 {{implementation.responsible_role}}
@@ -626,11 +626,11 @@
                 
                 if (result.updated_role_name.length > 0){
                     // Change button color to blue if there are any statuses
-                    button.classList.remove("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
+                    button.classList.remove("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100", "min-w-44");
                     button.classList.add("text-white", "bg-blue-500", "hover:bg-blue-700");
                 } else {
                     // Change button color to white if there are no statuses
-                    button.classList.add("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100");
+                    button.classList.add("bg-white", "text-blue-500", "border", "border-blue-500", "hover:bg-gray-100",  "min-w-44");
                     button.classList.remove("text-white", "bg-blue-500", "hover:bg-blue-700");
                 }
 
