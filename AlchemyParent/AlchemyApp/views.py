@@ -152,6 +152,7 @@ def implementation(request, system):
         control_families = ControlFamily.objects.all().order_by('family_abbreviation')
 
         return render(request, "internal/implementation.html", {
+            "client": client,
             "system": system_object,
             "control_implementations": control_implementations,
             "implementation_choices": implementation_choices,
@@ -288,10 +289,23 @@ def get_implementation_family_data(request):
         labels.append(family.family_abbreviation)
         data.append(status_dict)
 
-    print(labels)
-    print(data)
-
     return JsonResponse({'labels': labels, 'data': data}, safe=False)
+
+@csrf_exempt
+@login_required
+def get_origination_data(request):
+    system_data = json.loads(request.body.decode('utf-8'))
+    system_id = system_data['system_id']
+
+    # Filter ControlImplementation objects by system
+    data = ControlImplementation.objects.filter(system_id=system_id).values('originations__origination').annotate(count=Count('id'))
+    status_names = [item['originations__origination'] if item['originations__origination'] is not None else 'None' for item in data]
+    status_counts = [item['count'] for item in data]
+    
+    return JsonResponse(data={
+        'labels': status_names,
+        'data': status_counts,
+    })
 
 @login_required
 def delete_system(request):
