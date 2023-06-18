@@ -19,6 +19,7 @@ urlpatterns = [
    path('get_control_origination_data', views.get_control_origination_data, name='get_control_origination_data'),
    path('get_status_data', views.get_status_data, name='get_status_data'),
    path('get_implementation_family_data', views.get_implementation_family_data, name='get_implementation_family_data'),
+   path('get_origination_data', views.get_origination_data, name='get_origination_data'),
 
    path("overview/<str:system>", views.overview, name="overview"),
    path("overview2/<str:system>", views.overview2, name="overview2"),
