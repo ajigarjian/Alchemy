@@ -25,12 +25,12 @@
 
     <div id="sidebar-multi-level-sidebar" class="sticky top-10 left-0 z-10 w-72 h-184 transition-transform -translate-x-full sm:translate-x-0 border-r" aria-label="Sidebar">
         <div class="h-full px-3 overflow-y-auto dark:bg-gray-800">
-            <ul class="space-y-4">
+            <ul class="mt-6">
                 {% for family in control_families %}
-                <li id="sidebar-family-{{family.id}}" class="family-nav">
-                    <button type="button" class="flex text-sm items-center w-full py-1 px-2 text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-{{family.id}}" data-collapse-toggle="dropdown-{{family.id}}">
+                <li id="sidebar-family-{{family.id}}" class="family-nav space-y-2">
+                    <button type="button" class="flex text-sm items-center w-full py-1 px-2 text-gray-800 transition duration-75 rounded-lg group hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-{{family.id}}" data-collapse-toggle="dropdown-{{family.id}}">
                         <svg sidebar-toggle-item class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                        <span class="flex-1 w-6 ml-3 text-left" sidebar-toggle-item>{{family.family_abbreviation}}</span>
+                        <span class="ml-3 text-left" sidebar-toggle-item>{{family.family_name}}</span>
                     </button>
 
                     <ul id="dropdown-{{family.id}}" class="hidden max-h-72 overflow-y-auto space-y-2">
@@ -38,7 +38,7 @@
                         {% for implementation in control_implementations %}
                             {% if implementation.control.control_family == family %}
                             <li id="sidebar-control-{{implementation.id}}" class="rounded-lg">
-                                <a href="#control-implementation-{{implementation.id}}" class="flex text-xs items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-4 group hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700">{{implementation.control}}: {{implementation.control.control_name}}</a>
+                                <a href="#control-implementation-{{implementation.id}}" class="flex text-xs items-center w-full p-2 text-gray-500 transition duration-75 rounded-lg pl-4 group hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700">{{implementation.control}}: {{implementation.control.control_name}}</a>
                             </li>
                             {% endif %}
                         {% endfor %}
@@ -172,7 +172,7 @@
 
         {% for family in control_families %}
             <div class="family mb-4 w-full">
-                <h1 class="text-2xl sm:text-4xl font-black tracking-wide mb-6">{{ family.family_name }}</h1>
+                <h1 class="text-2xl sm:text-4xl font-black text-gray-900 tracking-wide mb-6">{{ family.family_name }}</h1>
                 {% for implementation in control_implementations %}
                     {% if implementation.control.control_family == family %}
                     <div id="control-implementation-{{implementation.id}}" class="control mb-12 border-2 p-4 rounded-lg" 
