@@ -38,23 +38,11 @@ load_dotenv()
 # get the secret key
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", default=secrets.token_urlsafe(nbytes=64))
 
-# The `DYNO` env var is set on Heroku CI, but it's not a real Heroku app, so we have to
-# also explicitly exclude CI:
-# https://devcenter.heroku.com/articles/heroku-ci#immutable-environment-variables
-IS_HEROKU_APP = os.environ.get('DYNO') is not None and os.environ.get('CI') is None
-
 # SECURITY WARNING: don't run with debug turned on in production!
-if not IS_HEROKU_APP:
-    DEBUG = True
+DEBUG = True
 
-# On Heroku, it's safe to use a wildcard for `ALLOWED_HOSTS``, since the Heroku router performs
-# validation of the Host header in the incoming HTTP request. On other platforms you may need
-# to list the expected hostnames explicitly to prevent HTTP Host header attacks. See:
-# https://docs.djangoproject.com/en/4.2/ref/settings/#std-setting-ALLOWED_HOSTS
-if IS_HEROKU_APP:
-    ALLOWED_HOSTS = ["*"]
-else:
-    ALLOWED_HOSTS = []
+# vercel app included
+ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app']
 
 #Added to provide functionality for Django-tailwind
 TAILWIND_APP_NAME = 'theme'
@@ -112,28 +100,13 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'AlchemyProject.wsgi.application'
-
+# vercel app
+WSGI_APPLICATION = 'AlchemyProject.wsgi.app'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-# if IS_HEROKU_APP:
-#     # In production on Heroku the database configuration is derived from the `DATABASE_URL`
-#     # environment variable by the dj-database-url package. `DATABASE_URL` will be set
-#     # automatically by Heroku when a database addon is attached to your Heroku app. See:
-#     # https://devcenter.heroku.com/articles/provisioning-heroku-postgres
-#     # https://github.com/jazzband/dj-database-url
-#     DATABASES = {
-#         "default": dj_database_url.config(
-#             conn_max_age=600,
-#             conn_health_checks=True,
-#             ssl_require=True,
-#         ),
-#     }
-# else:
-    # When running locally in development or in CI, a sqlite database file will be used instead
-    # to simplify initial setup. Longer term it's recommended to use Postgres locally too.
+# When running locally in development or in CI, a sqlite database file will be used instead
+# to simplify initial setup. Longer term it's recommended to use Postgres locally too.
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -146,7 +119,6 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Django's default authentication backend
     'AlchemyApp.backends.CustomUserAuthenticationBackend',  # Our custom authentication backend
 ]
-
 
 AUTH_USER_MODEL = 'AlchemyApp.CustomUser'
 
