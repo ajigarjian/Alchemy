@@ -2014,6 +2014,10 @@ select {
   z-index: 20;
 }
 
+.z-40 {
+  z-index: 40;
+}
+
 .col-span-2 {
   grid-column: span 2 / span 2;
 }
@@ -2892,6 +2896,14 @@ select {
 
 .space-y-4 {
   margin-top: 1rem;
+}
+
+.space-y-6 {
+  margin-top: 1.5rem;
+}
+
+.space-y-8 {
+  margin-top: 2rem;
 }
 
 .space-x-1 {
