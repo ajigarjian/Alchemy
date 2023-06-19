@@ -39,10 +39,10 @@ load_dotenv()
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", default=secrets.token_urlsafe(nbytes=64))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # vercel app included
-ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app']
+ALLOWED_HOSTS = ['*']
 
 #Added to provide functionality for Django-tailwind
 TAILWIND_APP_NAME = 'theme'
