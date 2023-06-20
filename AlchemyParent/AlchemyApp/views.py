@@ -168,8 +168,11 @@ def implementation(request, system):
 def dashboard(request, system=None):
 
     client = request.user.client
-    
     systems = System.objects.filter(client=client)
+
+    # unquote the system name here
+    if system is not None:
+        system = unquote(system)
 
     if (request.method == 'POST') & (request.POST.get("system_name") != None):
 
