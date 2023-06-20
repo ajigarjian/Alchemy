@@ -106,7 +106,7 @@ def contact(request):
 def implementation(request, system):
 
     client = request.user.client
-    system_object = get_object_or_404(System, name=system, client=client)
+    system_object = get_object_or_404(System, name=unquote(system), client=client)
     control_implementations = ControlImplementation.objects.filter(system=system_object).order_by('control')
 
     # Case where the search has been updated and an AJAX Call has been POSTed. This branch updates the control implementations rendered
@@ -162,8 +162,6 @@ def implementation(request, system):
             "roles": roles,
             "implementation_statements": implementation_statements,
         })
-    
-
 
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
 @login_required
@@ -315,7 +313,7 @@ def delete_system(request):
     client = request.user.client
 
     if request.method == 'POST':
-        system_name = request.POST['delete-system-button']
+        system_name = unquote(request.POST['delete-system-button'])
         system = get_object_or_404(System, name=system_name, client=client)
         system.delete()
 
@@ -325,10 +323,11 @@ def delete_system(request):
 def rename_system(request):
 
     client = request.user.client
+    
 
     if request.method == 'POST':
-        old_system_name = request.POST['change-name-button']
-        new_system_name = request.POST['system_name']
+        old_system_name = unquote(request.POST['change-name-button'])
+        new_system_name = unquote(request.POST['system_name'])
 
         system = get_object_or_404(System, name=old_system_name, client=client)
         system.name = new_system_name
@@ -340,8 +339,8 @@ def rename_system(request):
 def overview(request, system):
 
     org = request.user.client
-    selected_system = get_object_or_404(System, name=system, client__client_name=org)
-
+    selected_system = get_object_or_404(System, name=unquote(system), client__client_name=org)
+    
     information_types = InformationCategory.objects.all()
 
     return render(request, "internal/overview.html", {
