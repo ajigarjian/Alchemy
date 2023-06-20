@@ -169,7 +169,7 @@ def implementation(request, system):
 @login_required
 def dashboard(request, client, system=None):
     
-    systems = System.objects.filter(client__client_name=client)
+    systems = System.objects.filter(client__client_name=unquote(client))
 
     if (request.method == 'POST') & (request.POST.get("system_name") != None):
 
@@ -177,7 +177,7 @@ def dashboard(request, client, system=None):
 
         # process the data for new system. Use the client of the logged in user, and choose a random color
         system_name = request.POST.get("system_name")
-        client_object = Client.objects.get(client_name=client)
+        client_object = Client.objects.get(client_name=unquote(client))
         color = random.choice(colors)
 
         # Try to make a new system, if not possible, it's due to the system already existing
@@ -199,7 +199,7 @@ def dashboard(request, client, system=None):
                 "systems": systems
             })
         else:
-            selected_system = get_object_or_404(System, name=system, client__client_name=client)
+            selected_system = get_object_or_404(System, name=system, client__client_name=unquote(client))
 
             families = ControlFamily.objects.all().order_by('family_abbreviation').annotate(
                 completed_controls_count=Count('controlimplementation', filter=Q(controlimplementation__progress='Completed')),
