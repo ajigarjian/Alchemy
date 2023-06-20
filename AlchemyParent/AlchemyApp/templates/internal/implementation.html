@@ -11,7 +11,7 @@
         <div  class="md:flex md:flex-row md:items-center text-blue-500 space-x-2">
             <a href="{% url 'alchemy:index' %}" class="hover:text-blue-700 duration-300">{{client}}</a>
             <span class="text-gray-500">/</span>
-            <a href="{% url 'alchemy:dashboard' client=client system=system.name %}" class="hover:text-blue-700 duration-300">{{system.name}}</a>
+            <a href="{% url 'alchemy:dashboard' system=system.name %}" class="hover:text-blue-700 duration-300">{{system.name}}</a>
             <span class="text-gray-500">/</span>
             <a href="{% url 'alchemy:implementation' system=system.name %}" class="font-semibold hover:text-blue-700 duration-300">SSP Report</a>
         </div>
