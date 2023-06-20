@@ -175,7 +175,7 @@ def dashboard(request, client, system=None):
 
         # process the data for new system. Use the client of the logged in user, and choose a random color
         system_name = request.POST.get("system_name")
-        client_object = Client.objects.get(client_name=unquote(unquote(client)))
+        client_object = Client.objects.get(client_name=unquote(client))
 
         color = random.choice(colors)
 
