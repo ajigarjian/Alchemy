@@ -39,6 +39,4 @@ urlpatterns = [
     path("save_control_text", views.save_control_text, name="save_control_text"),
 
     path("generate_ai_statement", views.generate_ai_statement, name="generate_ai_statement"),
-
-    
  ]
