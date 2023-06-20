@@ -111,14 +111,7 @@ WSGI_APPLICATION = 'AlchemyProject.wsgi.app'
 # When running locally in development or in CI, a sqlite database file will be used instead
 # to simplify initial setup. Longer term it's recommended to use Postgres locally too.
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'test',
-        'USER': 'postgres',
-        'PASSWORD': 'test123',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(default=os.environ['DATABASE_URI'])
 }
 
 # Added this in to create run custom authentication backend before default one for users trying to log in
