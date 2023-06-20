@@ -15,6 +15,7 @@ from django.db.models import Count, Case, When, Q, Max, IntegerField, Subquery
 from django.core import serializers
 import os, openai
 from dotenv import load_dotenv
+from urllib.parse import unquote #to decode url strings passed through urls as parameters, e.g. client
 
 load_dotenv()
 
@@ -194,7 +195,7 @@ def dashboard(request, client, system=None):
     else:
         if system is None:
             return render(request, "internal/dashboard.html", {
-                "client": client,
+                "client": unquote(client),
                 "systems": systems
             })
         else:
@@ -220,7 +221,7 @@ def dashboard(request, client, system=None):
             total_completed_implementations = ControlImplementation.objects.filter(system=selected_system, progress='Completed').count()
 
             return render(request, "internal/system_dashboard.html", {
-                "client": client,
+                "client": unquote(client),
                 "system": selected_system,
                 "families": families,
                 "total_controls": total_controls,
