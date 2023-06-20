@@ -32,8 +32,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # https://devcenter.heroku.com/articles/config-vars
 # SECURITY WARNING: keep the secret key used in production secret!
 
-# load the .env file
-load_dotenv("../AlchemyApp/.env")
+# Load .env file
+dotenv_path = os.path.join(os.path.dirname(__file__), '../AlchemyApp/.env')
+load_dotenv(dotenv_path)
 
 # get the secret key
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", default=secrets.token_urlsafe(nbytes=64))
@@ -111,7 +112,7 @@ WSGI_APPLICATION = 'AlchemyProject.wsgi.app'
 # When running locally in development or in CI, a sqlite database file will be used instead
 # to simplify initial setup. Longer term it's recommended to use Postgres locally too.
 DATABASES = {
-    'default': dj_database_url.config(default=os.environ['DATABASE_URI'])
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URI'))
 }
 
 # Added this in to create run custom authentication backend before default one for users trying to log in
