@@ -12,8 +12,8 @@ urlpatterns = [
    path("contact",views.contact, name="contact"),
 
    #Once logged in - app itself
-   path("dashboard/<str:client>", views.dashboard, name="dashboard"),
-   path('dashboard/<str:client>/<str:system>', views.dashboard, name='dashboard'),
+   path("dashboard", views.dashboard, name="dashboard"),
+   path('dashboard/<str:system>', views.dashboard, name='dashboard'),
    path('delete_system', views.delete_system, name='delete_system'),
    path('rename_system', views.rename_system, name='rename_system'),
    path('get_control_origination_data', views.get_control_origination_data, name='get_control_origination_data'),

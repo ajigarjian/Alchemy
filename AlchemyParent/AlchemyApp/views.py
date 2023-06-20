@@ -29,7 +29,7 @@ def index(request):
         return render(request, "public/index.html")
     
     else:
-        return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
+        return HttpResponseRedirect(reverse("alchemy:dashboard"))
 
 def login_view(request):
     # if this is a POST, process the login data and redirect the logged in user to the overview page
@@ -43,7 +43,7 @@ def login_view(request):
 
         if user:
             login(request, user)
-            return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
+            return HttpResponseRedirect(reverse("alchemy:dashboard"))
         else:
             context = {
                 'error_message': 'Invalid email or password.',
@@ -96,7 +96,7 @@ def logout_view(request):
 def contact(request):
 
     if request.user.is_authenticated:
-         return HttpResponseRedirect(reverse("alchemy:dashboard", args=[request.user.client]))
+         return HttpResponseRedirect(reverse("alchemy:dashboard"))
     return render(request, "public/contact.html")
 
 ####################################### Internal Application once logged in ##############################################
@@ -165,9 +165,11 @@ def implementation(request, system):
 
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
 @login_required
-def dashboard(request, client, system=None):
+def dashboard(request, system=None):
+
+    client = request.user.client
     
-    systems = System.objects.filter(client__client_name=unquote(client))
+    systems = System.objects.filter(client=client)
 
     if (request.method == 'POST') & (request.POST.get("system_name") != None):
 
@@ -175,13 +177,12 @@ def dashboard(request, client, system=None):
 
         # process the data for new system. Use the client of the logged in user, and choose a random color
         system_name = request.POST.get("system_name")
-        client_object = Client.objects.get(client_name=unquote(client))
 
         color = random.choice(colors)
 
         # Try to make a new system, if not possible, it's due to the system already existing
         try:
-            system = System.objects.create(name=system_name, client=client_object, color=color)
+            system = System.objects.create(name=system_name, client=client, color=color)
             system.save()
 
         except IntegrityError:
@@ -189,16 +190,16 @@ def dashboard(request, client, system=None):
                 "message": "Email already being used."
             })
 
-        return HttpResponseRedirect(reverse("alchemy:dashboard", args=[client]))
+        return HttpResponseRedirect(reverse("alchemy:dashboard"))
     
     else:
         if system is None:
             return render(request, "internal/dashboard.html", {
-                "client": unquote(client),
+                "client": client,
                 "systems": systems
             })
         else:
-            selected_system = get_object_or_404(System, name=system, client__client_name=unquote(client))
+            selected_system = get_object_or_404(System, name=system, client=client)
 
             families = ControlFamily.objects.all().order_by('family_abbreviation').annotate(
                 completed_controls_count=Count('controlimplementation', filter=Q(controlimplementation__progress='Completed')),
@@ -220,7 +221,7 @@ def dashboard(request, client, system=None):
             total_completed_implementations = ControlImplementation.objects.filter(system=selected_system, progress='Completed').count()
 
             return render(request, "internal/system_dashboard.html", {
-                "client": unquote(client),
+                "client": client,
                 "system": selected_system,
                 "families": families,
                 "total_controls": total_controls,
@@ -317,7 +318,7 @@ def delete_system(request):
         system = get_object_or_404(System, name=system_name, client=client)
         system.delete()
 
-    return redirect('alchemy:dashboard', client=client)
+    return redirect('alchemy:dashboard')
 
 @login_required
 def rename_system(request):
@@ -333,7 +334,7 @@ def rename_system(request):
         system.name = new_system_name
         system.save(update_fields=["name"])
 
-    return redirect('alchemy:dashboard', client=client)
+    return redirect('alchemy:dashboard')
 
 @login_required
 def overview(request, system):
