@@ -16,6 +16,7 @@ from django.core import serializers
 import os, openai
 from dotenv import load_dotenv
 from urllib.parse import unquote #to decode url strings passed through urls as parameters, e.g. client
+from django.db.models import Q #perform database filtering all in one query
 
 load_dotenv()
 
@@ -107,35 +108,31 @@ def implementation(request, system):
 
     client = request.user.client
     system_object = get_object_or_404(System, name=unquote(system), client=client)
-    control_implementations = ControlImplementation.objects.filter(system=system_object).order_by('control')
+    control_implementations = ControlImplementation.objects.filter(system=system_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations').order_by('control')
 
     # Case where the search has been updated and an AJAX Call has been POSTed. This branch updates the control implementations rendered
     if request.method == 'POST':
 
         # Load the AJAX call data for each of the search filters
         data = json.loads(request.body)
+
+        filters = Q()
+
+        if role := data.get('role'):
+            filters &= Q(responsible_role__responsible_role=role)
         
-        role = data.get('role')
-        origination_statuses = data.get('origination_statuses')
-        implementation_statuses = data.get('implementation_statuses')
-        control_family_name = data.get('family')
+        if origination_statuses := data.get('origination_statuses'):
+            filters &= Q(originations__origination__in=origination_statuses)
 
-        # For each search filter, check if data exists. If it does, filter the control implementations accordingly.
-        if role:
-            role_object = get_object_or_404(ResponsibleRole, responsible_role=role)
-            control_implementations = control_implementations.filter(responsible_role=role_object)
+        if implementation_statuses := data.get('implementation_statuses'):
+            filters &= Q(statuses__status__in=implementation_statuses)
 
-        if origination_statuses:
-            control_implementations = control_implementations.filter(originations__origination__in=originations_statuses)
-
-        if implementation_statuses:
-            control_implementations = control_implementations.filter(statuses__status__in=implementation_statuses)
-
-        if family:
-            control_family = get_object_or_404(ControlFamily, name=control_family_name)
-            control_implementations = control_implementations.filter(control_family=control_family)
+        if family := data.get('family'):
+            filters &= Q(control_family__name=family)
         
-        serialized_data = ImplementationSerializer(implementations, many=True).data
+        control_implementations = control_implementations.filter(filters)
+        
+        serialized_data = ImplementationSerializer(control_implementations, many=True).data
 
         return JsonResponse(serialized_data, safe=False)
 
