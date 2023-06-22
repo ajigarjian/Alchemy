@@ -1,5 +1,8 @@
 from django.urls import path
 from . import views
+from django.urls import include, path # Added for debugging
+from django.conf import settings #Added for debugging
+import debug_toolbar
 
 app_name = "alchemy"
 urlpatterns = [
@@ -27,16 +30,22 @@ urlpatterns = [
 
    path("implementation/<str:system>", views.implementation, name="implementation"),
 
-    #API Calls
-    path("answer", views.answer, name="answer"),
-    path('get_answer', views.get_answer, name='get_answer'),
-    path("create_update_org", views.create_update_org, name="create_update_org"),
+   #API Calls
+   path("answer", views.answer, name="answer"),
+   path('get_answer', views.get_answer, name='get_answer'),
+   path("create_update_org", views.create_update_org, name="create_update_org"),
 
-    path("update_implementation_status", views.update_implementation_status, name="update_implementation_status"),
-    path("update_origination_status", views.update_origination_status, name="update_origination_status"),
-    path("update_responsible_role", views.update_responsible_role, name="update_responsible_role"),
-    path("add_role", views.add_role, name="add_role"),
-    path("save_control_text", views.save_control_text, name="save_control_text"),
+   path("update_implementation_status", views.update_implementation_status, name="update_implementation_status"),
+   path("update_origination_status", views.update_origination_status, name="update_origination_status"),
+   path("update_responsible_role", views.update_responsible_role, name="update_responsible_role"),
+   path("add_role", views.add_role, name="add_role"),
+   path("save_control_text", views.save_control_text, name="save_control_text"),
 
-    path("generate_ai_statement", views.generate_ai_statement, name="generate_ai_statement"),
+   path("generate_ai_statement", views.generate_ai_statement, name="generate_ai_statement"),
  ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns

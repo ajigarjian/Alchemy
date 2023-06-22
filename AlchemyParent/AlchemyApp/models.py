@@ -456,7 +456,7 @@ class ControlImplementation(models.Model):
 
     system = models.ForeignKey('System', on_delete=models.CASCADE)
     control = models.ForeignKey('NISTControl', related_name='control_implementations', on_delete=models.CASCADE) #Linked control
-    control_family = models.ForeignKey('ControlFamily', on_delete=models.CASCADE)
+    control_family = models.ForeignKey('ControlFamily', on_delete=models.CASCADE, related_name='control_implementations')
     responsible_role = models.ForeignKey('ResponsibleRole', blank=True, null=True, on_delete=models.RESTRICT)
     statuses = models.ManyToManyField(ImplementationStatus)
     originations = models.ManyToManyField(ControlOrigination)

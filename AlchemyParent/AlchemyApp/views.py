@@ -11,12 +11,11 @@ from .forms import OrganizationForm, SystemForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required #to redirect user to login route if they try to access an app page past login
-from django.db.models import Count, Case, When, Q, Max, IntegerField, Subquery
+from django.db.models import Count, Case, When, Q, Max, IntegerField, Subquery, Prefetch
 from django.core import serializers
 import os, openai
 from dotenv import load_dotenv
 from urllib.parse import unquote #to decode url strings passed through urls as parameters, e.g. client
-from django.db.models import Q #perform database filtering all in one query
 
 load_dotenv()
 
@@ -108,7 +107,7 @@ def implementation(request, system):
 
     client = request.user.client
     system_object = get_object_or_404(System, name=unquote(system), client=client)
-    control_implementations = ControlImplementation.objects.filter(system=system_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations').order_by('control')
+    control_implementations = ControlImplementation.objects.filter(system=system_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations', 'control__parts').order_by('control__control_family__family_abbreviation', 'control__control_number')
 
     # Case where the search has been updated and an AJAX Call has been POSTed. This branch updates the control implementations rendered
     if request.method == 'POST':
@@ -141,13 +140,14 @@ def implementation(request, system):
 
         implementation_choices = ImplementationStatus.objects.all()
         origination_choices = ControlOrigination.objects.all()
-        implementation_statements = ControlImplementationStatement.objects.all()
         roles = ResponsibleRole.objects.all().distinct()
 
-    # Get all the questions for the given family, otherwise, just get all the questions
-
-        # Get all control families for the sidebar
-        control_families = ControlFamily.objects.all().order_by('family_abbreviation')
+        control_families = ControlFamily.objects.prefetch_related(
+            Prefetch(
+                'control_implementations',
+                queryset=ControlImplementation.objects.filter(system=system_object),
+            )
+        ).order_by('family_abbreviation')
 
         return render(request, "internal/implementation.html", {
             "client": client,
@@ -155,9 +155,8 @@ def implementation(request, system):
             "control_implementations": control_implementations,
             "implementation_choices": implementation_choices,
             "origination_choices": origination_choices,
-            "control_families": control_families,
             "roles": roles,
-            "implementation_statements": implementation_statements,
+            "control_families": control_families,
         })
 
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
@@ -202,9 +201,9 @@ def dashboard(request, system=None):
             selected_system = get_object_or_404(System, name=system, client=client)
 
             families = ControlFamily.objects.all().order_by('family_abbreviation').annotate(
-                completed_controls_count=Count('controlimplementation', filter=Q(controlimplementation__progress='Completed')),
-                family_controls_count=Count('controlimplementation'),
-                last_updated=Max('controlimplementation__last_updated'),
+                completed_controls_count=Count('control_implementations', filter=Q(control_implementations__progress='Completed')),
+                family_controls_count=Count('control_implementations'),
+                last_updated=Max('control_implementations__last_updated'),
             )
             
             # Using __ to make a lookup that spans relationship

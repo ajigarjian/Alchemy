@@ -2036,6 +2036,11 @@ select {
   margin-right: 0.5rem;
 }
 
+.mx-3 {
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+}
+
 .mx-4 {
   margin-left: 1rem;
   margin-right: 1rem;
@@ -2106,6 +2111,11 @@ select {
   margin-bottom: 1rem;
 }
 
+.my-3 {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
 .my-2 {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
@@ -2132,8 +2142,8 @@ select {
   margin-bottom: 3rem;
 }
 
-.mb-2 {
-  margin-bottom: 0.5rem;
+.mb-2\.5 {
+  margin-bottom: 0.625rem;
 }
 
 .mb-24 {
@@ -2142,6 +2152,10 @@ select {
 
 .mb-48 {
   margin-bottom: 12rem;
+}
+
+.mb-2 {
+  margin-bottom: 1rem;
 }
 
 .mb-4 {
@@ -2537,6 +2551,14 @@ select {
   width: 75%;
 }
 
+.w-24 {
+  width: 8rem;
+}
+
+.w-32 {
+  width: 8rem;
+}
+
 .w-36 {
   width: 9rem;
 }
@@ -2666,7 +2688,7 @@ select {
   flex-shrink: 0;
 }
 
-.flex-grow {
+.grow {
   flex-grow: 1;
 }
 
@@ -2888,6 +2910,10 @@ select {
 
 .space-y-2 {
   margin-top: 0.50rem;
+}
+
+.space-y-2\.5 {
+  margin-top: 0.625rem;
 }
 
 .space-y-3 {
@@ -5428,6 +5454,19 @@ left: 100%;
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
   }
 }
 
