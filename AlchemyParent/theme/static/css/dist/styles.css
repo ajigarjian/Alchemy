@@ -2640,12 +2640,20 @@ select {
   min-width: 13rem;
 }
 
+.min-w-xl {
+  min-width: 36rem;
+}
+
 .min-w-512 {
   min-width: 512px;
 }
 
 .min-w-768 {
   min-width: 768px;
+}
+
+.max-w-4\/5 {
+  max-width: 80%;
 }
 
 .max-w-xs {
