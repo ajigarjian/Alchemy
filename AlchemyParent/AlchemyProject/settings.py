@@ -39,8 +39,11 @@ load_dotenv(dotenv_path)
 # get the secret key
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", default=secrets.token_urlsafe(nbytes=64))
 
+def str2bool(v):
+    return str(v).lower() in ("yes", "true", "t", "1")
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = str2bool(os.getenv('DJANGO_DEBUG', 'True'))
 
 # vercel app included
 ALLOWED_HOSTS = ['*']
@@ -77,6 +80,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if DEBUG:
+    INSTALLED_APPS.append('debug_toolbar')
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
