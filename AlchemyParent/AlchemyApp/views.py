@@ -16,6 +16,7 @@ from django.core import serializers
 import os, openai
 from dotenv import load_dotenv
 from urllib.parse import unquote #to decode url strings passed through urls as parameters, e.g. client
+from django.db.models.functions import Coalesce #for treating base controls with enhancements as null as high values 
 
 load_dotenv()
 
@@ -107,7 +108,13 @@ def implementation(request, system):
 
     client = request.user.client
     system_object = get_object_or_404(System, name=unquote(system), client=client)
-    control_implementations = ControlImplementation.objects.filter(system=system_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations', 'control__parts').order_by('control__control_family__family_abbreviation', 'control__control_number')
+
+    # Define a Prefetch object for the parts that specifies the order
+    ordered_parts_prefetch = Prefetch('control__parts', queryset=NISTControlPart.objects.order_by('part_letter'))
+    ordered_statements_prefetch = Prefetch('control_statement_parts', queryset=ControlImplementationStatement.objects.order_by('control_part__part_letter'))
+
+    # Pass the Prefetch object to the prefetch_related method
+    control_implementations = ControlImplementation.objects.filter(system=system_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations', ordered_parts_prefetch, ordered_statements_prefetch).order_by('control__control_family__family_abbreviation', 'control__control_number', Coalesce('control__control_enhancement', -1))
 
     # Case where the search has been updated and an AJAX Call has been POSTed. This branch updates the control implementations rendered
     if request.method == 'POST':
@@ -145,7 +152,7 @@ def implementation(request, system):
         control_families = ControlFamily.objects.prefetch_related(
             Prefetch(
                 'control_implementations',
-                queryset=ControlImplementation.objects.filter(system=system_object),
+                queryset=ControlImplementation.objects.filter(system=system_object).order_by('control'),
             )
         ).order_by('family_abbreviation')
 
