@@ -2096,6 +2096,11 @@ select {
   margin-bottom: 8rem;
 }
 
+.my-10 {
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
 .my-8 {
   margin-top: 2rem;
   margin-bottom: 2rem;
@@ -2654,6 +2659,10 @@ select {
 
 .min-w-xl {
   min-width: 36rem;
+}
+
+.min-w-2xl {
+  min-width: 48rem;
 }
 
 .min-w-512 {

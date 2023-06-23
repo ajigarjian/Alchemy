@@ -3,21 +3,15 @@
 
 {% block body %}
 
-<div class="flex overflow-auto justify-center pb-16">
+<div class="flex h-screen overflow-auto justify-center pb-16">
     <div id="welcome_container" class="mt-48 text-center mx-5 md:min-w-100 md:w-4/5 translate-y-10 opacity-0">
         <h1 class="text-5xl md:text-6xl font-extrabold tracking-wide text-blue-500">Create Quick, Affordable, and AI-Powered FedRAMP SSPs.</h1>
         <a href="{% url 'alchemy:contact' %}" class="mt-10 bg-blue-500 hover:bg-blue-700 text-white font-bold text-xl py-4 px-8 rounded-lg focus:outline-none focus:shadow-outline inline-block duration-300">Begin Now</a>
     </div>
 </div>
 
-<div class="flex overflow-auto justify-center overflow-hidden border-secondary border-b bg-gradient-to-t from-gray-50 to-white lg:mb-24">
-    <div id="product_container" class="mt-48 text-center mx-5 md:min-w-100 md:w-4/5">
-        <img src="{% static 'Report_Screenshot.png' %}">
-    </div>
-</div>
-
-<div id="about_container" class="flex flex-col h-[160vh] w-screen items-center bg-white">
-    <div id="get_started_container" class="text-center mx-16 md:min-w-100">
+<div id="about_container" class="flex flex-col w-screen items-center bg-white">
+    <div id="get_started_container" class="text-center mx-16 mb-48 md:min-w-100">
         <div class="mt-12 mb-24">
             <div>
                 <h3 class="text-xl tracking-wide text-blue-500 uppercase opacity-70">How it works</h3>
@@ -25,7 +19,7 @@
             </div>
         </div>
 
-        <div id="get_started_grid" class="grid grid-cols-3 gap-x-16">
+        <div id="get_started_grid" class="grid grid-cols-3 min-w-2xl gap-x-16">
             <div class="flex flex-col items-center opacity-0 translate-y-10">
                 <div class="mb-10 h-12 w-12 rounded-full bg-blue-500 flex justify-center items-center">
                     <span class="text-white font-bold text-2xl">1</span>
@@ -62,7 +56,7 @@
             <div class="mt-12">
                 <span class="text-2xl tracking-wide text-semibold text-blue-500">FedRAMP-template SSP exports with Alchemy's AI model trained and validated by industry specialists</span>
             </div>
-            <a href="{% url 'alchemy:contact' %}" class="mt-10 w-full text-center bg-blue-500 hover:bg-blue-700 text-white font-bold text-2xl py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block duration-300">Begin Now</a>
+            <a href="{% url 'alchemy:contact' %}" class="my-10 w-full text-center bg-blue-500 hover:bg-blue-700 text-white font-bold text-2xl py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block duration-300">Begin Now</a>
         </div>
         <div id="report_grid" class="flex-grow px-14 flex justify-between items-center">
             <div class="opacity-0" style="width:30%; transform: translateX(50px);">
