@@ -351,6 +351,7 @@ class ControlFamily(models.Model):
     class Meta:
         verbose_name = "Control Family"
         verbose_name_plural = "Control Families"
+        ordering = ['family_abbreviation']
 
     def __str__(self):
         return f"{self.family_name}"
@@ -468,6 +469,7 @@ class ControlImplementation(models.Model):
     # Making combination of client and name unique so that a given system cannot have two control implementations with the same control
     class Meta:
         unique_together = ('control', 'system')
+        ordering = ['control__control_family__family_abbreviation', 'control__control_number', 'control__control_enhancement']
     
     @property
     def origination_ids(self):
