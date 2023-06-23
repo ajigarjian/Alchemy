@@ -363,7 +363,8 @@ class NISTControlPart(models.Model):
     class Meta:
         verbose_name = "NIST Control Part"
         verbose_name_plural = "NIST Control Parts"
-
+        ordering = ['part_letter']
+    
     def __str__(self):
         return f'{self.control}: {self.part_letter}'
 

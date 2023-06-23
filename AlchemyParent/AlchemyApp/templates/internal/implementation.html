@@ -951,10 +951,27 @@
             });
         }, observerOptions); // adjust threshold as needed
 
-        // listen to click events on anchor tags to disable the observer during scrolling
         document.querySelectorAll('.family-nav a').forEach(a => {
-            a.addEventListener('click', function() {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+
                 observer.disconnect();
+
+                // Get the ID of the target element from the href attribute of the clicked link
+                let targetId = this.getAttribute('href').slice(1);
+
+                // Get the target element
+                let target = document.getElementById(targetId);
+
+                // Get the position to scroll to (this is where you can add some padding)
+                let positionToScrollTo = target.offsetTop - 50;  // adjust this value as needed
+
+                // Scroll to the position
+                window.scrollTo({
+                    top: positionToScrollTo,
+                    behavior: 'smooth'  // this makes the scrolling animate smoothly
+                });
+
                 setTimeout(function() {
                     // observe all the controls
                     controls.forEach(control => {
