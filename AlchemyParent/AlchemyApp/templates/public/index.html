@@ -3,16 +3,20 @@
 
 {% block body %}
 
-<div class="flex h-screen overflow-auto justify-center pb-16">
-    <div id="welcome_container" class="mt-48 text-center mx-5 md:min-w-100 md:w-4/5 translate-y-10 opacity-0">
+<div class=" flex flex-col overflow-hidden items-center border-b-2">
+    <div id="welcome_container" class="my-48 text-center mx-5 md:min-w-100 md:w-4/5 translate-y-10 opacity-0">
         <h1 class="text-5xl md:text-6xl font-extrabold tracking-wide text-blue-500">Create Quick, Affordable, and AI-Powered FedRAMP SSPs.</h1>
         <a href="{% url 'alchemy:contact' %}" class="mt-10 bg-blue-500 hover:bg-blue-700 text-white font-bold text-xl py-4 px-8 rounded-lg focus:outline-none focus:shadow-outline inline-block duration-300">Begin Now</a>
+    </div>
+
+    <div class="w-4/5">
+        <img class="border border-gray-400 mx-auto rounded-lg shadow-2xl -mb-8" src="static/Report_Screenshot.png"></img>
     </div>
 </div>
 
 <div id="about_container" class="flex flex-col w-screen items-center bg-white">
     <div id="get_started_container" class="text-center mx-16 mb-48 md:min-w-100">
-        <div class="mt-12 mb-24">
+        <div class="mt-12 mb-48">
             <div>
                 <h3 class="text-xl tracking-wide text-blue-500 uppercase opacity-70">How it works</h3>
                 <h2 class="mt-4 text-4xl font-black tracking-wide text-blue-500">Getting started is quick and painless</h3>
@@ -50,8 +54,8 @@
         </div>
     </div>
 
-    <div id="compliance_container" class="flex justify-between my-32 w-11/12 h-full rounded-xl bg-blue-100">
-        <div class="w-2/5 px-14 pt-12">
+    <div id="compliance_container" class="flex justify-between my-32 w-11/12 h-screen rounded-xl bg-blue-100">
+        <div class="w-2/5 px-14 py-12 flex flex-col justify-center">
             <span class="text-4xl font-black tracking-wide text-blue-500">Built for FedRAMP Authorization</span>
             <div class="mt-12">
                 <span class="text-2xl tracking-wide text-semibold text-blue-500">FedRAMP-template SSP exports with Alchemy's AI model trained and validated by industry specialists</span>
