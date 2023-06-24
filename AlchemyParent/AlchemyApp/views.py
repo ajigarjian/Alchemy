@@ -104,17 +104,18 @@ def contact(request):
 
 @csrf_exempt
 @login_required
-def implementation(request, system):
-
+def implementation(request, system, control_family):
+    
     client = request.user.client
     system_object = get_object_or_404(System, name=unquote(system), client=client)
+    control_family_object = get_object_or_404(ControlFamily, family_name=unquote(control_family))
 
     # Define a Prefetch object for the parts that specifies the order
     ordered_parts_prefetch = Prefetch('control__parts', queryset=NISTControlPart.objects.order_by('part_letter'))
     ordered_statements_prefetch = Prefetch('control_statement_parts', queryset=ControlImplementationStatement.objects.order_by('control_part__part_letter'))
 
     # Pass the Prefetch object to the prefetch_related method
-    control_implementations = ControlImplementation.objects.filter(system=system_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations', ordered_parts_prefetch, ordered_statements_prefetch).order_by('control__control_family__family_abbreviation', 'control__control_number', Coalesce('control__control_enhancement', -1))
+    control_implementations = ControlImplementation.objects.filter(system=system_object, control_family=control_family_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations', ordered_parts_prefetch, ordered_statements_prefetch).order_by('control__control_family__family_abbreviation', 'control__control_number', Coalesce('control__control_enhancement', -1))
 
     # Case where the search has been updated and an AJAX Call has been POSTed. This branch updates the control implementations rendered
     if request.method == 'POST':
@@ -132,9 +133,6 @@ def implementation(request, system):
 
         if implementation_statuses := data.get('implementation_statuses'):
             filters &= Q(statuses__status__in=implementation_statuses)
-
-        if family := data.get('family'):
-            filters &= Q(control_family__name=family)
         
         control_implementations = control_implementations.filter(filters)
         
@@ -147,14 +145,7 @@ def implementation(request, system):
 
         implementation_choices = ImplementationStatus.objects.all()
         origination_choices = ControlOrigination.objects.all()
-        roles = ResponsibleRole.objects.all().distinct()
-
-        control_families = ControlFamily.objects.prefetch_related(
-            Prefetch(
-                'control_implementations',
-                queryset=ControlImplementation.objects.filter(system=system_object).order_by('control'),
-            )
-        ).order_by('family_abbreviation')
+        roles = ResponsibleRole.objects.all()
 
         return render(request, "internal/implementation.html", {
             "client": client,
@@ -163,7 +154,7 @@ def implementation(request, system):
             "implementation_choices": implementation_choices,
             "origination_choices": origination_choices,
             "roles": roles,
-            "control_families": control_families,
+            "control_family": control_family_object,
         })
 
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
@@ -574,6 +565,20 @@ def generate_ai_statement(request):
 
     return JsonResponse({"message": "Post published successfully.",
                         "output": completion.choices[0].message.content}, status=201)
+
+# Simple API call to get the roles and return them to populate dropdown in implementation.html (hopefully will simplify querying load times)
+@csrf_exempt
+@login_required
+def get_roles(request):
+    roles = list(ResponsibleRole.objects.all().values())
+    return JsonResponse(roles, safe=False)
+
+# Simple API call to get the originations and return them to populate dropdown in implementation.html (hopefully will simplify querying load times)
+@csrf_exempt
+@login_required
+def get_originations(request):
+    originations = list(ControlOrigination.objects.all().values())
+    return JsonResponse(originations, safe=False)
 
 # Route to render the given family Q&A wizard. Pull the relevant questions
 def questions(request, control_family_name=None):

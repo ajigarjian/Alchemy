@@ -2682,6 +2682,10 @@ select {
   min-width: 768px;
 }
 
+.min-w-fit {
+  min-width: fit-content;
+}
+
 .max-w-4\/5 {
   max-width: 80%;
 }
