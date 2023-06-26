@@ -4250,6 +4250,11 @@ select {
     width: 48rem;
   }
 
+  .md\:my-48 {
+    margin-top: 12rem;
+    margin-bottom: 12rem;
+  }
+
   .md\:w-256 {
     width: 64rem;
   }
