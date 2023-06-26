@@ -155,7 +155,7 @@ def implementation(request, system, control_family):
             "origination_choices": origination_choices,
             "roles": roles,
             "control_family": control_family_object,
-            "control_families":ControlFamily.objects.all()
+            "control_families":ControlFamily.objects.all(),
         })
 
 # Handles showing dashboard page (for GET) as well as creating new systems before showing dashboard page again (for POST)
