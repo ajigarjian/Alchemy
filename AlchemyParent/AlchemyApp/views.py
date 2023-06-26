@@ -199,24 +199,31 @@ def dashboard(request, system=None):
         else:
             selected_system = get_object_or_404(System, name=system, client=client)
 
-            families = ControlFamily.objects.all().order_by('family_abbreviation').annotate(
+            # Get the ControlFamily objects associated with the selected system
+            families = ControlFamily.objects.filter(control_implementations__system=selected_system).order_by('family_abbreviation')
+
+            # Perform the annotations
+            families = families.annotate(
                 completed_controls_count=Count('control_implementations', filter=Q(control_implementations__progress='Completed')),
                 family_controls_count=Count('control_implementations'),
                 last_updated=Max('control_implementations__last_updated'),
             )
             
-            # Using __ to make a lookup that spans relationship
-            total_not = ControlImplementation.objects.filter(system=selected_system, statuses__status='Not Implemented').count()
-            total_partial = ControlImplementation.objects.filter(system=selected_system, statuses__status='Partially Implemented').count()
-            total_implemented = ControlImplementation.objects.filter(system=selected_system, statuses__status='Implemented').count()
+            # Count the control implementation statuses
+            total_not = selected_system.control_implementations.filter(statuses__status='Not Implemented').count()
+            total_partial = selected_system.control_implementations.filter(statuses__status='Partially Implemented').count()
+            total_implemented = selected_system.control_implementations.filter(statuses__status='Implemented').count()
+
+            print(total_not)
+            print(total_partial)
 
             # For counting all the controls we count the implementations where status is one of the status choices
-            total_controls = ControlImplementation.objects.filter(
-                system=selected_system, 
+            # Count all the controls
+            total_controls = selected_system.control_implementations.filter(
                 statuses__status__in=ImplementationStatus.STATUS_CHOICES
             ).count()
 
-            total_completed_implementations = ControlImplementation.objects.filter(system=selected_system, progress='Completed').count()
+            total_completed_implementations = selected_system.control_implementations.filter(progress='Completed').count()
 
             return render(request, "internal/system_dashboard.html", {
                 "client": client,
