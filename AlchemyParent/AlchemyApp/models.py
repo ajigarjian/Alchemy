@@ -388,6 +388,21 @@ class NISTControl(models.Model):
         verbose_name = "NIST Control"
         verbose_name_plural = "NIST Controls"
 
+class FedRAMPParameter(models.Model):
+    control = models.ForeignKey('NISTControl', related_name='parameters', null=True, blank=True, on_delete=models.CASCADE)
+    part = models.ForeignKey('NISTControlPart', related_name='parameters', null=True, blank=True, on_delete=models.CASCADE)
+    description = models.TextField()
+
+    class Meta:
+        verbose_name = "Parameter"
+        verbose_name_plural = "Parameters"
+
+    def __str__(self):
+        if self.control:
+            return f'Parameter for control: {self.control}'
+        else:
+            return f'Parameter for control part: {self.part}'
+
 class ControlImplementationStatement(models.Model):
     control_implementation = models.ForeignKey('AlchemyApp.ControlImplementation', related_name='control_statement_parts', on_delete=models.CASCADE)
     control_part = models.ForeignKey('NISTControlPart', on_delete=models.CASCADE)
@@ -456,7 +471,7 @@ class ControlImplementation(models.Model):
         ('Completed', 'Completed')
     ]
 
-    system = models.ForeignKey('System', on_delete=models.CASCADE)
+    system = models.ForeignKey('System', related_name='control_implementations', on_delete=models.CASCADE)
     control = models.ForeignKey('NISTControl', related_name='control_implementations', on_delete=models.CASCADE) #Linked control
     control_family = models.ForeignKey('ControlFamily', on_delete=models.CASCADE, related_name='control_implementations')
     responsible_role = models.ForeignKey('ResponsibleRole', blank=True, null=True, on_delete=models.RESTRICT)
