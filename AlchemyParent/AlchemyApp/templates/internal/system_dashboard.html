@@ -142,13 +142,14 @@
             </div>
 
             <div class="md:col-span-8 h-144 bg-white border-2 rounded-lg transform transition-all duration-300 ease-in-out group">
-                
-                <div class="system-header p-8 mb-2 rounded-t-lg h-14 w-full hover:bg-gray-100 hover:cursor-pointer transition-all duration-300 ease-in-out flex items-center">
-                    <span class="text-2xl font-bold select-none">Control Implementations by Family</span>
-                    <div class="system_settings_icon absolute top-4 right-4 hidden group-hover:block transition-all duration-300 ease-in-out">
-                        <i class="fa-solid fa-ellipsis fa-xl text-blue-100 hover:text-blue-500 transition-all duration-300"></i>
+                <a href="{% url 'alchemy:implementation' system=system.name control_family='Access Control' %}">
+                    <div class="system-header p-8 mb-2 rounded-t-lg h-14 w-full hover:bg-gray-100 hover:cursor-pointer transition-all duration-300 ease-in-out flex items-center">
+                        <span class="text-2xl font-bold select-none">Control Implementations by Family</span>
+                        <div class="system_settings_icon absolute top-4 right-4 hidden group-hover:block transition-all duration-300 ease-in-out">
+                            <i class="fa-solid fa-ellipsis fa-xl text-blue-100 hover:text-blue-500 transition-all duration-300"></i>
+                        </div>
                     </div>
-                </div>
+                </a>
 
                 <div class="system-body px-4 pb-2 h-[calc(100%-4.5rem)]">
                     <canvas id="implementation_family_chart"></canvas>
@@ -159,24 +160,23 @@
             <div class="md:col-span-8 h-fit bg-white border-2 rounded-lg transform transition-all duration-300 ease-in-out group">
                 <a href="{% url 'alchemy:implementation' system=system.name control_family='Access Control' %}">
                     <div class="system-header p-8 mb-2 rounded-t-lg h-14 w-full hover:text-blue-600 hover:bg-gray-100 hover:cursor-pointer transition-all duration-300 ease-in-out flex items-center">
-                        <span class="text-2xl font-bold select-none">Control Implementations</span>
+                        <span class="text-2xl font-bold select-none">Control Implementations Table</span>
                         <div class="system_settings_icon absolute top-4 right-4 hidden group-hover:block transition-all duration-300 ease-in-out">
                             <i class="fa-solid fa-ellipsis fa-xl text-blue-100 hover:text-blue-500 transition-all duration-300"></i>
                         </div>
                     </div>
                 </a>
 
-                <div class="system-body px-4 overflow-y-scroll h-fit">
+                <div class="system-body px-4 overflow-y-scroll h-104">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="sticky bg-white top-0 z-10">
                                 <th class="pb-2 pl-2">Family ID</th>
                                 <th class="pb-2">Family Name</th>
-                                <th class="pb-2">Descriptions Written</th>
-                                <th class="pb-2">Not Implemented</th>
+                                <th class="pb-2">Planned</th>
                                 <th class="pb-2">Partially Implemented</th>
                                 <th class="pb-2">Implemented</th>
-                                <th class="pb-2">Last Updated</th>
+                                <th class="pb-2">Last Updated (UTC)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -185,20 +185,18 @@
 
                                 <td class="py-2 pl-2">{{family.family_abbreviation}}</td>
                                 <td class="py-2">{{family.family_name}}</td>
-                                <td class="py-2">{{family.completed_controls_count}}/{{family.family_controls_count}}</td>
-                                <td class="py-2">{{family.implemented_controls_count}}/{{family.family_controls_count}}</td>
-                                <td class="py-2">{{family.implemented_controls_count}}/{{family.family_controls_count}}</td>
-                                <td class="py-2">{{family.implemented_controls_count}}/{{family.family_controls_count}}</td>
+                                <td class="py-2">{{family.planned_controls_count}}</td>
+                                <td class="py-2">{{family.partial_controls_count}}</td>
+                                <td class="py-2">{{family.implemented_controls_count}}</td>
                                 <td class="py-2">{{ family.last_updated|date:"F j, Y, P" }}</td>
                             </tr>
                             {% endfor %}
                             <tr class="sticky bg-white bottom-0 z-10 text-sm font-semibold hover:bg-gray-100 hover:translate-y-0.5 hover:cursor-pointer transition-all duration-200">
                                 <td class="py-2 pl-2">Total</td>
                                 <td class="py-2">-</td>
-                                <td class="py-2">{{total_completed_implementations}}/{{total_controls}}</td>
-                                <td class="py-2">{{total_not}}/{{total_controls}}</td>
-                                <td class="py-2">{{total_partial}}/{{total_controls}}</td>
-                                <td class="py-2">{{total_implemented}}/{{total_controls}}</td>
+                                <td class="py-2">{{total_planned}}</td>
+                                <td class="py-2">{{total_partial}}</td>
+                                <td class="py-2">{{total_implemented}}</td>
                                 <td class="py-2">-</td>
                             </tr>
                         </tbody>
@@ -288,6 +286,8 @@
         });
     });
 
+    var urls = JSON.parse('{{ urls|escapejs }}');
+
     fetch('/get_implementation_family_data', { 
         method: 'POST',
         headers: {
@@ -326,6 +326,35 @@
                 scales: {
                     x: {stacked: true},
                     y: {stacked: true}
+                },
+
+                // Adds pointer icon to bar elements when hovered over
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                },
+
+                // Sends user to SSP section for that family when clicked on
+                onClick: function(e, elements) {
+                    // If a bar was clicked
+                    if (elements.length > 0) {
+                        // Get the first clicked element
+                        var firstElement = elements[0];
+
+                        // Get the index of the clicked bar
+                        var index = firstElement.index;
+
+                        var familyAbbv = this.data.labels[index];
+
+                        var familyUrlObj = urls.find(url => url.family_abbreviation === familyAbbv);
+                        if (familyUrlObj){
+                        var familyUrl = familyUrlObj.url;
+                        // Perform the redirect
+                        window.location.href = familyUrl;
+
+                        } else {
+                            console.log('No URL found for family: ' + familyName);
+                        }
+                    }
                 }
             }
         });

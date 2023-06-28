@@ -11,7 +11,7 @@ from .forms import OrganizationForm, SystemForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required #to redirect user to login route if they try to access an app page past login
-from django.db.models import Count, Case, When, Q, Max, IntegerField, Subquery, Prefetch
+from django.db.models import Count, Case, When, F, Q, Max, IntegerField, Subquery, Prefetch
 from django.core import serializers
 import os, openai
 from dotenv import load_dotenv
@@ -204,36 +204,39 @@ def dashboard(request, system=None):
 
             # Perform the annotations
             families = families.annotate(
-                completed_controls_count=Count('control_implementations', filter=Q(control_implementations__progress='Completed')),
                 family_controls_count=Count('control_implementations'),
                 last_updated=Max('control_implementations__last_updated'),
+                
+                planned_controls_count=Count('control_implementations', filter=Q(control_implementations__statuses__status='Planned')),
+                partial_controls_count=Count('control_implementations', filter=Q(control_implementations__statuses__status='Partially Implemented')),
+                implemented_controls_count=Count('control_implementations', filter=Q(control_implementations__statuses__status='Implemented')),
+                alternative_controls_count=Count('control_implementations', filter=Q(control_implementations__statuses__status='Alternative Implementation')),
             )
             
             # Count the control implementation statuses
-            total_not = selected_system.control_implementations.filter(statuses__status='Not Implemented').count()
+            total_planned = selected_system.control_implementations.filter(statuses__status='Planned').count()
             total_partial = selected_system.control_implementations.filter(statuses__status='Partially Implemented').count()
             total_implemented = selected_system.control_implementations.filter(statuses__status='Implemented').count()
+            total_alternative = selected_system.control_implementations.filter(statuses__status='Alternative Implementation').count()
 
-            print(total_not)
-            print(total_partial)
-
-            # For counting all the controls we count the implementations where status is one of the status choices
-            # Count all the controls
-            total_controls = selected_system.control_implementations.filter(
-                statuses__status__in=ImplementationStatus.STATUS_CHOICES
-            ).count()
-
-            total_completed_implementations = selected_system.control_implementations.filter(progress='Completed').count()
+            url_dict = []
+            for family in families:
+                url = reverse('alchemy:implementation', args=[selected_system.name, family.family_name])
+                url_dict.append({
+                    'family_abbreviation': family.family_abbreviation,  # Store the family abbreviation for reference
+                    'url': url
+                })
+            
+            urls_json = json.dumps(url_dict)
 
             return render(request, "internal/system_dashboard.html", {
                 "client": client,
                 "system": selected_system,
                 "families": families,
-                "total_controls": total_controls,
-                "total_completed_implementations": total_completed_implementations,
-                "total_not": total_not,
+                "total_planned": total_planned,
                 "total_partial": total_partial,
-                "total_implemented": total_implemented
+                "total_implemented": total_implemented,
+                "urls": urls_json
             })
 
 @csrf_exempt
