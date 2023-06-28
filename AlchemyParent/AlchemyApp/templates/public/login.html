@@ -4,17 +4,17 @@
 {% block body %}
 
 <!-- background div -->
-<div class="w-screen h-screen md:flex items-center bg-blue-100">
+<div class="w-screen h-screen md:flex justify-center items-center bg-blue-100">
 
     <!-- Section for burger (or any other image) on left side. Disappears on mobile or small window -->
-    <div id="login_image" class="hidden md:block md:w-1/2 md:h-full opacity-0 translate-y-10">
+    <div id="login_image" class="hidden md:block md:w-1/2 md:h-full">
         <div class="h-full w-full flex justify-center items-center">
             <img style="min-width: 300px; min-height: 300px;" class="h-3/4 w-3/4" src="{% static 'lock.svg' %}">
         </div>
     </div>
 
     <!-- Div container for login section on right. -->
-    <div id="login_section" class="flex h-screen justify-center items-center overflow-auto flex-shrink-0 min-w-512 lg:w-1/2 opacity-0 translate-y-10">
+    <div id="login_section" class="flex h-full mb-16 justify-center items-center overflow-auto flex-shrink-0 min-w-512 lg:w-1/2">
         <div class="flex flex-col justify-between md:mr-16 w-4/5 h-fit p-8 bg-white rounded-xl shadow-md">
             <!-- Text on top of login section -->
             <div class="space-y-3">
@@ -66,24 +66,6 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        setTimeout(function() {
-            const login_image = document.querySelector("#login_image");
-            console.log(login_image);
-            login_image.classList.remove("opacity-0", "translate-y-10");
-            login_image.classList.add("transition", "duration-1000", "ease-in-out");
-        }, 100);
-
-        setTimeout(function() {
-            const login_section = document.querySelector("#login_section");
-            login_section.classList.remove("opacity-0", "translate-y-10");
-            login_section.classList.add("transition", "duration-1000", "ease-in-out");
-        }, 200);
-    })
-
-</script>
 
 {% endblock %}
 
