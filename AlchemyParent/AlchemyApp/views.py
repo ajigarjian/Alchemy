@@ -19,6 +19,8 @@ from urllib.parse import unquote #to decode url strings passed through urls as p
 from django.db.models.functions import Coalesce #for treating base controls with enhancements as null as high values 
 from io import StringIO # For Innovation Hub reading CSV
 import pandas as pd # For Innovation Hub reading CSV
+from openpyxl.styles import Alignment
+from openpyxl import load_workbook
 
 load_dotenv()
 
@@ -136,20 +138,23 @@ def generate_ai_assessment(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)
     
-    # Get the file uploaded (presuming to be CSV)
-    csv_file = request.FILES["csv_file"]
+    # Get the file uploaded
+    data_file = request.FILES["data_file"]
+    
+    # If the file is too big, reject it
+    if data_file.multiple_chunks():
+        return JsonResponse({"error": "Uploaded file is too big (%.2f MB)." % (data_file.size/(1000*1000),)}, status=400)
 
-    # If not CSV, then reject it and end
-    if not csv_file.name.endswith('.csv'):
-        return JsonResponse({"error": "File is not CSV type"}, status=400)
-    
-    # If the file is a CSV but too big, reject it
-    if csv_file.multiple_chunks():
-        return JsonResponse({"error": "Uploaded file is too big (%.2f MB)." % (csv_file.size/(1000*1000),)}, status=400)
-    
-    # If a legitimate CSV file, take in the CSV file data and put it into a dict
-    file_data = csv_file.read().decode("utf-8")
-    data = pd.read_csv(StringIO(file_data))
+    # Get the file extension
+    file_extension = os.path.splitext(data_file.name)[1]
+
+    # Take in the file data and put it into a dict
+    if file_extension == '.csv':
+        file_data = data_file.read().decode("utf-8")
+        data = pd.read_csv(StringIO(file_data))
+    elif file_extension == '.xlsx':
+        data = pd.read_excel(data_file)
+
     descriptions = []
 
     for index, row in data.iterrows():
@@ -176,12 +181,37 @@ def generate_ai_assessment(request):
         answers.append(completion.choices[0].message.content)
     
     data['Testing Results & Rationale'] = pd.Series(answers)
-    # Write the DataFrame back to a CSV file
-    data.to_csv('/tmp/output.csv', index=False)
 
-    # Create a Django FileResponse
-    response = FileResponse(open('/tmp/output.csv', 'rb'), content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="output.csv"'
+    # Write the DataFrame back to a file in the same format as the input
+    if file_extension == '.csv':
+        data.to_csv('/tmp/output.csv', index=False)
+        response = FileResponse(open('/tmp/output.csv', 'rb'), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="output.csv"'
+    elif file_extension == '.xlsx':
+        # Step 1: Write DataFrame to an Excel file without any formatting
+        data.to_excel('/tmp/output.xlsx', index=False)
+
+        # Step 2: Load the Excel file and apply formatting
+        book = load_workbook('/tmp/output.xlsx')
+
+        for sheet in book.worksheets:
+            for column in sheet.columns:
+                max_length = 0
+                column = [cell for cell in column]
+                for cell in column:
+                    cell.alignment = Alignment(wrap_text=True)
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = max_length if max_length < 60 else 60  # set the maximum width to 30
+                sheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
+        book.save('/tmp/output.xlsx')
+
+        response = FileResponse(open('/tmp/output.xlsx', 'rb'), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="output.xlsx"'
     return response
 
 ####################################### Internal Application once logged in ##############################################
