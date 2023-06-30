@@ -12,7 +12,12 @@ urlpatterns = [
     path("register", views.register_view, name="register"),
     path("login", views.login_view, name="login"),
     path("logout", views.logout_view, name="logout"),
-    path("contact",views.contact, name="contact"),
+    path("contact", views.contact, name="contact"),
+    path("FedRAMP/<str:control>", views.fedramp, name="fedramp"),
+
+    # Public PWC Innovation routes
+    path("assess", views.assess, name="assess"),
+    path("generate_ai_assessment", views.generate_ai_assessment, name="generate_ai_assessment"),
 
     #Once logged in - app itself
     path("dashboard", views.dashboard, name="dashboard"),

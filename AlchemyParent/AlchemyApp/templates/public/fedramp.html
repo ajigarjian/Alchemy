@@ -1,0 +1,103 @@
+{% extends "public/public.html" %}
+
+{% block body %}
+
+<div class="flex mt-6 h-screen overflow-auto justify-center">
+    
+    <div id="sidebar-multi-level-sidebar" class="sticky left-0 w-96 h-184" aria-label="Sidebar">
+        <div class="h-full px-3 overflow-y-auto dark:bg-gray-800">
+            <ul>
+                {% for family in control_families %}
+                <li id="sidebar-family-{{family.id}}" class="family-nav space-y-2">
+                    <button type="button" class="flex text-sm items-center w-full py-1 px-2 text-gray-800 transition duration-75 rounded-lg group hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-{{family.id}}" data-collapse-toggle="dropdown-{{family.id}}">
+                        <svg sidebar-toggle-item class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span class="ml-3 text-left" sidebar-toggle-item>{{family.family_name}}</span>
+                    </button>
+
+                    <ul id="dropdown-{{family.id}}" class="hidden max-h-72 overflow-y-auto space-y-2">
+                        {% for control in family.controls %}
+                            <li id="sidebar-control-{{control.id}}" class="rounded-lg">
+                                <a href="{% url 'alchemy:fedramp' control=control.id %}" class="flex text-xs items-center w-full p-2 text-gray-500 transition duration-75 rounded-lg pl-4 group hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700">{{control}}: {{control.control_name}}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div id="control-{{control.id}}" class="control w-full mr-16" data-control-id="{{control.id}}" data-control-family="{{control.control_family.id}}">
+        <div id="control_header" class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl flex-grow mr-2 font-black tracking-wide text-gray-700 overflow-x-auto">{{control}} | {{control.control_name }}</h1>
+        </div>
+
+        <div id="control_requirement" class="mb-6">
+            <div id="control_description-{{control.id}}" class="text-gray-700 mb-2">
+                <p>{{control.control_description}}</p>
+            </div>
+    
+            {% for part in control.parts.all %}
+                <div id="control_part_description-{{part.id}}" class="flex text-gray-700 mb-2">
+                    <span class="mr-2 font-black tracking-wide text-gray-700">{{part.part_letter}}. </span><p>{{part.part_description}}</p>
+                </div>
+            {% endfor %}                   
+        </div>
+
+        <div id="control_parameters" class="mt-4">
+            <span class="text-xl font-black tracking-wide text-gray-700">FedRAMP Parameters</span> 
+            <div class="py-2">
+                {% for parameter in control.parameters.all %}
+                <p class="mb-2 text-gray-500">{{parameter.description}}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="control_additional_requirements" class="mt-4">
+            <span class="text-xl font-black tracking-wide text-gray-700">Additional FedRAMP Requirements & Guidance</span> 
+            <div class="py-2">
+                <p class="mb-2 text-gray-500">None.</p>
+            </div>
+        </div>
+            
+        <div id="control_guidance" class="mt-4">
+            <span class="text-xl font-black tracking-wide text-gray-700">Supplemental Guidance</span> 
+            <div class="py-2">
+                <p class="mb-2 text-gray-500">{{control.supplemental_guidance}}</p>
+            </div>
+        </div>
+    </div>
+        
+    <button id ="scrollButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hidden">
+        <i id="scrollIcon" class="fas fa-chevron-up"></i>
+    </button>
+</div>
+      
+    <!-- Javascript for interactive aspects of the onboarding wizard -->
+    <script type="text/javascript">
+    
+        // Scrolling function for category selection view. When the circular scroll button in bottom right is clicked, it will either scroll down or up to show more of the categories
+        document.getElementById("scrollButton").addEventListener("click", function() {
+            const scrollButton = document.getElementById("scrollButton");
+        });
+    
+        // Add a scroll event listener to the window to show the scroll button once a user has started scrolling.
+        window.addEventListener("scroll", () => {
+            if (window.pageYOffset > 1000) {
+                // If the user has started scrolling, show the scroll button.
+                scrollButton.classList.remove("hidden");
+            } else {
+                // If the user has scrolled back to the top, hide the scroll button.
+    
+                scrollButton.classList.add("hidden");
+            }
+        });
+    
+        // Modify the click event listener on the scroll button to always scroll the page back to the top.
+        scrollButton.addEventListener("click", function() {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    
+    </script>
+    
+{% endblock %}

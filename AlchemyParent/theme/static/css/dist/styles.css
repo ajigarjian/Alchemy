@@ -2091,6 +2091,10 @@ select {
   margin-right: auto;
 }
 
+.mt-32 {
+  margin-top: 8rem;
+}
+
 .my-32 {
   margin-top: 8rem;
   margin-bottom: 8rem;
@@ -2129,6 +2133,10 @@ select {
 .my-48 {
   margin-top: 12rem;
   margin-bottom: 12rem;
+}
+
+.mt-48 {
+  margin-top: 12rem;
 }
 
 .my-auto {
@@ -3113,6 +3121,10 @@ select {
 
 .border {
   border-width: 1px;
+}
+
+border-dashed {
+  border-style: dashed;
 }
 
 .border-0 {
