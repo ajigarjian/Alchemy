@@ -1,7 +1,7 @@
 import json #for api calls
 import random #for generating system color for client dashboard
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse #for API calls
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse #for API calls
 from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
@@ -17,6 +17,8 @@ import os, openai
 from dotenv import load_dotenv
 from urllib.parse import unquote #to decode url strings passed through urls as parameters, e.g. client
 from django.db.models.functions import Coalesce #for treating base controls with enhancements as null as high values 
+from io import StringIO # For Innovation Hub reading CSV
+import pandas as pd # For Innovation Hub reading CSV
 
 load_dotenv()
 
@@ -99,6 +101,88 @@ def contact(request):
     if request.user.is_authenticated:
          return HttpResponseRedirect(reverse("alchemy:dashboard"))
     return render(request, "public/contact.html")
+
+def fedramp(request, control):
+
+    # Get the control and control families from the database
+    control_object = get_object_or_404(NISTControl, id=control)
+    control_families = ControlFamily.objects.all().order_by('family_abbreviation')
+
+    # For each control family, order its controls
+    for family in control_families:
+        family.controls = family.family_controls.all().order_by(
+            'control_family__family_abbreviation', 
+            'control_number', 
+            Coalesce('control_enhancement', -1)
+        )
+
+    # render fedramp.html given
+
+    return render(request, "public/fedramp.html", {
+        "control": control_object,
+        "control_families": control_families,
+    })
+
+def assess(request):
+
+    # render assess.html
+
+    return render(request, "public/assess.html")
+
+@csrf_exempt
+def generate_ai_assessment(request):
+
+    # Cannot call this API call to OpenAI unless via the file upload POSTing to backend
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    
+    # Get the file uploaded (presuming to be CSV)
+    csv_file = request.FILES["csv_file"]
+
+    # If not CSV, then reject it and end
+    if not csv_file.name.endswith('.csv'):
+        return JsonResponse({"error": "File is not CSV type"}, status=400)
+    
+    # If the file is a CSV but too big, reject it
+    if csv_file.multiple_chunks():
+        return JsonResponse({"error": "Uploaded file is too big (%.2f MB)." % (csv_file.size/(1000*1000),)}, status=400)
+    
+    # If a legitimate CSV file, take in the CSV file data and put it into a dict
+    file_data = csv_file.read().decode("utf-8")
+    data = pd.read_csv(StringIO(file_data))
+    descriptions = []
+
+    for index, row in data.iterrows():
+        if pd.isna(row['Assessment Findings']):
+            continue  # Skip this row if column 4 is empty
+        description = f"I am an information security employee working for a company. I am assessing how well they are meeting NIST CSF subcategory requirements. They have advised me of the following for a given CSF subcategory: The NIST CSF Function is {row['Function']}, the NIST CSF Category is {row['Category']}, and the NIST CSF Subcategory is {row['Subcategory']}. The company has described the controls they have in place for this subcategory as follows: {row['Assessment Findings']}. Please return 1) if you think their description is meeting the subcategory with an answer of 'Implemented', 'Partially Implemented', or 'Not Implemented', and 2) the rationale why, and 3) if 'Partially' or 'Not Implemented', suggestions on how the company may improve. Use the company name where applicable."
+        descriptions.append(description)
+
+    openai.api_key = os.getenv("OPENAI_API_KEY", None)
+
+    answers = []
+
+    for description in descriptions:
+    
+        completion = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Let's transition into a discussion about the NIST Cybersecurity Framework v1.1. As an AI with extensive training in various topics, I would like you to draw from your understanding of the NIST CSF for the next series of questions. Please provide information and advice as an expert on CSF core functions, categories, and subcategories. Limit your responses to no more than 8 sentences. Do not repeat the function or subfunction or category - just the answer."},
+                        {"role": "user", "content": description}
+                    ],
+                    temperature=0.2
+            )
+        
+        answers.append(completion.choices[0].message.content)
+    
+    data['Testing Results & Rationale'] = pd.Series(answers)
+    # Write the DataFrame back to a CSV file
+    data.to_csv('output.csv', index=False)
+
+    # Create a Django FileResponse
+    response = FileResponse(open('output.csv', 'rb'), content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="output.csv"'
+    return response
 
 ####################################### Internal Application once logged in ##############################################
 
