@@ -21,6 +21,10 @@ from io import StringIO # For Innovation Hub reading CSV
 import pandas as pd # For Innovation Hub reading CSV
 from openpyxl.styles import Alignment
 from openpyxl import load_workbook
+from django.conf import settings
+from docx import Document
+from docx.shared import Pt
+from pathlib import Path
 
 load_dotenv()
 
@@ -355,6 +359,55 @@ def dashboard(request, system=None):
 
 @csrf_exempt
 @login_required
+def generate_ssp(request):
+
+    # Get the system id from the body of the fetch request and use it to get the system from the database that will have the report made for it
+    system_data = json.loads(request.body.decode('utf-8'))
+    system_id = system_data['system_id']
+    system = get_object_or_404(System, id=system_id)
+
+    # Load the Word document from static files
+    static_path = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
+    template_path = os.path.join(static_path, 'SSP-Appendix-A-Moderate-FedRAMP-Security-Controls.docx')
+    doc = Document(template_path)
+
+    # Fetch all control implementations from the database for this specific system
+    control_implementations = ControlImplementation.objects.filter(system=system).select_related('responsible_role').all()
+
+    # Create a dictionary mapping control identifiers to responsible roles for faster lookup
+    control_to_role = {ci.control.str_SSP(): ci.responsible_role.responsible_role for ci in control_implementations if ci.responsible_role is not None}
+
+    # Loop through each table in the document
+    for table in doc.tables:
+        # We're assuming the control identifier is in the text of the first cell of the first row
+        control_identifier = table.rows[0].cells[0].text.strip().split(' ')[0]  # taking first word as the control identifier
+
+        # Check if this control identifier is in our dictionary
+        if control_identifier in control_to_role:
+            # It is, so populate the responsible role cell (the cell to the right of "Responsible Role:")
+            # First, find the cell with "Responsible Role:"
+            for row in table.rows:
+                for cell in row.cells:
+                    if "Responsible Role:" in cell.text:
+                        # Once we found it, we clear the cell and then set it to "Responsible Role: <the_role>"
+                            cell.text = ""
+                            paragraph = cell.paragraphs[0]
+                            run = paragraph.add_run("Responsible Role: " + control_to_role[control_identifier])
+                            run.font.name = 'Times New Roman'  # change this to your preferred font
+                            run.font.size = Pt(12)
+
+    # Save the populated document in a temporary location
+    doc_path = f'/tmp/SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx'
+    doc.save(doc_path)
+
+    # Then, create a FileResponse from the file and set the correct content type and disposition.
+    f = open(doc_path, 'rb')
+    response = FileResponse(f, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+    response['Content-Disposition'] = f'attachment; filename="SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx"'
+    return response
+
+@csrf_exempt
+@login_required
 def get_control_origination_data(request):
     system_data = json.loads(request.body.decode('utf-8'))
     system_id = system_data['system_id']
@@ -683,7 +736,7 @@ def generate_ai_statement(request):
                     {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
                     {"role": "user", "content": """I am an information security employee working for the company """ + client +  """. I am filling out a FedRAMP SSP document so that we may get our system """ + system.name + """ FedRAMP Authorized. Please create an example control implementation description for the FedRAMP control """ + control.control_family.family_name + "-" + str(control.control_number) + """, whose control language is: """ + control_description + 
                     """. In your response, be concise where possible. Feel free to reference real third-party platforms (that you can discern apply to this control, e.g. AWS KMS for an encryption-based control) to make the response seem more human-like. 
-                    Only reply with the implementation description and nothing else (jump right into the language) - and reference the company/system where relevant. Do not reference the control itself. Finally, randomize your responses so that if I ask you this question again, the answer is new. Thanks!"""}
+                    Only reply with the implementation description and nothing else (jump right into the language); do NOT mention the control itself at all, only related controls where relevant. And reference the company/system where relevant. Do not reference the control itself. Finally, randomize your responses so that if I ask you this question again, the answer is new. Thanks!"""}
                 ],
                 temperature=0.2
         )

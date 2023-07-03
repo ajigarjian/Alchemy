@@ -6,11 +6,14 @@
 
 {% block local_nav %}
 <nav class="sticky fixed top-0 w-full py-2 px-8 border-b border-gray-200 z-10 bg-white">
-    <div class="md:flex space-x-12" id="navbar-menu">
+    <div class="flex items-center justify-between" id="navbar-menu">
         <div  class="md:flex md:flex-row md:items-center space-x-2">
             <a href="{% url 'alchemy:index' %}" class="text-blue-500 hover:text-blue-700 duration-300">{{client}}</a>
             <span class="text-gray-500">/</span>
             <a href="{% url 'alchemy:dashboard' system=system.name %}" class="font-semibold text-blue-500 hover:text-blue-700 duration-300">{{system.name}}</a>
+        </div>
+        <div id="generate_ssp" class="text-right px-2 py-1 mr-2 rounded-lg text-blue-500 hover:text-blue-700 hover:cursor-pointer duration-300">
+           <text>Generate SSP Report</text>
         </div>
     </div>
 </nav>
@@ -205,11 +208,25 @@
             </div>
 </div>
 
+<div id="toast-success" class="fixed transition opacity-0 duration-300 left-0 right-0 bottom-4 flex justify-between items-center w-96 p-4 mx-auto mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
+    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 mr-2 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+        <i class="fas fa-check"></i>
+        <span class="sr-only">Check icon</span>
+    </div>
+    
+    <div class="ml-3 text-sm font-normal"></div>
+    <button type="button" class="flex justify-center items-center ml-2 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-success" aria-label="Close">
+        <span class="sr-only">Close</span>
+        <i class="fas fa-times fa-lg"></i>
+    </button>
+</div>
+
 
 <script>
 
     // System ID variable to pass to fetch calls
     systemId = {{system.id}};
+    systemName = "{{system.name}}";
 
     // Colors for graphs
     colors = ['#3E4756', '#97ACCF', '#FFE1E9', '#CAAAB2', '#6E7788', '#5A3F46', '#8D6F77', '#A2ACBD', '#CF9EAA', '#986A76', '#564147', '#CF9EAC', '#F3E7D0', '#BBB099', '#BEA5AB', '#BBB19B', '#867D67']
@@ -397,6 +414,73 @@
             }
         });
     });
+
+
+    ////////////////////// Functionality to generate the SSP ////////////////////////
+
+    // Adds event listener on the generate ssp text (activates generation when clicked)
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.getElementById("generate_ssp").addEventListener("click", generateSSP);
+    });
+
+    // Function called when "Generate SSP" is clicked. Makes fetch to back end where the report is created, and then provides it via download to browser
+    function generateSSP() {
+        showToast('Generating SSP...');
+        // Update the URL below to the URL of your Django view
+        fetch("/generate_ssp", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                system_id: systemId,
+            })
+        })
+
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            // change filename to whatever you want
+            a.download = `SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-${systemName}.docx`
+            a.click();
+        })
+        .catch((error) => {
+            console.error('There has been a problem with generating the SSP:', error);
+        });
+    }
+
+    // functionality to show toast messages when generate SSP is loading or successful
+    function showToast(message, duration = 15000) {
+        // Get the toast element
+        const toast = document.querySelector("#toast-success");
+
+        // Get the close button
+        const closeButton = toast.querySelector("button[data-dismiss-target='#toast-success']");
+
+        // Set the toast message
+        toast.querySelector(".text-sm").innerText = message;
+
+        // Show the toast
+        toast.classList.remove("opacity-0");
+
+         // Remove the "hidden" class if it's present
+            if (toast.classList.contains("hidden")) {
+                toast.classList.remove("hidden");
+            }
+
+        // Remove the toast after `duration` ms
+        let timeoutId = setTimeout(() => {
+            toast.classList.add("opacity-0");
+        }, duration);
+
+        // Cancel the auto-dismiss when the close button is clicked, and hide the toast
+        closeButton.onclick = () => {
+            clearTimeout(timeoutId);
+            toast.classList.add("opacity-0");
+        };
+    }
 
 </script>
 

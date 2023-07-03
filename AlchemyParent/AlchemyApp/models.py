@@ -383,6 +383,14 @@ class NISTControl(models.Model):
             enhancement_text = " (" + str(self.control_enhancement) + ")"
 
         return str((self.control_family.family_abbreviation) + '-' + str(self.control_number) + enhancement_text)
+    
+    # The SSP doesn't have a space between the base control and enhancement - so adding this second option
+    def str_SSP(self):
+        enhancement_text = ""
+        if self.control_enhancement:
+            enhancement_text = "(" + str(self.control_enhancement) + ")"
+
+        return str((self.control_family.family_abbreviation) + '-' + str(self.control_number) + enhancement_text)
 
     class Meta:
         verbose_name = "NIST Control"
