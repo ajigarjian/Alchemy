@@ -25,7 +25,8 @@ urlpatterns = [
     path('delete_system', views.delete_system, name='delete_system'),
     path('rename_system', views.rename_system, name='rename_system'),
 
-    #For the graphs on the system dashboard page
+    #For the graphs and SSP generation on the system dashboard page
+    path('generate_ssp', views.generate_ssp, name='generate_ssp'),
     path('get_control_origination_data', views.get_control_origination_data, name='get_control_origination_data'),
     path('get_status_data', views.get_status_data, name='get_status_data'),
     path('get_implementation_family_data', views.get_implementation_family_data, name='get_implementation_family_data'),
