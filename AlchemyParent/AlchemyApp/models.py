@@ -356,18 +356,28 @@ class ControlFamily(models.Model):
     def __str__(self):
         return f"{self.family_name}"
 
-class NISTControlPart(models.Model):
-    control = models.ForeignKey('NISTControl', related_name='parts', on_delete=models.CASCADE)
-    part_letter = models.CharField(max_length=1)
-    part_description = models.TextField()
+class NISTControlElement(models.Model):
+    control = models.ForeignKey('NISTControl', related_name='elements', on_delete=models.CASCADE, null=True, blank=True)
+    parent = models.ForeignKey('self', related_name='sub_elements', on_delete=models.CASCADE, null=True, blank=True)
+    identifier = models.CharField(max_length=2)  # This field will hold the letter or number identifier of each element
+    description = models.TextField()
+    level = models.IntegerField(default=0)  # Add this line
 
     class Meta:
-        verbose_name = "NIST Control Part"
-        verbose_name_plural = "NIST Control Parts"
-        ordering = ['part_letter']
-    
+        verbose_name = "Control Element"
+        verbose_name_plural = "Control Elements"
+        ordering = ['identifier']
+
     def __str__(self):
-        return f'{self.control}: {self.part_letter}'
+        identifier_format = {
+            0: "{}.",  # For level 0, format as "a."
+            1: "{}.",  # For level 1, format as "1."
+            2: "({})",  # For level 2, format as "(a)"
+        }.get(self.level, "{}")
+
+        formatted_identifier = identifier_format.format(self.identifier)
+
+        return f'{self.control if self.control else self.parent}: {formatted_identifier}'
 
 class NISTControl(models.Model):
     control_name = models.CharField(max_length=255) #Control Name
@@ -398,7 +408,7 @@ class NISTControl(models.Model):
 
 class FedRAMPParameter(models.Model):
     control = models.ForeignKey('NISTControl', related_name='parameters', null=True, blank=True, on_delete=models.CASCADE)
-    part = models.ForeignKey('NISTControlPart', related_name='parameters', null=True, blank=True, on_delete=models.CASCADE)
+    element = models.ForeignKey('NISTControlElement', related_name='parameters', null=True, blank=True, on_delete=models.CASCADE)
     description = models.TextField()
 
     class Meta:
@@ -409,19 +419,19 @@ class FedRAMPParameter(models.Model):
         if self.control:
             return f'Parameter for control: {self.control}'
         else:
-            return f'Parameter for control part: {self.part}'
+            return f'Parameter for control element: {self.element}'
 
 class ControlImplementationStatement(models.Model):
-    control_implementation = models.ForeignKey('AlchemyApp.ControlImplementation', related_name='control_statement_parts', on_delete=models.CASCADE)
-    control_part = models.ForeignKey('NISTControlPart', on_delete=models.CASCADE)
-    statement = models.TextField(blank=True, default='')  # Control Part Implementation description
+    control_implementation = models.ForeignKey('AlchemyApp.ControlImplementation', related_name='control_statement_elements', on_delete=models.CASCADE)
+    control_element = models.ForeignKey('NISTControlElement', on_delete=models.CASCADE)
+    statement = models.TextField(blank=True, default='')  # Control Element Implementation description
     last_updated = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('control_implementation', 'control_part')
+        unique_together = ('control_implementation', 'control_element')
 
     def __str__(self):
-        return f'{self.control_implementation.system}: {self.control_part.control}.{self.control_part.part_letter} - {self.statement}'
+        return f'{self.control_implementation.system}: {self.control_element.control if self.control_element.control else self.control_element.parent}.{self.control_element} - {self.statement}'
 
 class ImplementationStatus(models.Model):
     STATUS_CHOICES = [
@@ -444,11 +454,11 @@ class ControlOrigination(models.Model):
     ORIGINATION_CHOICES = [
         ('Service Provider Corporate', 'Service Provider Corporate'),
         ('Service Provider System Specific', 'Service Provider System Specific'),
-        ('Service Provider Hybrid', 'Service Provider Hybrid'),
-        ('Configured by Customer', 'Configured by Customer'),
-        ('Provided by Customer', 'Provided by Customer'),
-        ('Shared', 'Shared'),
-        ('Inherited', 'Inherited')
+        ('Service Provider Hybrid', 'Service Provider Hybrid (Corporate and System Specific)'),
+        ('Configured by Customer', 'Configured by Customer (Customer System Specific)'),
+        ('Provided by Customer', 'Provided by Customer (Customer System Specific)'),
+        ('Shared', 'Shared (Service Provider and Customer Responsibility)'),
+        ('Inherited', 'Inherited from pre-existing FedRAMP Authorization for [Click here to enter text], Date of Authorization')
     ]
     
     origination = models.CharField(max_length=50, choices=ORIGINATION_CHOICES)
@@ -512,8 +522,8 @@ class ControlImplementation(models.Model):
         super().save(*args, **kwargs)  # Call the "real" save() method.
 
         if is_new:  # if this is a new instance
-            for part in self.control.parts.all():
-                ControlImplementationStatement.objects.create(control_implementation=self, control_part=part)
+            for element in self.control.elements.all():
+                ControlImplementationStatement.objects.create(control_implementation=self, control_element=element)
 
 class Question(models.Model):
 
