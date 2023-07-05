@@ -6,7 +6,7 @@ from django.urls import reverse #for HttpResponseRedirect(reverse)
 from django.contrib.auth import authenticate, login, logout #for login/logout/register
 from django.views.decorators.csrf import csrf_exempt #for API calls
 from django.contrib import messages #for register error message(s)
-from .models import CustomUser, Client, NISTControl, NISTControlPart, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation, ControlImplementationStatement, ImplementationStatus, ControlOrigination, ResponsibleRole #for interacting with database
+from .models import CustomUser, Client, NISTControl, NISTControlElement, Question, Answer, ControlFamily, InformationCategory, InformationSubCategory, System, ControlImplementation, ControlImplementationStatement, ImplementationStatus, ControlOrigination, ResponsibleRole #for interacting with database
 from .forms import OrganizationForm, SystemForm
 from django.contrib.auth.backends import ModelBackend
 from django.db import IntegrityError
@@ -228,12 +228,12 @@ def implementation(request, system, control_family):
     system_object = get_object_or_404(System, name=unquote(system), client=client)
     control_family_object = get_object_or_404(ControlFamily, family_name=unquote(control_family))
 
-    # Define a Prefetch object for the parts that specifies the order
-    ordered_parts_prefetch = Prefetch('control__parts', queryset=NISTControlPart.objects.order_by('part_letter'))
-    ordered_statements_prefetch = Prefetch('control_statement_parts', queryset=ControlImplementationStatement.objects.order_by('control_part__part_letter'))
+    # Define a Prefetch object for the elements that specifies the order
+    ordered_elements_prefetch = Prefetch('control__elements', queryset=NISTControlElement.objects.order_by('identifier'))
+    ordered_statements_prefetch = Prefetch('control_statement_elements', queryset=ControlImplementationStatement.objects.order_by('control_element__identifier'))
 
     # Pass the Prefetch object to the prefetch_related method
-    control_implementations = ControlImplementation.objects.filter(system=system_object, control_family=control_family_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations', ordered_parts_prefetch, ordered_statements_prefetch).order_by('control__control_family__family_abbreviation', 'control__control_number', Coalesce('control__control_enhancement', -1))
+    control_implementations = ControlImplementation.objects.filter(system=system_object, control_family=control_family_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations', ordered_elements_prefetch, ordered_statements_prefetch).order_by('control__control_family__family_abbreviation', 'control__control_number', Coalesce('control__control_enhancement', -1))
 
     # Case where the search has been updated and an AJAX Call has been POSTed. This branch updates the control implementations rendered
     if request.method == 'POST':
@@ -372,10 +372,36 @@ def generate_ssp(request):
     doc = Document(template_path)
 
     # Fetch all control implementations from the database for this specific system
-    control_implementations = ControlImplementation.objects.filter(system=system).select_related('responsible_role').all()
+    control_implementations = ControlImplementation.objects.filter(system=system).select_related('responsible_role').prefetch_related('statuses', 'originations').all()
 
-    # Create a dictionary mapping control identifiers to responsible roles for faster lookup
-    control_to_role = {ci.control.str_SSP(): ci.responsible_role.responsible_role for ci in control_implementations if ci.responsible_role is not None}
+    # Define the mapping dictionary - manually mapping what is in the database to SSP text (origination labels don't match up)
+    ORIGINATION_CHOICES_MAPPING = {
+        'Service Provider Corporate': 'Service Provider Corporate',
+        'Service Provider System Specific': 'Service Provider System Specific',
+        'Service Provider Hybrid': 'Service Provider Hybrid (Corporate and System Specific)',
+        'Configured by Customer': 'Configured by Customer (Customer System Specific)',
+        'Provided by Customer': 'Provided by Customer (Customer System Specific)',
+        'Shared': 'Shared (Service Provider and Customer Responsibility)',
+        'Inherited': 'Inherited from pre-existing FedRAMP Authorization for [Click here to enter text], Date of Authorization'
+    }
+
+    # Create a dictionary mapping control identifiers to responsible roles, statuses, and originations for faster lookup
+    control_to_role_status_origin = {
+        ci.control.str_SSP(): (
+            (ci.responsible_role.responsible_role if ci.responsible_role is not None else ''),
+            [status.status for status in ci.statuses.all()],
+            [origination.origination for origination in ci.originations.all()]
+        ) 
+        for ci in control_implementations
+    }
+
+    control_to_role_status_origin = {
+        ci.control.str_SSP(): (
+            (ci.responsible_role.responsible_role if ci.responsible_role is not None else ''),
+            [status.status for status in ci.statuses.all()],
+            [ORIGINATION_CHOICES_MAPPING[origination.origination] for origination in ci.originations.all()]
+    )
+    for ci in control_implementations}
 
     # Loop through each table in the document
     for table in doc.tables:
@@ -383,16 +409,38 @@ def generate_ssp(request):
         control_identifier = table.rows[0].cells[0].text.strip().split(' ')[0]  # taking first word as the control identifier
 
         # Check if this control identifier is in our dictionary
-        if control_identifier in control_to_role:
-            # It is, so populate the responsible role cell (the cell to the right of "Responsible Role:")
+        if control_identifier in control_to_role_status_origin:
+            responsible_role, statuses, originations = control_to_role_status_origin[control_identifier]
+
+            # Populate the responsible role cell (the cell to the right of "Responsible Role:")
             # First, find the cell with "Responsible Role:"
             for row in table.rows:
                 for cell in row.cells:
                     if "Responsible Role:" in cell.text:
                         # Once we found it, we clear the cell and then set it to "Responsible Role: <the_role>"
-                            cell.text = ""
-                            paragraph = cell.paragraphs[0]
-                            run = paragraph.add_run("Responsible Role: " + control_to_role[control_identifier])
+                        cell.text = ""
+                        paragraph = cell.paragraphs[0]
+                        run = paragraph.add_run("Responsible Role: " + responsible_role)
+                        run.font.name = 'Times New Roman'  # change this to your preferred font
+                        run.font.size = Pt(12)
+                    
+                    if "Implementation Status (check all that apply):" in cell.text:
+                        cell.text = ""
+                        paragraph = cell.add_paragraph("Implementation Status (check all that apply):\n")  # add a new paragraph
+                        for status_choice in ImplementationStatus.STATUS_CHOICES:
+                            # Use special unicode characters that look like a checkbox
+                            checkbox = "☑" if status_choice[0] in statuses else "☐"
+                            run = paragraph.add_run(f"{checkbox} {status_choice[1]}\n")  # add each checkbox
+                            run.font.name = 'Times New Roman'  # change this to your preferred font
+                            run.font.size = Pt(12)
+                    
+                    if "Control Origination (check all that apply):" in cell.text:
+                        cell.text = ""
+                        paragraph = cell.add_paragraph("Control Origination (check all that apply):\n")  # add a new paragraph
+                        for origination_choice in ControlOrigination.ORIGINATION_CHOICES:
+                            # Use special unicode characters that look like a checkbox
+                            checkbox = "☑" if origination_choice[1] in originations else "☐"
+                            run = paragraph.add_run(f"{checkbox} {origination_choice[1]}\n")  # add each checkbox
                             run.font.name = 'Times New Roman'  # change this to your preferred font
                             run.font.size = Pt(12)
 
@@ -680,20 +728,20 @@ def save_control_text(request):
         # Parse the JSON data from the body of the HTTP request
         data = json.loads(request.body.decode('utf-8'))
 
-        # Get the ControlImplementation instance, related part, and the text put in by the user
+        # Get the ControlImplementation instance, related element, and the text put in by the user
         implementation = ControlImplementation.objects.get(id=data['implementation_id'])
         statement = data['statement']
-        data_part = data['part_id']
+        data_element = data['element_id']
         
-        if data_part != 'General':
-            part = NISTControlPart.objects.get(id=data['part_id'])
-            control_statement_part = get_object_or_404(ControlImplementationStatement, control_implementation=implementation, control_part=part)
+        if data_element != 'General':
+            element = NISTControlElement.objects.get(id=data['element_id'])
+            control_statement_element = get_object_or_404(ControlImplementationStatement, control_implementation=implementation, control_element=element)
 
             # Update the statement text
-            control_statement_part.statement = statement
+            control_statement_element.statement = statement
             
             # Save the implementation
-            control_statement_part.save()
+            control_statement_element.save()
 
             # Return a successful response
             return JsonResponse({'status': 'success', 'updated_statement': statement}, status=200)
@@ -726,7 +774,7 @@ def generate_ai_statement(request):
 
     control = NISTControl.objects.get(id=data['control'])
     system = System.objects.get(id=data['system'])
-    control_description = data.get("description_base") + " " + data.get("description_part")
+    control_description = data.get("description_base") + " " + data.get("description_element")
 
     client = request.user.client.client_name
 

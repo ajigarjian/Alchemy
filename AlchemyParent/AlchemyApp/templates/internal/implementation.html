@@ -251,22 +251,22 @@
                         <p>{{implementation.control.control_description}}</p>
                     </div>
             
-                    {% for part in implementation.control.parts.all %}
-                        <div id="control_part_description-{{part.id}}" class="flex text-gray-700 mb-2">
-                            <span class="mr-2 font-black tracking-wide text-gray-700">{{part.part_letter}}. </span><p>{{part.part_description}}</p>
+                    {% for element in implementation.control.elements.all %}
+                        <div id="control_element_description-{{element.id}}" class="flex text-gray-700 mb-2">
+                            <span class="mr-2 font-black tracking-wide text-gray-700">{{element.identifier}} </span><p>{{element.description}}</p>
                         </div>
                     {% endfor %}                   
                 </div>
                     
                 <div id="control_statements" class="mt-6">
-                    {% for statement in implementation.control_statement_parts.all %}
+                    {% for statement in implementation.control_statement_elements.all %}
                         <div class="w-full mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
                             <div class="flex items-center justify-between px-3 py-2 border-b dark:border-gray-600">
                                 <div class="flex flex-wrap items-center dark:divide-gray-600">
                                     <div class="flex items-center space-x-1 sm:pr-4">
-                                        <label for="question-answer" class="mr-2 font-black tracking-wide text-gray-500">{{ statement.control_part.part_letter }}.</label>
+                                        <label for="question-answer" class="mr-2 font-black tracking-wide text-gray-500">{{ statement.control_element.identifier}}</label>
                 
-                                        <button type="button" class="p-2 text-blue-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" data-id="{{ implementation.control.id }}" onclick="openAICall(event, {{ implementation.id }}, {{ implementation.control.id }}, {{ system.id }}, '{{ implementation.control.control_description|escapejs }}', '{{ statement.control_part.part_description|escapejs }}', {{ statement.control_part.id }})">
+                                        <button type="button" class="p-2 text-blue-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" data-id="{{ implementation.control.id }}" onclick="openAICall(event, {{ implementation.id }}, {{ implementation.control.id }}, {{ system.id }}, '{{ implementation.control.control_description|escapejs }}', '{{ statement.control_element.description|escapejs }}', {{ statement.control_element.id }})">
                                             <i class="fa-solid fa-wand-magic-sparkles w-5 h-5"></i>
                                             <span class="sr-only">Generate AI Text</span>
                                         </button>
@@ -276,7 +276,7 @@
                                             <span class="sr-only">Copy text</span>
                                         </button>
                             
-                                        <button type="button" class="p-2 text-blue-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" onclick="updateControlText({{ implementation.id }}, {{ statement.control_part.id }})">
+                                        <button type="button" class="p-2 text-blue-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" onclick="updateControlText({{ implementation.id }}, {{ statement.control_element.id }})">
                                             <i class="far fa-save fa-lg"></i>
                                             <span class="sr-only">Save Text</span>
                                         </button>
@@ -285,8 +285,8 @@
                             </div>
                 
                             <div class="px-4 py-2 bg-white rounded-b-lg dark:bg-gray-800">
-                                <textarea id="statement-text-{{ statement.control_part.id }}" rows="4" class="question-answer block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="Write your statement here..."
-                                data-part-id="{{ statement.control_part.id }}"
+                                <textarea id="statement-text-{{ statement.control_element.id }}" rows="4" class="question-answer block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="Write your statement here..."
+                                data-element-id="{{ statement.control_element.id }}"
                                 data-implementation-text="{{ statement.statement }}">{{ statement.statement }}</textarea>
                             </div>
                         </div>
@@ -319,7 +319,7 @@
 
                         <div class="px-4 py-2 bg-white rounded-b-lg dark:bg-gray-800">
                             <textarea id="statement-text-general-{{implementation.id}}" rows="4" class="question-answer block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400" placeholder="Write your statement here..."
-                            data-part-id="General"
+                            data-element-id="General"
                             data-implementation-text="{{implementation.statement}}">{{implementation.statement}}</textarea>
                         </div>
                     </div>
@@ -643,7 +643,7 @@
         }
     }
 
-    function openAICall(event, implementationId, control, system, descriptionBase, descriptionPart, part) {
+    function openAICall(event, implementationId, control, system, descriptionBase, descriptionElement, element) {
 
         showToast('Generating control implementation language...');
 
@@ -657,7 +657,7 @@
                 'control': control,
                 'system': system,
                 'description_base': descriptionBase,
-                'description_part': descriptionPart
+                'description_element': descriptionElement
             })
         })
         
@@ -667,8 +667,8 @@
             // On success, update the textarea with the returned text
             // Please adjust this selector to target the correct textarea based on your HTML structure
 
-            if (part != 'General') {
-                document.querySelector(`#statement-text-${part}`).value = result.output;
+            if (element != 'General') {
+                document.querySelector(`#statement-text-${element}`).value = result.output;
             } else {
                 document.querySelector(`#statement-text-general-${implementationId}`).value = result.output;
             }
@@ -677,20 +677,20 @@
     }
 
     // Updates the new statement for a control implementation when a user clicks save
-    function updateControlText(implementationId, partId) {
+    function updateControlText(implementationId, elementId) {
 
         let statement;
 
         let divId = `statement-text-`;
 
-        if (partId == 'General') {
+        if (elementId == 'General') {
             statement = document.querySelector(`#statement-text-general-${implementationId}`).value;
             divId += `general-${implementationId}`;
         }
 
         else {
-            statement = document.querySelector(`#statement-text-${partId}`).value;
-            divId += `${partId}`;
+            statement = document.querySelector(`#statement-text-${elementId}`).value;
+            divId += `${elementId}`;
         }
 
         // Fetch API call to Django URL
@@ -701,7 +701,7 @@
             },
             body: JSON.stringify({
                 'implementation_id': implementationId,
-                'part_id': partId,
+                'element_id': elementId,
                 'statement': statement,
             })
         })
