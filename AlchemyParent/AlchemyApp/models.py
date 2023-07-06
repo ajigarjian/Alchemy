@@ -377,7 +377,7 @@ class NISTControlElement(models.Model):
 
         formatted_identifier = identifier_format.format(self.identifier)
 
-        return f'{self.control if self.control else self.parent}: {formatted_identifier}'
+        return f'{formatted_identifier}'
 
 class NISTControl(models.Model):
     control_name = models.CharField(max_length=255) #Control Name

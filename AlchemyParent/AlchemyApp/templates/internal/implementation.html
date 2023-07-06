@@ -250,13 +250,25 @@
                     <div id="control_description-{{implementation.control.id}}" class="text-gray-700 mb-2">
                         <p>{{implementation.control.control_description}}</p>
                     </div>
-            
                     {% for element in implementation.control.elements.all %}
-                        <div id="control_element_description-{{element.id}}" class="flex text-gray-700 mb-2">
-                            <span class="mr-2 font-black tracking-wide text-gray-700">{{element.identifier}} </span><p>{{element.description}}</p>
-                        </div>
-                    {% endfor %}                   
-                </div>
+                        {% if element.level == 0 %}
+                            <div id="control_element_description-{{element.id}}" class="flex text-gray-700 mb-1">
+                                <span class="mr-2 font-black tracking-wide text-gray-700">{{element}} </span><p>{{element.description}}</p>
+                            </div>
+                            {% for sub_element_1 in element.sub_elements.all %}
+                                <div id="control_element_description-{{sub_element_1.id}}" class="ml-6 flex text-gray-700 mb-1">
+                                    <span class="mr-2 font-black tracking-wide text-gray-700">{{sub_element_1}} </span><p>{{sub_element_1.description}}</p>
+                                </div>
+                                {% for sub_element_2 in sub_element_1.sub_elements.all %}
+                                    <div id="control_element_description-{{sub_element_2.id}}" class="ml-12 flex text-gray-700 mb-1">
+                                        <span class="mr-2 font-black tracking-wide text-gray-700">{{sub_element_2}} </span><p>{{sub_element_2.description}}</p>
+                                    </div>
+                                    <!-- Continue nesting additional levels as needed -->
+                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>                
                     
                 <div id="control_statements" class="mt-6">
                     {% for statement in implementation.control_statement_elements.all %}
@@ -264,7 +276,7 @@
                             <div class="flex items-center justify-between px-3 py-2 border-b dark:border-gray-600">
                                 <div class="flex flex-wrap items-center dark:divide-gray-600">
                                     <div class="flex items-center space-x-1 sm:pr-4">
-                                        <label for="question-answer" class="mr-2 font-black tracking-wide text-gray-500">{{ statement.control_element.identifier}}</label>
+                                        <label for="question-answer" class="mr-2 font-black tracking-wide text-gray-500">{{ statement.control_element}}</label>
                 
                                         <button type="button" class="p-2 text-blue-500 rounded cursor-pointer hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600" data-id="{{ implementation.control.id }}" onclick="openAICall(event, {{ implementation.id }}, {{ implementation.control.id }}, {{ system.id }}, '{{ implementation.control.control_description|escapejs }}', '{{ statement.control_element.description|escapejs }}', {{ statement.control_element.id }})">
                                             <i class="fa-solid fa-wand-magic-sparkles w-5 h-5"></i>
