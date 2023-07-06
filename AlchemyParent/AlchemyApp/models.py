@@ -378,6 +378,14 @@ class NISTControlElement(models.Model):
         formatted_identifier = identifier_format.format(self.identifier)
 
         return f'{formatted_identifier}'
+    
+    def get_full_identifier(self):
+        if self.level == 0:  # This is a main part (like "a")
+            return self.identifier
+        elif self.level == 1:  # This is a sub-part (like "1" under "a")
+            return f"{self.parent.identifier}{self.identifier}"
+        elif self.level == 2:  # This is a sub-sub-part (like "a" under "1" under "a")
+            return f"{self.parent.parent.identifier}{self.parent.identifier}{self.identifier}"
 
 class NISTControl(models.Model):
     control_name = models.CharField(max_length=255) #Control Name
@@ -424,11 +432,17 @@ class FedRAMPParameter(models.Model):
 class ControlImplementationStatement(models.Model):
     control_implementation = models.ForeignKey('AlchemyApp.ControlImplementation', related_name='control_statement_elements', on_delete=models.CASCADE)
     control_element = models.ForeignKey('NISTControlElement', on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', related_name='sub_statements', on_delete=models.CASCADE, null=True, blank=True)
     statement = models.TextField(blank=True, default='')  # Control Element Implementation description
     last_updated = models.DateTimeField(auto_now=True)
+    level = models.IntegerField(default=0)  # Add this line
 
     class Meta:
         unique_together = ('control_implementation', 'control_element')
+
+    def get_full_identifier(self):
+        element = self.control_element
+        return element.get_full_identifier()
 
     def __str__(self):
         return f'{self.control_implementation.system}: {self.control_element.control if self.control_element.control else self.control_element.parent}.{self.control_element} - {self.statement}'
@@ -521,9 +535,21 @@ class ControlImplementation(models.Model):
 
         super().save(*args, **kwargs)  # Call the "real" save() method.
 
-        if is_new:  # if this is a new instance
-            for element in self.control.elements.all():
-                ControlImplementationStatement.objects.create(control_implementation=self, control_element=element)
+        if is_new:  # if this is a new instance, have to create the statement objects sequentially since they'r self-referential
+
+            # Level 0 elements
+            for element in self.control.elements.filter(level=0):
+                ControlImplementationStatement.objects.create(control_implementation=self, control_element=element, level=0)
+
+            # Level 1 elements
+            for element in self.control.elements.filter(level=1):
+                parent_statement = ControlImplementationStatement.objects.get(control_implementation=self, control_element=element.parent)
+                ControlImplementationStatement.objects.create(control_implementation=self, control_element=element, level=1, parent=parent_statement)
+
+            # Level 2 elements
+            for element in self.control.elements.filter(level=2):
+                parent_statement = ControlImplementationStatement.objects.get(control_implementation=self, control_element=element.parent)
+                ControlImplementationStatement.objects.create(control_implementation=self, control_element=element, level=2, parent=parent_statement)
 
 class Question(models.Model):
 

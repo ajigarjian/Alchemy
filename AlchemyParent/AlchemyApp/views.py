@@ -25,6 +25,7 @@ from django.conf import settings
 from docx import Document
 from docx.shared import Pt
 from pathlib import Path
+from collections import defaultdict
 
 load_dotenv()
 
@@ -229,11 +230,11 @@ def implementation(request, system, control_family):
     control_family_object = get_object_or_404(ControlFamily, family_name=unquote(control_family))
 
     # Define a Prefetch object for the elements that specifies the order
-    ordered_elements_prefetch = Prefetch('control__elements', queryset=NISTControlElement.objects.order_by('identifier'))
-    ordered_statements_prefetch = Prefetch('control_statement_elements', queryset=ControlImplementationStatement.objects.order_by('control_element__identifier'))
+    elements_prefetch = Prefetch('control__elements', queryset=NISTControlElement.objects.all())
+    statements_prefetch = Prefetch('control_statement_elements', queryset=ControlImplementationStatement.objects.all())
 
     # Pass the Prefetch object to the prefetch_related method
-    control_implementations = ControlImplementation.objects.filter(system=system_object, control_family=control_family_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations', ordered_elements_prefetch, ordered_statements_prefetch).order_by('control__control_family__family_abbreviation', 'control__control_number', Coalesce('control__control_enhancement', -1))
+    control_implementations = ControlImplementation.objects.filter(system=system_object, control_family=control_family_object).select_related('control', 'control_family', 'responsible_role').prefetch_related('statuses', 'originations', elements_prefetch, statements_prefetch).order_by('control__control_family__family_abbreviation', 'control__control_number', Coalesce('control__control_enhancement', -1))
 
     # Case where the search has been updated and an AJAX Call has been POSTed. This branch updates the control implementations rendered
     if request.method == 'POST':
@@ -374,6 +375,32 @@ def generate_ssp(request):
     # Fetch all control implementations from the database for this specific system
     control_implementations = ControlImplementation.objects.filter(system=system).select_related('responsible_role').prefetch_related('statuses', 'originations').all()
 
+     # Fetch all ControlImplementationStatement objects for this system, and group by associated ControlImplementation
+    general_statements = ControlImplementation.objects.filter(system=system).select_related('control').all().order_by('id')
+    control_statements = ControlImplementationStatement.objects.filter(control_implementation__system=system).select_related('control_implementation', 'control_element').all().order_by('id')
+    
+    control_to_general = defaultdict(str)
+    for general_statement in general_statements:
+        control = general_statement.control.str_SSP()
+        statement = general_statement.statement
+
+        control_to_general[(control)] = statement
+
+    control_to_statements = defaultdict(str)
+    for control_statement in control_statements:
+        control = control_statement.control_implementation.control.str_SSP()
+        full_identifier = control_statement.get_full_identifier()
+        statement = control_statement.statement
+
+        # Change to map the control and full identifier to the statement
+        control_to_statements[(control, full_identifier)] = statement
+    
+    for key, value in control_to_general.items():
+        control = key
+        statement = value
+        
+        print("Control:", control, "| Statement:", statement)
+
     # Define the mapping dictionary - manually mapping what is in the database to SSP text (origination labels don't match up)
     ORIGINATION_CHOICES_MAPPING = {
         'Service Provider Corporate': 'Service Provider Corporate',
@@ -443,6 +470,50 @@ def generate_ssp(request):
                             run = paragraph.add_run(f"{checkbox} {origination_choice[1]}\n")  # add each checkbox
                             run.font.name = 'Times New Roman'  # change this to your preferred font
                             run.font.size = Pt(12)
+
+         # Check if the table belongs to a control
+        if "What is the solution and how is it implemented?" in table.rows[0].cells[0].text:
+
+            control_identifier = table.rows[0].cells[0].text.strip().split(' ')[0]
+
+            if (len(table.rows) > 2):
+                # Process from the second row onwards
+                for row in table.rows[1:]:
+                    # Get the control element identifier
+                    control_element_identifier = row.cells[0].text.replace("Part ", "").replace(":", "").strip()
+
+                    # Replace the implementation statement cell if the control element identifier exists in your dictionary
+                    for control, full_identifier in control_to_statements.keys():
+                        if control == control_identifier and full_identifier == control_element_identifier:
+                            statement = control_to_statements[(control, full_identifier)]
+
+                            # Trim trailing whitespace
+                            statement = statement.rstrip()
+
+                            # Clear the cell and add the new text
+                            cell = row.cells[0]
+                            cell.text = ""
+                            paragraph = cell.paragraphs[0]
+                            run = paragraph.add_run("Part " + control_element_identifier + ": " + statement)
+                            run.font.name = 'Times New Roman'  # change this to your preferred font
+                            run.font.size = Pt(12)
+            else:
+                # Replace the implementation statement cell if the control element identifier exists in your dictionary
+                for control in control_to_general.keys():
+                    
+                    if control == control_identifier:
+                        statement = control_to_general[control]
+
+                        # Trim trailing whitespace
+                        statement = statement.rstrip()
+
+                        # Clear the cell and add the new text
+                        cell = row.cells[0]
+                        cell.text = ""
+                        paragraph = cell.paragraphs[0]
+                        run = paragraph.add_run(statement)
+                        run.font.name = 'Times New Roman'  # change this to your preferred font
+                        run.font.size = Pt(12)
 
     # Save the populated document in a temporary location
     doc_path = f'/tmp/SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx'
@@ -731,11 +802,14 @@ def save_control_text(request):
         # Get the ControlImplementation instance, related element, and the text put in by the user
         implementation = ControlImplementation.objects.get(id=data['implementation_id'])
         statement = data['statement']
-        data_element = data['element_id']
+        element_id = data['element_id']
         
-        if data_element != 'General':
-            element = NISTControlElement.objects.get(id=data['element_id'])
+        if element_id != 'General':
+            element = NISTControlElement.objects.get(id=element_id)
+            print(element.control)
+            print(element.get_full_identifier())
             control_statement_element = get_object_or_404(ControlImplementationStatement, control_implementation=implementation, control_element=element)
+            print(control_statement_element)
 
             # Update the statement text
             control_statement_element.statement = statement
