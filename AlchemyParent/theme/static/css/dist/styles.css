@@ -2223,10 +2223,6 @@ select {
   margin-left: 3rem;
 }
 
-.test {
-  margin-left: 3rem;
-}
-
 .ml-auto {
   margin-left: auto;
 }
@@ -2242,7 +2238,6 @@ select {
 .mr-3 {
   margin-right: 0.75rem;
 }
-
 
 .mr-4 {
   margin-right: 1rem;
