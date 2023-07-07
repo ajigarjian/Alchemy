@@ -467,10 +467,10 @@
             var targetId = 'control-implementation-{{implementation.id}}';
             var targetElement = document.getElementById(targetId);
 
-            var navbarHeight = 100;  // Adjust this value to match your navbar's height
+            var navbarHeight = 0;  // Adjust this value to match your navbar's height
 
             window.scrollTo({
-                top: targetElement.offsetTop - navbarHeight,
+                top: targetElement.offsetTop,
                 behavior: 'smooth'
             });
         {% endif %}
