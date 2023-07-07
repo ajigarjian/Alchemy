@@ -14,7 +14,7 @@
                 <span class="text-gray-500">/</span>
                 <a href="{% url 'alchemy:dashboard' system=system.name %}" class="hover:text-blue-700 duration-300">{{system.name}}</a>
                 <span class="text-gray-500">/</span>
-                <a href="{% url 'alchemy:implementation' system=system.name control_family=control_family %}" class="font-semibold hover:text-blue-700 duration-300">{{control_family}}</a>
+                <a href="{% url 'alchemy:implementation_no_control' system=system.name control_family=control_family %}" class="font-semibold hover:text-blue-700 duration-300">{{control_family}}</a>
             </div>
         </div>
     </nav>
@@ -22,7 +22,7 @@
     <nav class="w-full py-2 px-8 border-b border-gray-200 relative">
         <div class="w-full justify-between pr-24 md:flex md:flex-row md:items-center text-blue-500 space-x-2">
             {% for family in control_families %}
-            <a href="{% url 'alchemy:implementation' system=system.name control_family=family %}" class="px-3 rounded-lg hover:bg-gray-200 hover:text-blue-700 duration-300 {% if control_family == family %}bg-gray-200{% endif %}">{{family.family_abbreviation}}</a>
+            <a href="{% url 'alchemy:implementation_no_control' system=system.name control_family=family %}" class="px-3 rounded-lg hover:bg-gray-200 hover:text-blue-700 duration-300 {% if control_family == family %}bg-gray-200{% endif %}">{{family.family_abbreviation}}</a>
             {% endfor %}
         </div>
     </nav>
@@ -405,13 +405,26 @@
                     {% endfor %}
                 </div>
 
+                <div id="control_relations flex" class="mt-4">
+                    <span class="text-lg mr-1 font-black tracking-wide text-gray-700">Related Controls: </span>
+                    {% for related_control in implementation.control.related_controls.all %}
+                        {% if related_control.control_family == implementation.control_family %}
+                            <a href="#" data-control-id="{{related_control.id}}" class="related-control-link text-blue-500 hover:text-blue-700 duration-300">{{related_control}}{% if not forloop.last %},{% endif %}</a>
+                        {% else %}
+                        <a href="{% url 'alchemy:implementation' implementation.system.name related_control.control_family.family_name related_control.id %}" class="text-blue-500 hover:text-blue-700 duration-300">{{related_control}}{% if not forloop.last %},{% endif %}</a>
+                        {% endif %}
+                    {% empty %}
+                        <span class="text-lg font-black tracking-wide text-gray-700">None.</span>
+                    {% endfor %}
+                </div>
+
                 <div id="control_guidance" class="mt-4">
-                    <div id="accordion-flush" data-accordion="open" data-active-classes="text-white bg-blue-500" data-inactive-classes="text-gray-500">
+                    <div id="accordion-flush" data-accordion="open" data-active-classes="text-white bg-blue-500" data-inactive-classes="text-gray-700">
     
                         <div id="accordion-guidance-element-{{implementation.control.id}}">
                             <h2 id="accordion-guidance-heading-{{implementation.control.id}}">
-                                <button type="button" class="flex items-center justify-between w-full px-4 py-2 rounded-t-lg font-medium text-left text-gray-500" data-accordion-target="#accordion-guidance-body-{{implementation.control.id}}" aria-expanded="false" aria-controls="accordion-guidance-body-{{implementation.control.id}}">
-                                    <span class="text-xl font-bold transition-transform duration-200">Supplemental Guidance</span> 
+                                <button type="button" class="flex items-center justify-between w-full pr-4 py-2 rounded-t-lg font-medium text-left text-gray-700" data-accordion-target="#accordion-guidance-body-{{implementation.control.id}}" aria-expanded="false" aria-controls="accordion-guidance-body-{{implementation.control.id}}">
+                                    <span class="text-lg font-black tracking-wide transition-transform duration-200">Supplemental Guidance</span> 
                                     <i data-accordion-icon class="fas fa-chevron-down w-6 h-6 transition-transform duration-200"></i>
                                 </button>
                             </h2>
@@ -447,6 +460,46 @@
   
 <!-- Javascript for interactive aspects of the onboarding wizard -->
 <script type="text/javascript">
+
+    // Scrolls to a given control upon page load if page url and view were loaded with a control implementation ID in the chamber 
+    window.onload = function() {
+        {% if implementation %}
+            var targetId = 'control-implementation-{{implementation.id}}';
+            var targetElement = document.getElementById(targetId);
+
+            var navbarHeight = 100;  // Adjust this value to match your navbar's height
+
+            window.scrollTo({
+                top: targetElement.offsetTop - navbarHeight,
+                behavior: 'smooth'
+            });
+        {% endif %}
+    };
+
+    document.querySelectorAll('.related-control-link').forEach((a) => {
+        a.addEventListener('click', function(event) {
+            event.preventDefault();
+
+            // Get the target control id
+            let targetControlId = this.getAttribute('data-control-id');
+
+            // Find the corresponding implementation div
+            let targetElement = Array.from(document.querySelectorAll('.control')).find(div => div.getAttribute('data-implementation-control-id') == targetControlId);
+            console.log("Target Control ID: " + targetControlId);
+            console.log("Target Element: " + targetElement);
+
+            // Get the height of your navbar. Adjust '60' to match your navbar's height.
+            let navbarHeight = 100;
+
+            // Scroll to the element, minus the navbar height
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - navbarHeight,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
 
     // Scrolling function for category selection view. When the circular scroll button in bottom right is clicked, it will either scroll down or up to show more of the categories
     document.getElementById("scrollButton").addEventListener("click", function() {

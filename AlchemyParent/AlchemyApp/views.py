@@ -23,9 +23,14 @@ from openpyxl.styles import Alignment
 from openpyxl import load_workbook
 from django.conf import settings
 from docx import Document
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.shared import Pt
 from pathlib import Path
 from collections import defaultdict
+import xml.etree.ElementTree as ET
+import zipfile
+import tempfile
+import datetime
 
 load_dotenv()
 
@@ -223,11 +228,15 @@ def generate_ai_assessment(request):
 
 @csrf_exempt
 @login_required
-def implementation(request, system, control_family):
+def implementation(request, system, control_family, control=None):
     
     client = request.user.client
     system_object = get_object_or_404(System, name=unquote(system), client=client)
     control_family_object = get_object_or_404(ControlFamily, family_name=unquote(control_family))
+    # Only fetch a NISTControl object if control is not None
+    implementation_object = None
+    if control is not None:
+        implementation_object = get_object_or_404(ControlImplementation, system=system_object.id, control=control)
 
     # Define a Prefetch object for the elements that specifies the order
     elements_prefetch = Prefetch('control__elements', queryset=NISTControlElement.objects.all())
@@ -269,6 +278,7 @@ def implementation(request, system, control_family):
         return render(request, "internal/implementation.html", {
             "client": client,
             "system": system_object,
+            "implementation": implementation_object,
             "control_implementations": control_implementations,
             "implementation_choices": implementation_choices,
             "origination_choices": origination_choices,
@@ -362,15 +372,17 @@ def dashboard(request, system=None):
 @login_required
 def generate_ssp(request):
 
+     #################### SECTION TO PREPARE DOCUMENT AND DATABASE INFO ####################
+
     # Get the system id from the body of the fetch request and use it to get the system from the database that will have the report made for it
     system_data = json.loads(request.body.decode('utf-8'))
     system_id = system_data['system_id']
     system = get_object_or_404(System, id=system_id)
 
-    # Load the Word document from static files
-    static_path = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
-    template_path = os.path.join(static_path, 'SSP-Appendix-A-Moderate-FedRAMP-Security-Controls.docx')
-    doc = Document(template_path)
+    # Get the current date
+    current_date = datetime.date.today()
+    # Convert the date to the desired string format
+    date_string = current_date.strftime("%m/%d/%Y")
 
     # Fetch all control implementations from the database for this specific system
     control_implementations = ControlImplementation.objects.filter(system=system).select_related('responsible_role').prefetch_related('statuses', 'originations').all()
@@ -398,8 +410,6 @@ def generate_ssp(request):
     for key, value in control_to_general.items():
         control = key
         statement = value
-        
-        print("Control:", control, "| Statement:", statement)
 
     # Define the mapping dictionary - manually mapping what is in the database to SSP text (origination labels don't match up)
     ORIGINATION_CHOICES_MAPPING = {
@@ -429,6 +439,19 @@ def generate_ssp(request):
             [ORIGINATION_CHOICES_MAPPING[origination.origination] for origination in ci.originations.all()]
     )
     for ci in control_implementations}
+
+    #################### SECTION TO SCAN AND EDIT DOCUMENT ####################
+
+     # Load the Word document from static files
+    static_path = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
+    template_path = os.path.join(static_path, 'SSP-Appendix-A-Moderate-FedRAMP-Security-Controls.docx')
+    doc = Document(template_path)
+
+    # Updating the header of SSP appendix with CSO name, CSP name, and date
+    table = doc.sections[0].header.tables[0]
+    header_run = table.rows[0].cells[1].paragraphs[1].runs[0]
+    header_run.clear()
+    header_run.text = f'{system.client.client_name}  |  {system.name}  |  <Insert Version X.X  |  {date_string}'
 
     # Loop through each table in the document
     for table in doc.tables:
@@ -518,6 +541,29 @@ def generate_ssp(request):
     # Save the populated document in a temporary location
     doc_path = f'/tmp/SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx'
     doc.save(doc_path)
+
+    # Open the .docx file as a zip file
+    with zipfile.ZipFile(f'/tmp/SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx', 'a') as myzip:
+        # Extract the XML file to memory
+        with myzip.open('word/document.xml') as f:
+            tree = ET.parse(f)
+
+        count = 0
+        # Make changes to the XML tree
+        for elem in tree.iter():
+            if elem.text:
+                elem.text = elem.text.replace("<Insert CSO Name>", system.client.client_name)
+                elem.text = elem.text.replace("<Insert CSP Name>", system.name)
+
+        # Write the changes back to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False) as temp_xml:
+            tree.write(temp_xml.name)
+
+        # Replace the XML file in the .docx file with our temporary file
+        myzip.write(temp_xml.name, 'word/document.xml')
+
+    # Delete the temporary file
+    os.unlink(temp_xml.name)
 
     # Then, create a FileResponse from the file and set the correct content type and disposition.
     f = open(doc_path, 'rb')

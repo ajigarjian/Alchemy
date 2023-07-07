@@ -394,6 +394,7 @@ class NISTControl(models.Model):
     control_enhancement = models.IntegerField(blank=True, null=True) #Control Enhancement (can be blank)
     control_description = models.TextField() #Control description
     supplemental_guidance = models.TextField(blank=True, null=True) #Supplemental guidance
+    related_controls = models.ManyToManyField('self', blank=True)
 
     def __str__(self):
         enhancement_text = ""

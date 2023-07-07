@@ -36,7 +36,8 @@ urlpatterns = [
     path("overview2/<str:system>", views.overview2, name="overview2"),
     path("questions/<str:control_family_name>", views.questions, name="questions"),
 
-    path('implementation/<str:system>/<str:control_family>/', views.implementation, name='implementation'),
+    path('implementation/<str:system>/<str:control_family>/<str:control>/', views.implementation, name='implementation'),
+    path('implementation/<str:system>/<str:control_family>/', views.implementation, name='implementation_no_control'),
 
     #API Calls
 
