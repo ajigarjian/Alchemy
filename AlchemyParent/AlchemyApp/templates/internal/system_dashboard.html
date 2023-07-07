@@ -145,7 +145,7 @@
             </div>
 
             <div class="md:col-span-8 h-144 bg-white border-2 rounded-lg transform transition-all duration-300 ease-in-out group">
-                <a href="{% url 'alchemy:implementation' system=system.name control_family='Access Control' %}">
+                <a href="{% url 'alchemy:implementation_no_control' system=system.name control_family='Access Control' %}">
                     <div class="system-header p-8 mb-2 rounded-t-lg h-14 w-full hover:bg-gray-100 hover:cursor-pointer transition-all duration-300 ease-in-out flex items-center">
                         <span class="text-2xl font-bold select-none">Control Implementations by Family</span>
                         <div class="system_settings_icon absolute top-4 right-4 hidden group-hover:block transition-all duration-300 ease-in-out">
@@ -161,7 +161,7 @@
 
             <!-- Control Implementations Table -->
             <div class="md:col-span-8 h-fit bg-white border-2 rounded-lg transform transition-all duration-300 ease-in-out group">
-                <a href="{% url 'alchemy:implementation' system=system.name control_family='Access Control' %}">
+                <a href="{% url 'alchemy:implementation_no_control' system=system.name control_family='Access Control' %}">
                     <div class="system-header p-8 mb-2 rounded-t-lg h-14 w-full hover:text-blue-600 hover:bg-gray-100 hover:cursor-pointer transition-all duration-300 ease-in-out flex items-center">
                         <span class="text-2xl font-bold select-none">Control Implementations Table</span>
                         <div class="system_settings_icon absolute top-4 right-4 hidden group-hover:block transition-all duration-300 ease-in-out">
@@ -184,7 +184,7 @@
                         </thead>
                         <tbody>
                             {% for family in families %}
-                            <tr class="text-sm hover:text-blue-600 hover:bg-gray-100 hover:translate-y-0.5 hover:cursor-pointer transition-all duration-200" onclick="window.location=' {% url 'alchemy:implementation' system.name family.family_name %} ';">
+                            <tr class="text-sm hover:text-blue-600 hover:bg-gray-100 hover:translate-y-0.5 hover:cursor-pointer transition-all duration-200" onclick="window.location=' {% url 'alchemy:implementation_no_control' system.name family.family_name %} ';">
 
                                 <td class="py-2 pl-2">{{family.family_abbreviation}}</td>
                                 <td class="py-2">{{family.family_name}}</td>

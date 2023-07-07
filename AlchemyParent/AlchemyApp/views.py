@@ -350,7 +350,7 @@ def dashboard(request, system=None):
 
             url_dict = []
             for family in families:
-                url = reverse('alchemy:implementation', args=[selected_system.name, family.family_name])
+                url = reverse('alchemy:implementation_no_control', args=[selected_system.name, family.family_name])
                 url_dict.append({
                     'family_abbreviation': family.family_abbreviation,  # Store the family abbreviation for reference
                     'url': url
