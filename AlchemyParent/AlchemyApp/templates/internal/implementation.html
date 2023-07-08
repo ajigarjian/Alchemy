@@ -461,8 +461,7 @@
 <!-- Javascript for interactive aspects of the onboarding wizard -->
 <script type="text/javascript">
 
-    // Scrolls to a given control upon page load if page url and view were loaded with a control implementation ID in the chamber 
-    window.onload = function() {
+    window.onresize = function() {
         {% if implementation %}
             var targetId = 'control-implementation-{{implementation.id}}';
             var targetElement = document.getElementById(targetId);
