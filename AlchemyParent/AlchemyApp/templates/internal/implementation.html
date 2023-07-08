@@ -409,7 +409,7 @@
                     <span class="text-lg mr-1 font-black tracking-wide text-gray-700">Related Controls: </span>
                     {% for related_control in implementation.control.related_controls.all %}
                         {% if related_control.control_family == implementation.control_family %}
-                            <a href="#" data-control-id="{{related_control.id}}" class="related-control-link text-blue-500 hover:text-blue-700 duration-300">{{related_control}}{% if not forloop.last %},{% endif %}</a>
+                        <a href="#" data-control-id="{{related_control.id}}" class="related-control-link text-blue-500 hover:text-blue-700 duration-300">{{related_control}}{% if not forloop.last %},{% endif %}</a>
                         {% else %}
                         <a href="{% url 'alchemy:implementation' implementation.system.name related_control.control_family.family_name related_control.id %}" class="text-blue-500 hover:text-blue-700 duration-300">{{related_control}}{% if not forloop.last %},{% endif %}</a>
                         {% endif %}
@@ -462,23 +462,23 @@
 <script type="text/javascript">
 
     // Scrolls to a given control upon page load if page url and view were loaded with a control implementation ID in the chamber 
-    window.addEventListener('load', function() {
+    window.onload = function() {
         {% if implementation %}
             var targetId = 'control-implementation-{{implementation.id}}';
-            console.log("id: ", targetId);
             var targetElement = document.getElementById(targetId);
-            console.log("target: ", targetElement);
-            console.log("offsetTop: ", targetElement.offsetTop);
 
-            var navbarHeight = 0;  // Adjust this value to match your navbar's height
+            if (targetElement) {
+                var headerOffset = 100;  // Adjust this to the height of your header
+                var elementPosition = targetElement.getBoundingClientRect().top;
+                var offsetPosition = elementPosition - headerOffset;
 
-            window.scrollTo({
-                top: targetElement.offsetTop - navbarHeight,
-                behavior: 'smooth'
-            });
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
         {% endif %}
-    });
-
+    };
 
     document.querySelectorAll('.related-control-link').forEach((a) => {
         a.addEventListener('click', function(event) {
