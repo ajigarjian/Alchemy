@@ -418,7 +418,7 @@
                     {% endfor %}
                 </div>
 
-                <div id="control_guidance" class="mt-4">
+                <div id="control_guidance" class="mt-2">
                     <div id="accordion-flush" data-accordion="open" data-active-classes="text-white bg-blue-500" data-inactive-classes="text-gray-700">
     
                         <div id="accordion-guidance-element-{{implementation.control.id}}">
@@ -462,7 +462,7 @@
 <script type="text/javascript">
 
     // Scrolls to a given control upon page load if page url and view were loaded with a control implementation ID in the chamber 
-    window.onload = function() {
+    window.addEventListener('load', function() {
         {% if implementation %}
             var targetId = 'control-implementation-{{implementation.id}}';
             var targetElement = document.getElementById(targetId);
@@ -470,11 +470,12 @@
             var navbarHeight = 0;  // Adjust this value to match your navbar's height
 
             window.scrollTo({
-                top: targetElement.offsetTop,
+                top: targetElement.offsetTop - navbarHeight,
                 behavior: 'smooth'
             });
         {% endif %}
-    };
+    });
+
 
     document.querySelectorAll('.related-control-link').forEach((a) => {
         a.addEventListener('click', function(event) {
