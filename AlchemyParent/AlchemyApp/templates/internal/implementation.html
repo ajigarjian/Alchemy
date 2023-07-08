@@ -461,21 +461,23 @@
 <!-- Javascript for interactive aspects of the onboarding wizard -->
 <script type="text/javascript">
 
-    window.onresize = function() {
+    window.onload = function() {
         {% if implementation %}
-            var targetId = 'control-implementation-{{implementation.id}}';
-            var targetElement = document.getElementById(targetId);
+            setTimeout(function() {
+                var targetId = 'control-implementation-{{implementation.id}}';
+                var targetElement = document.getElementById(targetId);
 
-            if (targetElement) {
-                var headerOffset = 100;  // Adjust this to the height of your header
-                var elementPosition = targetElement.getBoundingClientRect().top;
-                var offsetPosition = elementPosition - headerOffset;
+                if (targetElement) {
+                    var headerOffset = 100;  // Adjust this to the height of your header
+                    var elementPosition = targetElement.getBoundingClientRect().top;
+                    var offsetPosition = elementPosition - headerOffset;
 
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
-            }
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }, 500); // delay of 500 milliseconds
         {% endif %}
     };
 
