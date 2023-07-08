@@ -465,7 +465,10 @@
     window.addEventListener('load', function() {
         {% if implementation %}
             var targetId = 'control-implementation-{{implementation.id}}';
+            console.log("id: ", targetId);
             var targetElement = document.getElementById(targetId);
+            console.log("target: ", targetElement);
+            console.log("offsetTop: ", targetElement.offsetTop);
 
             var navbarHeight = 0;  // Adjust this value to match your navbar's height
 
