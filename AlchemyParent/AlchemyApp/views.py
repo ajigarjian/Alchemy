@@ -31,6 +31,11 @@ import xml.etree.ElementTree as ET
 import zipfile
 import tempfile
 import datetime
+import boto3 #for generating the report
+from botocore.config import Config #for generating the report
+from botocore.exceptions import NoCredentialsError #for generating the report
+import io #for generating the report
+import time
 
 load_dotenv()
 
@@ -538,17 +543,21 @@ def generate_ssp(request):
                         run.font.name = 'Times New Roman'  # change this to your preferred font
                         run.font.size = Pt(12)
 
-    # Save the populated document in a temporary location
-    doc_path = f'/tmp/SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx'
-    doc.save(doc_path)
+    # Save the populated document to a byte stream
+    byte_stream = io.BytesIO()
+    doc.save(byte_stream)
+    byte_stream.seek(0)
 
-    # Open the .docx file as a zip file
-    with zipfile.ZipFile(f'/tmp/SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx', 'a') as myzip:
+    # Additionally save to a local file for inspection
+    with open('test.docx', 'wb') as f:
+        f.write(byte_stream.getvalue())
+
+    # Create a zipfile from the byte stream
+    with zipfile.ZipFile(byte_stream, 'a') as myzip:
         # Extract the XML file to memory
         with myzip.open('word/document.xml') as f:
             tree = ET.parse(f)
 
-        count = 0
         # Make changes to the XML tree
         for elem in tree.iter():
             if elem.text:
@@ -565,11 +574,55 @@ def generate_ssp(request):
     # Delete the temporary file
     os.unlink(temp_xml.name)
 
-    # Then, create a FileResponse from the file and set the correct content type and disposition.
-    f = open(doc_path, 'rb')
-    response = FileResponse(f, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    response['Content-Disposition'] = f'attachment; filename="SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx"'
-    return response
+    # Reset the position of byte_stream to the start
+    byte_stream.seek(0)
+
+    # Using AWS Boto3 API to store and retrieve file in S3 bucket
+
+    # Generating random session key
+    current_time=int(time.time())
+    session_name = f'ari@alchemyssp.com-{current_time}'
+
+    #Creating session for an AWS role via boto3user
+    sts_client = boto3.client('sts', 
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID", None),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY", None))
+
+    assumed_role_object=sts_client.assume_role(
+        RoleArn="arn:aws:iam::814564129989:role/s3-generate-ssp-role",
+        RoleSessionName=session_name
+    )
+    creds = assumed_role_object['Credentials']
+
+    # Upload the document to S3 and generate a presigned URL using the temporary session credentials
+    try:
+        s3 = boto3.client('s3', 
+                        aws_access_key_id=creds['AccessKeyId'],
+                        aws_secret_access_key=creds['SecretAccessKey'],
+                        aws_session_token=creds['SessionToken'],
+                        config=Config(signature_version='v4', region_name=os.getenv("AWS_DEFAULT_REGION", None)))
+
+        filename = f'SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx'
+        s3.upload_fileobj(byte_stream, 'alchemyssp-moderate-ssp-reports', filename)
+
+        # Generate the URL to get 'key-name' from 'bucket-name'
+        url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': 'alchemyssp-moderate-ssp-reports',
+                'Key': filename
+            },
+            ExpiresIn=120,  # 2 minutes
+        )
+
+    except FileNotFoundError:
+        print("The file was not found")
+        return JsonResponse({'error': 'File not found'})
+    except NoCredentialsError:
+        print("Credentials not available")
+        return JsonResponse({'error': 'Credentials not available'})
+
+    return JsonResponse({'url': url})
 
 @csrf_exempt
 @login_required
