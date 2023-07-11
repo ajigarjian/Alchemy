@@ -2362,6 +2362,10 @@ select {
   height: 0.5rem;
 }
 
+.h-2\.5 {
+  height: 0.625rem;
+}
+
 .h-3 {
   height: .75rem;
 }
