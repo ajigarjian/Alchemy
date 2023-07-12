@@ -31,11 +31,6 @@ from math import ceil
 import xml.etree.ElementTree as ET
 import zipfile
 import tempfile
-import datetime
-import boto3 #for generating the report
-from botocore.config import Config #for generating the report
-from botocore.exceptions import NoCredentialsError #for generating the report
-import io #for generating the report
 import time
 
 load_dotenv()
@@ -413,7 +408,7 @@ def dashboard(request, system=None):
                 "total_implemented": total_implemented,
                 "urls": urls_json
             })
-            
+
 @csrf_exempt
 @login_required
 def generate_ssp(request):
