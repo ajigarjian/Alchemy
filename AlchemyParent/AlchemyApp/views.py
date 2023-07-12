@@ -31,7 +31,12 @@ from math import ceil
 import xml.etree.ElementTree as ET
 import zipfile
 import tempfile
-from datetime import date
+import datetime
+import boto3 #for generating the report
+from botocore.config import Config #for generating the report
+from botocore.exceptions import NoCredentialsError #for generating the report
+import io #for generating the report
+import time
 
 load_dotenv()
 
@@ -408,91 +413,83 @@ def dashboard(request, system=None):
                 "total_implemented": total_implemented,
                 "urls": urls_json
             })
-
 @csrf_exempt
 @login_required
 def generate_ssp(request):
-
-     #################### SECTION TO PREPARE DOCUMENT AND DATABASE INFO ####################
-
-    # Get the system id from the body of the fetch request and use it to get the system from the database that will have the report made for it
     system_data = json.loads(request.body.decode('utf-8'))
     system_id = system_data['system_id']
+
+    # Get system and control data
+    system, control_to_role_status_origin, control_to_general, control_to_statements = get_system_and_control_data(system_id)
+
+    # Create and edit the document
+    byte_stream = create_and_edit_doc(system, control_to_role_status_origin, control_to_general, control_to_statements)
+
+    # Upload the document to S3 and get the URL
+    url = upload_doc_to_s3(byte_stream, system.name)
+
+    return JsonResponse({'url': url})
+
+# Responsible for fetching and organizing the system and control data as part of the overall SSP creation process
+def get_system_and_control_data(system_id):
     system = get_object_or_404(System, id=system_id)
 
-    # Get the current date
-    current_date = date.today()
-    # Convert the date to the desired string format
-    date_string = current_date.strftime("%m/%d/%Y")
+    control_implementations = ControlImplementation.objects.filter(system=system)\
+        .select_related('responsible_role')\
+        .prefetch_related('statuses', 'originations')\
+        .defer('progress', 'last_updated')
 
-    # Fetch all control implementations from the database for this specific system
-    control_implementations = ControlImplementation.objects.filter(system=system).select_related('responsible_role').prefetch_related('statuses', 'originations').all()
-
-     # Fetch all ControlImplementationStatement objects for this system, and group by associated ControlImplementation
     general_statements = ControlImplementation.objects.filter(system=system).select_related('control').all().order_by('id')
     control_statements = ControlImplementationStatement.objects.filter(control_implementation__system=system).select_related('control_implementation', 'control_element').all().order_by('id')
-    
-    control_to_general = defaultdict(str)
+
+    control_to_general, control_to_statements = process_statements(general_statements, control_statements)
+    control_to_role_status_origin = process_control_implementations(control_implementations)
+
+    return system, control_to_role_status_origin, control_to_general, control_to_statements
+
+# Responsible for processing the fetched data into the appropriate structure as part of overall SSP creation process
+def process_statements(general_statements, control_statements):
+    control_to_general = {}
     for general_statement in general_statements:
-        control = general_statement.control.str_SSP()
-        statement = general_statement.statement
+        control_to_general[general_statement.control.str_SSP()] = general_statement
 
-        control_to_general[(control)] = statement
-
-    control_to_statements = defaultdict(str)
+    control_to_statements = defaultdict(list)
     for control_statement in control_statements:
-        control = control_statement.control_implementation.control.str_SSP()
-        full_identifier = control_statement.get_full_identifier()
-        statement = control_statement.statement
+        control_to_statements[control_statement.control_implementation.control.str_SSP()].append(control_statement)
 
-        # Change to map the control and full identifier to the statement
-        control_to_statements[(control, full_identifier)] = statement
+    return control_to_general, control_to_statements
+
+# Responsible for processing the fetched data into the appropriate structure as part of overall SSP creation process
+def process_control_implementations(control_implementations):
+    control_to_role_status_origin = {}
+    for control_implementation in control_implementations:
+        control_full_id = control_implementation.control.str_SSP()
+        control_to_role_status_origin[control_full_id] = {
+            'role': control_implementation.responsible_role.responsible_role if control_implementation.responsible_role else None,
+            'status': {status.status for status in control_implementation.statuses.all()},
+            'origin': {origination.origination for origination in control_implementation.originations.all()}
+        }
+
+    return control_to_role_status_origin
+
+# Responsible for loading, editing, and saving the Word document as part of overall SSP creation process
+def create_and_edit_doc(system, control_to_role_status_origin, control_to_general, control_to_statements):
     
-    for key, value in control_to_general.items():
-        control = key
-        statement = value
-
-    # Define the mapping dictionary - manually mapping what is in the database to SSP text (origination labels don't match up)
-    ORIGINATION_CHOICES_MAPPING = {
-        'Service Provider Corporate': 'Service Provider Corporate',
-        'Service Provider System Specific': 'Service Provider System Specific',
-        'Service Provider Hybrid': 'Service Provider Hybrid (Corporate and System Specific)',
-        'Configured by Customer': 'Configured by Customer (Customer System Specific)',
-        'Provided by Customer': 'Provided by Customer (Customer System Specific)',
-        'Shared': 'Shared (Service Provider and Customer Responsibility)',
-        'Inherited': 'Inherited from pre-existing FedRAMP Authorization for [Click here to enter text], Date of Authorization'
-    }
-
-    # Create a dictionary mapping control identifiers to responsible roles, statuses, and originations for faster lookup
-    control_to_role_status_origin = {
-        ci.control.str_SSP(): (
-            (ci.responsible_role.responsible_role if ci.responsible_role is not None else ''),
-            [status.status for status in ci.statuses.all()],
-            [origination.origination for origination in ci.originations.all()]
-        ) 
-        for ci in control_implementations
-    }
-
-    control_to_role_status_origin = {
-        ci.control.str_SSP(): (
-            (ci.responsible_role.responsible_role if ci.responsible_role is not None else ''),
-            [status.status for status in ci.statuses.all()],
-            [ORIGINATION_CHOICES_MAPPING[origination.origination] for origination in ci.originations.all()]
-    )
-    for ci in control_implementations}
-
-    #################### SECTION TO SCAN AND EDIT DOCUMENT ####################
-
      # Load the Word document from static files
     static_path = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
     template_path = os.path.join(static_path, 'SSP-Appendix-A-Moderate-FedRAMP-Security-Controls.docx')
     doc = Document(template_path)
 
+     # Get the current date
+    current_date = datetime.date.today()
+    # Convert the date to the desired string format
+    date_string = current_date.strftime("%m/%d/%Y")
+
     # Updating the header of SSP appendix with CSO name, CSP name, and date
     table = doc.sections[0].header.tables[0]
     header_run = table.rows[0].cells[1].paragraphs[1].runs[0]
     header_run.clear()
-    header_run.text = f'{system.client.client_name}  |  {system.name}  |  <Insert Version X.X  |  {date_string}'
+    header_run.text = f'{system.client.client_name}  |  {system.name}  |  <Insert Version X.X>  |  {date_string}'
 
     # Loop through each table in the document
     for table in doc.tables:
@@ -501,7 +498,12 @@ def generate_ssp(request):
 
         # Check if this control identifier is in our dictionary
         if control_identifier in control_to_role_status_origin:
-            responsible_role, statuses, originations = control_to_role_status_origin[control_identifier]
+            
+            record = control_to_role_status_origin[control_identifier]
+
+            responsible_role = record['role']
+            statuses = record['status']
+            originations = record['origin']
 
             # Populate the responsible role cell (the cell to the right of "Responsible Role:")
             # First, find the cell with "Responsible Role:"
@@ -511,7 +513,10 @@ def generate_ssp(request):
                         # Once we found it, we clear the cell and then set it to "Responsible Role: <the_role>"
                         cell.text = ""
                         paragraph = cell.paragraphs[0]
-                        run = paragraph.add_run("Responsible Role: " + responsible_role)
+                        if responsible_role == None:
+                            run = paragraph.add_run("Responsible Role:")
+                        else:
+                            run = paragraph.add_run("Responsible Role: " + responsible_role)
                         run.font.name = 'Times New Roman'  # change this to your preferred font
                         run.font.size = Pt(12)
                     
@@ -547,26 +552,33 @@ def generate_ssp(request):
                     control_element_identifier = row.cells[0].text.replace("Part ", "").replace(":", "").strip()
 
                     # Replace the implementation statement cell if the control element identifier exists in your dictionary
-                    for control, full_identifier in control_to_statements.keys():
-                        if control == control_identifier and full_identifier == control_element_identifier:
-                            statement = control_to_statements[(control, full_identifier)]
+                    for control_full_id in control_to_statements.keys():
+                        control_statements = control_to_statements[control_full_id]
 
-                            # Trim trailing whitespace
-                            statement = statement.rstrip()
+                        for control_statement in control_statements:
+                            element_identifier = control_statement.control_element.get_full_identifier()
 
-                            # Clear the cell and add the new text
-                            cell = row.cells[0]
-                            cell.text = ""
-                            paragraph = cell.paragraphs[0]
-                            run = paragraph.add_run("Part " + control_element_identifier + ": " + statement)
-                            run.font.name = 'Times New Roman'  # change this to your preferred font
-                            run.font.size = Pt(12)
+                            if control_full_id == control_identifier and element_identifier == control_element_identifier:
+
+                                # Trim trailing whitespace
+                                statement = control_statement.statement.rstrip()
+
+                                # print(control_full_id, " matches ", control_identifier, " and ", element_identifier, " matches ", control_element_identifier, ": ", statement)
+
+                                # Clear the cell and add the new text
+                                cell = row.cells[0]
+                                cell.text = ""
+                                paragraph = cell.paragraphs[0]
+                                run = paragraph.add_run("Part " + control_element_identifier + ": " + statement)
+                                run.font.name = 'Times New Roman'  # change this to your preferred font
+                                run.font.size = Pt(12)
+
             else:
                 # Replace the implementation statement cell if the control element identifier exists in your dictionary
-                for control in control_to_general.keys():
+                for control_full_id in control_to_general.keys():
                     
-                    if control == control_identifier:
-                        statement = control_to_general[control]
+                    if control_full_id == control_identifier:
+                        statement = control_to_general[control_full_id].statement
 
                         # Trim trailing whitespace
                         statement = statement.rstrip()
@@ -579,17 +591,17 @@ def generate_ssp(request):
                         run.font.name = 'Times New Roman'  # change this to your preferred font
                         run.font.size = Pt(12)
 
-    # Save the populated document in a temporary location
-    doc_path = f'/tmp/SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx'
-    doc.save(doc_path)
+    # Save the populated document to a byte stream
+    byte_stream = io.BytesIO()
+    doc.save(byte_stream)
+    byte_stream.seek(0)
 
-    # Open the .docx file as a zip file
-    with zipfile.ZipFile(f'/tmp/SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx', 'a') as myzip:
+    # Create a zipfile from the byte stream
+    with zipfile.ZipFile(byte_stream, 'a') as myzip:
         # Extract the XML file to memory
         with myzip.open('word/document.xml') as f:
             tree = ET.parse(f)
 
-        count = 0
         # Make changes to the XML tree
         for elem in tree.iter():
             if elem.text:
@@ -606,11 +618,58 @@ def generate_ssp(request):
     # Delete the temporary file
     os.unlink(temp_xml.name)
 
-    # Then, create a FileResponse from the file and set the correct content type and disposition.
-    f = open(doc_path, 'rb')
-    response = FileResponse(f, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    response['Content-Disposition'] = f'attachment; filename="SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-{system.name}.docx"'
-    return response
+    # Reset the position of byte_stream to the start
+    byte_stream.seek(0)
+
+    return byte_stream
+
+#Responsible for uploading the generated document to S3.
+def upload_doc_to_s3(byte_stream, system_name):
+    # Using AWS Boto3 API to store and retrieve file in S3 bucket
+
+    # Generating random session key
+    current_time=int(time.time())
+    session_name = f'ari@alchemyssp.com-{current_time}'
+
+    #Creating session for an AWS role via boto3user
+    sts_client = boto3.client('sts', 
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID", None),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY", None))
+
+    assumed_role_object=sts_client.assume_role(
+        RoleArn="arn:aws:iam::814564129989:role/s3-generate-ssp-role",
+        RoleSessionName=session_name
+    )
+    creds = assumed_role_object['Credentials']
+
+    # Upload the document to S3 and generate a presigned URL using the temporary session credentials
+    try:
+        s3 = boto3.client('s3', 
+            aws_access_key_id=creds['AccessKeyId'],
+            aws_secret_access_key=creds['SecretAccessKey'],
+            aws_session_token=creds['SessionToken'],
+            config=Config(signature_version='v4', region_name=os.getenv("AWS_DEFAULT_REGION", None)))
+
+        filename = f'{system_name}_ssp.docx'
+        s3.upload_fileobj(
+            byte_stream, 
+            'alchemyssp-moderate-ssp-reports',
+            filename)
+
+        # Generate the URL to get 'key-name' from 'bucket-name'
+        url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': 'alchemyssp-moderate-ssp-reports',
+                'Key': filename
+            },
+            ExpiresIn=120,  # 2 minutes
+        )
+
+        return url
+    except Exception as e:
+        print(e)
+        return None
 
 @csrf_exempt
 @login_required
