@@ -1,4 +1,5 @@
 {% extends "internal/internal.html" %}
+{% load template_filters %}
 
 {% block company %}
 {{client}} <i class="fa-solid fa-mountain"></i>
@@ -25,10 +26,10 @@
                     </div>
             
                     <!-- Bottom section with system name -->
-                    <div class="bottom_section h-1/4 flex justify-around items-center">
-                        <span class="text-xl font-bold hover:text-blue-700 duration-300">{{system.name}}</span>
-                        <div class="w-1/2 bg-gray-200 rounded-full dark:bg-gray-700">
-                            <div class="bg-blue-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" style="width: 45%"> 45%</div>
+                    <div class="bottom_section flex flex-col justify-center h-1/4 mx-4 hover:text-blue-700 duration-300">
+                        <text class="w-full text-xl font-bold truncate mb-1">{{system.name}}</text>
+                        <div class="w-full bg-gray-200 rounded-full dark:bg-gray-700 mt-1 overflow-hidden">
+                            <div class="bg-blue-600 text-xs font-medium text-blue-100 text-center leading-none rounded-full" style="width: {{ percentages|get_item:system.name }}%"> {{ percentages|get_item:system.name }}%</div>
                           </div>
                     </div>
                 </a>
