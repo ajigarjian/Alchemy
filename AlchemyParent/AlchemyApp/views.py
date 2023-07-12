@@ -31,7 +31,7 @@ from math import ceil
 import xml.etree.ElementTree as ET
 import zipfile
 import tempfile
-import time
+from datetime import date
 
 load_dotenv()
 
@@ -421,7 +421,7 @@ def generate_ssp(request):
     system = get_object_or_404(System, id=system_id)
 
     # Get the current date
-    current_date = datetime.date.today()
+    current_date = date.today()
     # Convert the date to the desired string format
     date_string = current_date.strftime("%m/%d/%Y")
 
