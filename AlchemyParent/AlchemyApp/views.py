@@ -142,8 +142,8 @@ def assess(request):
 
     return render(request, "public/assess.html")
 
-# @csrf_exempt
-# def generate_ai_assessment(request):
+@csrf_exempt
+def generate_ai_assessment(request):
 
 #     # Cannot call this API call to OpenAI unless via the file upload POSTing to backend
 #     if request.method != "POST":
@@ -223,7 +223,7 @@ def assess(request):
 
 #         response = FileResponse(open('/tmp/output.xlsx', 'rb'), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 #         response['Content-Disposition'] = 'attachment; filename="output.xlsx"'
-#     return response
+    return response
 
 ####################################### Internal Application once logged in ##############################################
 
