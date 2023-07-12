@@ -437,21 +437,19 @@
             })
         })
 
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();  // This returns a promise
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            // change filename to whatever you want
+            a.download = `SSP-Appendix-A-Moderate-FedRAMP-Security-Controls-${systemName}.docx`
+            a.click();
         })
-
-        .then(data => {
-            window.open(data.url, '_blank');
-        })
-        
         .catch((error) => {
             console.error('There has been a problem with generating the SSP:', error);
         });
-        }
+    }
 
     // functionality to show toast messages when generate SSP is loading or successful
     function showToast(message, duration = 15000) {

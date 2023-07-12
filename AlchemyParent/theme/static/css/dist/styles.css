@@ -2511,6 +2511,10 @@ select {
   height: fit-content;
 }
 
+.object-contain {
+  object-fit: contain;
+}
+
 .filter-blue-600 {
   filter: invert(62%) sepia(99%) saturate(4669%) hue-rotate(202deg) brightness(98%) contrast(96%);
 }
@@ -2716,6 +2720,10 @@ select {
 
 .max-w-4\/5 {
   max-width: 80%;
+}
+
+.max-w-1\/3 {
+  max-width: 33%;
 }
 
 .max-w-xs {
