@@ -5,7 +5,7 @@
 
 <div class="flex flex-col overflow-hidden items-center border-b-2">
     <div id="welcome_container" class="my-32 md:my-48 text-center mx-5 md:min-w-100 md:w-4/5 translate-y-10 opacity-0">
-        <h1 class="text-5xl md:text-6xl font-extrabold tracking-wide text-blue-500">Create Quick & Affordable AI-Powered FedRAMP SSPs.</h1>
+        <h1 class="text-5xl md:text-6xl font-extrabold tracking-wide text-blue-500">Create quick & affordable AI-powered FedRAMP SSPs.</h1>
         <a href="{% url 'alchemy:contact' %}" class="mt-10 bg-blue-500 hover:bg-blue-700 text-white font-bold text-xl py-4 px-8 rounded-lg focus:outline-none focus:shadow-outline inline-block duration-300">Begin Now</a>
     </div>
 
@@ -14,7 +14,44 @@
     </div>
 </div>
 
-<div id="about_container" class="flex flex-col w-screen items-center bg-white">
+<div class="flex flex-col h-overscreen items-center border-b-2 bg-white relative">
+
+    <div id="wand-text" class="mt-32 mx-5 md:min-w-100 md:w-4/5">
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide text-blue-500">Generate control language with just one click of the magic wand icon.</h1>
+    </div>
+
+    <div class="mx-5 my-48 flex flex-col items-center">
+        <div id="wand">
+            <div class="cap"></div>
+        </div>
+
+        <div id="tiles" class="flex">
+            <div class="tile">
+                <i class="fa-solid fa-image"></i>
+                <img src="{% static 'tile1.png' %}" />
+            </div>
+
+            <div class="tile">
+                <i class="fa-solid fa-image"></i>
+                <img src="{% static 'tile2.png' %}" />
+            </div>
+        </div>
+
+        <div class="w-48 text-center">
+            <img id="wand_arrow" class="" src="{% static 'arrow.png' %}"/>
+        </div>
+    </div>
+
+</div>
+
+<div class="flex flex-col manage-container h-overscreen items-center border-b-2">
+    <div id="amange-text" class="mt-32 mx-5 md:min-w-100 md:w-4/5">
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide text-blue-500">Track progress via your dashboards.</h1>
+    </div>
+
+</div>
+
+<div id="about_container" class="flex flex-col w-screen items-center">
     <div id="get_started_container" class="text-center mx-16 mb-48 md:min-w-100">
         <div class="mt-12 mb-48">
             <div>
@@ -171,6 +208,60 @@
         animateGridItems(document.querySelector("#get_started_grid"), "y");
         animateGridItems(document.querySelector("#report_grid"), "x");
     });
+
+    const wand = document.getElementById("wand"),
+      tiles = document.querySelectorAll(".tile");
+
+    const xy = (x, y) => ({ x, y }),
+        px = value => `${value}px`,
+        deg = value => `${value}deg`,
+        clamp = (value, min, max) => Math.max(Math.min(value, max), min);
+
+    const updateMouse = (mouseX, mouseY) => {
+    const { innerWidth: windowWidth, innerHeight: windowHeight } = window;
+    
+    const mouse = {
+        position: xy(mouseX, mouseY),
+        decimal: xy(mouseX / windowWidth, mouseY / windowHeight),
+        multiplier: xy(1.3, 0.4),
+        offset: xy(windowWidth * -0.15, windowHeight * 0.1),
+        modifiedPosition: xy(0, 0)
+    }
+    
+    mouse.modifiedPosition.x = mouse.position.x * mouse.multiplier.x + mouse.offset.x;  
+    mouse.modifiedPosition.y = mouse.position.y * mouse.multiplier.y + mouse.offset.y;  
+    
+    return mouse;
+    }
+
+    const revealImages = mouseX => {
+    for(const tile of tiles) {
+        const dimensions = tile.getBoundingClientRect(),
+            relativeMouseX = mouseX - dimensions.left,
+            mouseXAsDecimal = clamp(relativeMouseX / dimensions.width, 0, 1);
+        
+        const opacity = mouseXAsDecimal,
+            blur = 1 - mouseXAsDecimal;
+        
+        tile.style.setProperty("--opacity", opacity);
+        tile.style.setProperty("--blur", blur);
+    }
+    }
+
+    const getWandStyles = mouse => ({
+    left: px(mouse.modifiedPosition.x),
+    top: px(mouse.modifiedPosition.y),
+    rotate: deg(mouse.decimal.x * 20 - 10)
+    });
+
+    window.onmousemove = e => {
+    const mouse = updateMouse(e.clientX, e.clientY),  
+            wandStyles = getWandStyles(mouse);
+    
+    wand.animate(wandStyles, { duration: 400, fill: "forwards" });
+    
+    revealImages(mouse.modifiedPosition.x);
+    }
 
 </script>
 

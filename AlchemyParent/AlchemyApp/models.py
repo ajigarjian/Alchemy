@@ -386,6 +386,15 @@ class NISTControlElement(models.Model):
             return f"{self.parent.identifier}{self.identifier}"
         elif self.level == 2:  # This is a sub-sub-part (like "a" under "1" under "a")
             return f"{self.parent.parent.identifier}{self.parent.identifier}{self.identifier}"
+    
+    # def get_full_control_identifier(self)
+    #     if self.level == 0:  # This is a main part (like "a")
+    #             return self.identifier
+    #         elif self.level == 1:  # This is a sub-part (like "1" under "a")
+    #             return f"{self.parent.identifier}{self.identifier}"
+    #         elif self.level == 2:  # This is a sub-sub-part (like "a" under "1" under "a")
+    #             return f"{self.parent.parent.identifier}{self.parent.identifier}{self.identifier}"
+
 
 class NISTControl(models.Model):
     control_name = models.CharField(max_length=255) #Control Name
@@ -415,9 +424,25 @@ class NISTControl(models.Model):
         verbose_name = "NIST Control"
         verbose_name_plural = "NIST Controls"
 
+
+# class NISTParameter(models.Model):
+#     control = models.ForeignKey('NISTControl', related_name='NIST_parameters', on_delete=models.CASCADE)
+#     element = models.ForeignKey('NISTControlElement', related_name='NIST_parameters', null=True, blank=True, on_delete=models.CASCADE)
+#     description = models.TextField()
+
+#     class Meta:
+#         verbose_name = "Parameter"
+#         verbose_name_plural = "Parameters"
+
+#     def __str__(self):
+#         if self.control:
+#             return f'NIST Parameter for control: {self.control}'
+#         else:
+#             return f'NIST Parameter for control element: {self.element}'
+
 class FedRAMPParameter(models.Model):
-    control = models.ForeignKey('NISTControl', related_name='parameters', null=True, blank=True, on_delete=models.CASCADE)
-    element = models.ForeignKey('NISTControlElement', related_name='parameters', null=True, blank=True, on_delete=models.CASCADE)
+    control = models.ForeignKey('NISTControl', related_name='FedRAMP_parameters', null=True, blank=True, on_delete=models.CASCADE)
+    element = models.ForeignKey('NISTControlElement', related_name='FedRAMP_parameters', null=True, blank=True, on_delete=models.CASCADE)
     description = models.TextField()
 
     class Meta:
