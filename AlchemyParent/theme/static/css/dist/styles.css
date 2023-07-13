@@ -2196,6 +2196,10 @@ select {
   margin-bottom: -2rem;
 }
 
+.-mt-8 {
+  margin-top: -2rem;
+}
+
 .ml-1 {
   margin-left: 0.25rem;
 }
@@ -2532,6 +2536,10 @@ select {
   height: 100vh;
 }
 
+.h-overscreen {
+  height: 150vh;
+}
+
 .min-h-screen {
   min-height: 100vh;
 }
@@ -2768,6 +2776,18 @@ select {
 
 .grow {
   flex-grow: 1;
+}
+
+.rotate-45 {
+  transform: rotate(45deg);
+}
+
+.rotate-90 {
+  transform: rotate(90deg);
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
 }
 
 .-translate-y-1\/2 {
@@ -4237,6 +4257,11 @@ border-dashed {
     margin-right: 4rem;
   }
 
+  .md\:text-5xl {
+    font-size: 4rem;
+    line-height: 3.5rem;
+  }
+
   .md\:text-6xl {
     font-size: 4rem;
     line-height: 4.5rem;
@@ -5681,10 +5706,88 @@ html {
 --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
+.from-blue-200 {
+  --tw-gradient-from: #bfdbfe var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(191 219 254 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
 .to-white {
   --tw-gradient-to: #fff var(--tw-gradient-to-position);
 }
 
+
+#wand {
+  width: 7.5vmin;
+  aspect-ratio: 1 / 10;
+  background: rgb(59 130 246);
+  position: absolute;
+  left: 5%;
+  top: 20%;
+  translate: -50%;
+  rotate: -3deg;
+  z-index: 100;
+  border-radius: 2.25vmin;
+  border-width: 0.75rem;
+  border-color: rgb(59 130 246);
+  box-shadow: 0vmin .75vmin 3vmin rgb(0 0 0 / 80%);
+  overflow: hidden;
+}
+
+#wand > .cap {
+  height: 20%;
+  width: 100%;
+  background: rgb(219 234 254);
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  width: 40rem;
+  height: 23.45rem;
+  background-color: rgb(219 234 254);
+  border-radius: 2rem;
+  box-shadow: 0vmin 3vmin 6vmin rgb(0 0 0 / 25%),
+    inset 0vmin 0.5vmin 1vmin rgb(255 255 255 / 15%);
+  position: relative;
+  overflow: hidden;
+}
+
+.tile:nth-child(1) {
+  rotate: 3deg;
+  z-index: 3;
+  transform: translateY(-4rem);
+}
+
+.tile:nth-child(2) {
+  rotate: -2deg;
+  z-index: 2;
+}
+
+.tile:is(:nth-child(2), :nth-child(3)) {
+  margin-left: -1vmin;
+}
+
+.tile > i {
+  font-size: 15vmin;
+  color: rgb(59 130 246 / 20%);
+}
+
+.tile > img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  object-fit: contain;
+  opacity: var(--opacity);
+  filter: blur(calc(var(--blur) * 10px));
+}
+
+#wand_arrow {
+  margin-top: -3rem;
+  transform: translateY(2rem);
+  rotate: 60deg;
+  filter: invert(55%) sepia(92%) saturate(2952%) hue-rotate(185deg) brightness(92%) contrast(100%);
+}
 
 
 
