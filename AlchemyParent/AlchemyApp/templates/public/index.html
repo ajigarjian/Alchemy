@@ -14,13 +14,13 @@
     </div>
 </div>
 
-<div class="flex flex-col h-overscreen items-center border-b-2 bg-white relative">
+<div class="flex flex-col items-center bg-white relative">
 
-    <div id="wand-text" class="mt-32 mx-5 md:min-w-100 md:w-4/5">
+    <div id="wand-text" class="mt-16 mx-5 md:min-w-100 md:w-4/5">
         <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide text-blue-500">Generate control language with just one click of the magic wand icon.</h1>
     </div>
 
-    <div class="mx-5 my-48 flex flex-col items-center">
+    <div class="mx-5 mt-48 mb-24 flex flex-col items-center">
         <div id="wand">
             <div class="cap"></div>
         </div>
@@ -44,93 +44,108 @@
 
 </div>
 
-<div class="flex flex-col manage-container h-overscreen items-center border-b-2">
-    <div id="amange-text" class="mt-32 mx-5 md:min-w-100 md:w-4/5">
+<div class="flex flex-col manage-container items-center">
+
+    <div id="manage-text" class="mt-16 mx-5 md:min-w-100 md:w-4/5">
         <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide text-blue-500">Track progress via your dashboards.</h1>
     </div>
 
+    <div class="p-2 grid grid-cols-6 md:min-w-100 md:w-4/5 gap-2 mt-12 mb-24 mx-5">
+        <div class="col-span-2">
+            <img class="transform hover:scale-105 duration-300" src="{% static 'dashboard1.png' %}">
+            <div class="p-4 mt-3 rounded-xl bg-white text-center text-xl font-bold transform hover:scale-105 duration-300">
+                System Classification: High
+            </div>
+        </div>
+        <img class="col-span-4 rounded-xl transform hover:scale-105 duration-300" src="{% static 'dashboard6.png' %}">
+        <div class="col-span-6">
+            <img class="transform hover:scale-105 duration-300" src="{% static 'dashboard8.png' %}">
+        </div>
+        <div class="col-span-2">
+            <img class="transform hover:scale-105 duration-300" src="{% static 'dashboard4.png' %}">
+        </div>
+        <div class="col-span-2">
+            <img class="transform hover:scale-105 duration-300" src="{% static 'dashboard5.png' %}">
+        </div>
+        <div class="col-span-2">
+            <img class="transform hover:scale-105 duration-300" src="{% static 'dashboard3.png' %}">
+        </div>
+    </div>
+
 </div>
 
-<div id="about_container" class="flex flex-col w-screen items-center">
-    <div id="get_started_container" class="text-center mx-16 mb-48 md:min-w-100">
-        <div class="mt-12 mb-48">
-            <div>
-                <h3 class="text-xl tracking-wide text-blue-500 uppercase opacity-70">How it works</h3>
-                <h2 class="mt-4 text-4xl font-black tracking-wide text-blue-500">Getting started is quick and painless</h3>
-            </div>
-        </div>
+<div id="about_container" class="flex flex-col items-center bg-white">
 
-        <div id="get_started_grid" class="grid grid-cols-3 min-w-2xl gap-x-16">
-            <div class="flex flex-col items-center opacity-0 translate-y-10">
-                <div class="mb-10 h-12 w-12 rounded-full bg-blue-500 flex justify-center items-center">
-                    <span class="text-white font-bold text-2xl">1</span>
-                </div>
-               
-                <h3 class="text-2xl font-bold tracking-wide text-blue-500">Near-Instant Onboarding</h3>
-                <p class="mt-2 text-gray-700">Answer a few simple questions about your organization and your relevant employees, and we'll get your team same-day Alchemy access</p>
-            </div>
-
-            <div class="flex flex-col items-center opacity-0 translate-y-10">
-                <div class="mb-10 h-12 w-12 rounded-full bg-blue-500 flex justify-center items-center">
-                    <span class="text-white font-bold text-2xl">2</span>
-                </div>
-               
-                <h3 class="text-2xl font-bold tracking-wide text-blue-500">Multi-System Support</h3>
-                <p class="mt-2 text-gray-700">Visit your Systems Dashboard to add any systems you'd like to develop an SSP for. Our easy-to-use system wizard automates the system classification process using FIPS 199 and NIST SP 800-60 Vol. 1 and 2</p>
-            </div>
-
-            <div class="flex flex-col items-center opacity-0 translate-y-10">
-                <div class="mb-10 h-12 w-12 rounded-full bg-blue-500 flex justify-center items-center">
-                    <span class="text-white font-bold text-2xl">3</span>
-                </div>
-               
-                <h3 class="text-2xl font-bold tracking-wide text-blue-500">AI-Powered Control Descriptions</h3>
-                <p class="mt-2 text-gray-700">We've trained our AI models to act as your very own 24/7 FedRAMP experts. Describe your processes using our simplified regulatory guidance and we'll automatically develop your control implementation descriptions </p>
-            </div>
-
-        </div>
+    <div id="starting-text" class="mt-16 mx-5 md:min-w-100 md:w-4/5">
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide text-blue-500">Get started effortlessly.</h1>
     </div>
 
-    <div id="compliance_container" class="flex justify-between my-32 w-11/12 h-screen rounded-xl bg-blue-100">
-        <div class="w-2/5 px-14 py-12 flex flex-col justify-center">
-            <span class="text-4xl font-black tracking-wide text-blue-500">Built for FedRAMP Authorization</span>
-            <div class="mt-12">
-                <span class="text-2xl tracking-wide text-semibold text-blue-500">FedRAMP-template SSP exports with Alchemy's AI model trained and validated by industry specialists</span>
+    <div id="get_started_grid" class="my-32 mx-5 grid grid-cols-3 w-4/5 gap-x-8">
+        <div class="flex flex-col items-center opacity-0 translate-y-10">
+            <div class="mb-10 h-12 w-12 rounded-full bg-blue-500 flex justify-center items-center">
+                <span class="text-white font-bold text-2xl">1</span>
             </div>
-            <a href="{% url 'alchemy:contact' %}" class="my-10 w-full text-center bg-blue-500 hover:bg-blue-700 text-white font-bold text-2xl py-2 px-4 rounded focus:outline-none focus:shadow-outline inline-block duration-300">Begin Now</a>
+            
+            <h3 class="text-2xl font-bold tracking-wide text-blue-500">Near-Instant Onboarding</h3>
+            <p class="mt-2 text-gray-700">Answer a few simple questions about your organization, FedRAMP-applicable systems, and your relevant employees, and we'll get your team same-day Alchemy access</p>
         </div>
-        <div id="report_grid" class="flex-grow px-14 flex justify-between items-center">
-            <div class="opacity-0" style="width:30%; transform: translateX(50px);">
-                <img class="rounded-xl shadow-md" src="{% static 'SSP_Cover.png' %}">
+
+        <div class="flex flex-col items-center opacity-0 translate-y-10">
+            <div class="mb-10 h-12 w-12 rounded-full bg-blue-500 flex justify-center items-center">
+                <span class="text-white font-bold text-2xl">2</span>
             </div>
-            <div class="opacity-0" style="width:30%; transform: translateX(50px);">
-                <img class="rounded-xl shadow-md" src="{% static 'SSP_General.png' %}">
+            
+            <h3 class="text-2xl font-bold tracking-wide text-blue-500">Multi-System Support</h3>
+            <p class="mt-2 text-gray-700">Visit your Systems Dashboard to add any systems you'd like to develop an SSP for. Our easy-to-use system wizard automates the system classification process using FIPS 199 and NIST SP 800-60 Vol. 1 and 2</p>
+        </div>
+
+        <div class="flex flex-col items-center opacity-0 translate-y-10">
+            <div class="mb-10 h-12 w-12 rounded-full bg-blue-500 flex justify-center items-center">
+                <span class="text-white font-bold text-2xl">3</span>
             </div>
-            <div class="opacity-0" style="width:30%; transform: translateX(50px);">
-                <img class="rounded-xl shadow-md" src="{% static 'SSP_Control.png' %}">
+            
+            <!-- <h3 class="text-2xl font-bold tracking-wide text-blue-500">AI-Powered Descriptions</h3>
+            <p class="mt-2 text-gray-700">We've trained our AI models to act as your very own 24/7 FedRAMP experts. Describe your processes using our simplified regulatory guidance and we'll automatically develop your control implementation descriptions</p> -->
+            <h3 class="text-2xl font-bold tracking-wide text-blue-500">24/7 Expert Support</h3>
+            <p class="mt-2 text-gray-700">Dedicated FedRAMP specialists are always a message away to facilitate report creation. Additionally, we've trained our AI models to act as your very own 24/7 FedRAMP experts. Describe your processes using our simplified regulatory guidance and we'll automatically develop your control implementation descriptions</p>
+        </div>
+
+    </div>
+</div>
+
+<div id="about_container" class="flex flex-col items-center">
+    <div id="starting-text" class="mt-16 mx-5 md:min-w-100 md:w-4/5">
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-wide text-blue-500">Generate one-click SSPs using offical templates.</h1>
+    </div>
+
+    <div class="mx-5 mt-24 mb-24 flex flex-col items-center">
+        <div id="tiles" class="flex">
+            <div class="new_tile">
+                <img src="{% static 'SSP_1.png' %}" />
+            </div>
+
+            <div class="new_tile">
+                <img src="{% static 'SSP_2.png' %}" />
+            </div>
+
+            <div class="new_tile">
+                <img src="{% static 'SSP_3.png' %}" />
             </div>
         </div>
     </div>
 </div>
-<!-- 
-<div class="flex flex-col h-[50vh] items-center justify-center bg-white">
-    <div id="ai_container" class="text-center mx-5 w-5/6 md:min-w-100 md:w-1/2">
-        <p class="mt-6 text-xl tracking-wide text-blue-500 line-clamp-3">Ask your FedRAMP question below.</p>
 
-        <form id="openai-form" onsubmit="openAICall(event)">
-            <textarea id="prompt_input" name="prompt_input">
-                
-            </textarea>
-            <div class="mt-6 text-center">
-                <button type="submit" class="py-3 px-6 text-sm sm:text-base font-semibold text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 transition duration-200 rounded">Submit</button>
-            </div>
-        </form>
-
-        <p id="output" class="mt-6 text-xl tracking-wide text-blue-500 w-full"></p>
+<div class="flex flex-col items-center bg-white">
+    <div id="ending_container" class="mt-16 mb-24 text-center mx-5 md:min-w-100 md:w-4/5">
+        <h1 class="text-5xl md:text-6xl font-extrabold tracking-wide text-blue-500">Try Alchemy today.</h1>
+        <a href="{% url 'alchemy:contact' %}" class="mt-10 bg-blue-500 hover:bg-blue-700 text-white font-bold text-xl py-4 px-8 rounded-lg focus:outline-none focus:shadow-outline inline-block duration-300">Begin Now</a>
     </div>
-</div> -->
-<!-- 
-<div class="h-24 w-full show-more-gradient"></div> -->
+</div>
+
+ 
+<button id ="scrollButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hidden">
+    <i id="scrollIcon" class="fas fa-chevron-up"></i>
+</button>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -142,38 +157,6 @@
         const gridItems = get_started_grid.children;
 
     });
-
-    function openAICall(event) {
-        event.preventDefault();
-        const user_input = document.querySelector('#prompt_input').value;
-
-        fetch ('/openAI', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user_input: user_input,
-                //using placeholder AT-3 control language for now
-                control_language: `The organization provides role-based security training to personnel with assigned security roles and responsibilities:
-                    a. Before authorizing access to the information system or performing assigned duties;
-                    b. When required by information system changes; and
-                    c. [at least annually] thereafter.`
-            })
-        })
-
-        .then(response => response.json())
-        .then(result => {   
-            document.querySelector('#output').innerHTML = result.output;
-        });
-    }
-
-    // Upon submitting the button:
-    // 1. block the form submission
-    // 2. Get the value of the user's input by getting the value of the input box element
-    // 3. fetch the openAI example url, passing through the control description, user's input, and the system data types (for context, optional)
-    // 3. take the result and update the output paragraph with the response
-
 
     function animateGridItems(grid, direction) {
         const gridItems = grid.children;
@@ -206,7 +189,6 @@
 
     window.addEventListener("scroll", function(){
         animateGridItems(document.querySelector("#get_started_grid"), "y");
-        animateGridItems(document.querySelector("#report_grid"), "x");
     });
 
     const wand = document.getElementById("wand"),
@@ -262,6 +244,30 @@
     
     revealImages(mouse.modifiedPosition.x);
     }
+
+
+    // Scrolling function for category selection view. When the circular scroll button in bottom right is clicked, it will either scroll down or up to show more of the categories
+    document.getElementById("scrollButton").addEventListener("click", function() {
+        const scrollButton = document.getElementById("scrollButton");
+    });
+
+    // Add a scroll event listener to the window to show the scroll button once a user has started scrolling.
+    window.addEventListener("scroll", () => {
+        if (window.pageYOffset > 1000) {
+            // If the user has started scrolling, show the scroll button.
+            scrollButton.classList.remove("hidden");
+        } else {
+            // If the user has scrolled back to the top, hide the scroll button.
+
+            scrollButton.classList.add("hidden");
+        }
+    });
+
+    // Modify the click event listener on the scroll button to always scroll the page back to the top.
+    scrollButton.addEventListener("click", function() {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
 
 </script>
 

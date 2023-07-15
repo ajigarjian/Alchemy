@@ -528,24 +528,6 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
-    // Functionality for show more/show less text expansion/compression and fade in/out
-    document.querySelectorAll('.show-more-less-btn').forEach((btn) => {
-        btn.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            const descriptionDiv = document.querySelector('#control_description-' + id);
-            const gradientDiv = descriptionDiv.querySelector('#show-gradient');
-            if (this.innerText === 'Show more') {
-                descriptionDiv.classList.remove('line-clamp-3');
-                this.innerText = 'Show less';
-                gradientDiv.classList.remove('show-more-gradient');
-            } else {
-                descriptionDiv.classList.add('line-clamp-3');
-                this.innerText = 'Show more';
-                gradientDiv.classList.add('show-more-gradient');
-            }
-        });
-    });
-
     // functionality to show toast messages when user edit is successful
     function showToast(message, duration = 4000) {
         // Get the toast element
