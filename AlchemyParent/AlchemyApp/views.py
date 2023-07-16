@@ -413,20 +413,33 @@ def dashboard(request, system=None):
                 "total_implemented": total_implemented,
                 "urls": urls_json
             })
+
 @csrf_exempt
 @login_required
 def generate_ssp(request):
+    logger.info('Start generate_ssp')
+
     system_data = json.loads(request.body.decode('utf-8'))
     system_id = system_data['system_id']
+
+    logger.info('Parsed system_id: %s', system_id)
 
     # Get system and control data
     system, control_to_role_status_origin, control_to_general, control_to_statements = get_system_and_control_data(system_id)
 
+    logger.info('Got system and control data')
+
     # Create and edit the document
     byte_stream = create_and_edit_doc(system, control_to_role_status_origin, control_to_general, control_to_statements)
 
+    logger.info('Converted new document to byte stream')
+
     # Upload the document to S3 and get the URL
     url = upload_doc_to_s3(byte_stream, system.name)
+
+    logger.info('Uploaded document to s3')
+
+    logger.info('End generate_ssp')
 
     return JsonResponse({'url': url})
 
