@@ -222,14 +222,14 @@ class System(models.Model):
 
     name = models.CharField(max_length=255, blank=True, null=True)  # In-scope system name
     abbreviation = models.CharField(max_length=20, blank=True, null=True) #Short abbreviation
-    environment = models.CharField(max_length=20, choices=ENVIRONMENT_CHOICES, blank=True, null=True) #Type of hosting environment (on-prem, cloud, hybrid)
+    environment = models.CharField(max_length=20, choices=ENVIRONMENT_CHOICES, blank=True, null=True, default='Cloud-Based') #Type of hosting environment (on-prem, cloud, hybrid)
 
     description = models.TextField(blank=True, null=True)  # System purpose description
     authorization_boundary = models.TextField(blank=True, null=True) #  A brief description of the boundary that separates the system from other systems and networks.
 
     operational_status = models.CharField(max_length=20, choices=OPERATIONAL_STATUS_CHOICES, blank=True, null=True) #If system is in dev, operational, or decommed
     last_authorization_date = models.DateField(blank=True, null=True) #The date when the system was last granted an Authorization to Operate (ATO) or Provisional Authorization to Operate (P-ATO) by a federal agency or the Joint Authorization Board (JAB).
-    fedramp_compliance_status = models.CharField(max_length=20, choices=FEDRAMP_COMPLIANCE_STATUS_CHOICES, blank=True, null=True, default='not_started') #Current status in the FedRAMP authorization process (e.g., not started, in progress, or authorized). 
+    fedramp_compliance_status = models.CharField(max_length=20, choices=FEDRAMP_COMPLIANCE_STATUS_CHOICES, blank=True, null=True, default='Not Started') #Current status in the FedRAMP authorization process (e.g., not started, in progress, or authorized). 
     
     owner_name = models.CharField(max_length=255, blank=True, null=True)
     owner_title = models.CharField(max_length=255, blank=True, null=True)
@@ -251,10 +251,15 @@ class System(models.Model):
     class Meta:
         unique_together = ('name', 'client') 
 
+    def create_abbreviation(self):
+        return ''.join(word[0] for word in self.name.split()).upper() if self.name else ''
+
     def __str__(self):
         return f"{self.name} ({self.client.client_name})"
     
     def save(self, *args, **kwargs):
+        if not self.abbreviation:
+            self.abbreviation = self.create_abbreviation()
         is_new = self.id is None  # Check if this is a new instance
         super().save(*args, **kwargs)  # Call the "real" save() method.
         if is_new:  # If this is a new instance
