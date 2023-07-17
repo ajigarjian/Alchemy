@@ -12,8 +12,13 @@
             <span class="text-gray-500">/</span>
             <a href="{% url 'alchemy:dashboard' system=system.name %}" class="font-semibold text-blue-500 hover:text-blue-700 duration-300">{{system.name}}</a>
         </div>
-        <div id="generate_ssp" class="text-right px-2 py-1 mr-2 rounded-lg text-blue-500 hover:text-blue-700 hover:cursor-pointer duration-300">
-           <text>Generate SSP Report</text>
+        <div class="flex text-right l mr-2 text-blue-500">
+            <div id="generate_cis" class="mr-4 px-2 py-1 rounded-lg hover:cursor-pointer hover:text-blue-700 hover:bg-gray-100 duration-300">
+                <text>Generate CIS Worksheet</text>
+            </div>
+            <div id="generate_ssp" class="px-2 py-1 rounded-lg hover:cursor-pointer hover:text-blue-700 hover:bg-gray-100 duration-300">
+                <text>Generate SSP Report</text>
+            </div>
         </div>
     </div>
 </nav>
@@ -415,6 +420,44 @@
         });
     });
 
+     ////////////////////// Functionality to generate the CIS worksheet ////////////////////////
+
+    // Adds event listener on the generate cis x's (activates generation when clicked)
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.getElementById("generate_cis").addEventListener("click", generateCIS);
+    });
+
+    // Function called when "Generate SSP" is clicked. Makes fetch to back end where the report is created, and then provides it via download to browser
+    function generateCIS() {
+        showToast('Generating CIS worksheet...');
+        // Update the URL below to the URL of your Django view
+        fetch("/generate_cis", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                system_id: systemId,
+            })
+        })
+
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();  // This returns a promise
+        })
+
+        .then(data => {
+            window.open(data.url, '_blank');
+            hideToast();
+        })
+        
+        .catch((error) => {
+            console.error('There has been a problem with generating the CIS Worksheet:', error);
+            hideToast();
+        });
+    }
 
     ////////////////////// Functionality to generate the SSP ////////////////////////
 
@@ -446,42 +489,34 @@
 
         .then(data => {
             window.open(data.url, '_blank');
+            hideToast();
         })
         
         .catch((error) => {
             console.error('There has been a problem with generating the SSP:', error);
+            hideToast();
         });
     }
 
-    // functionality to show toast messages when generate SSP is loading or successful
-    function showToast(message, duration = 15000) {
-        // Get the toast element
+    // functionality to show andtoast messages when generate SSP is loading or successful
+    // Show the toast
+    function showToast(message) {
         const toast = document.querySelector("#toast-success");
-
-        // Get the close button
         const closeButton = toast.querySelector("button[data-dismiss-target='#toast-success']");
-
-        // Set the toast message
         toast.querySelector(".text-sm").innerText = message;
-
-        // Show the toast
         toast.classList.remove("opacity-0");
-
-         // Remove the "hidden" class if it's present
-            if (toast.classList.contains("hidden")) {
-                toast.classList.remove("hidden");
-            }
-
-        // Remove the toast after `duration` ms
-        let timeoutId = setTimeout(() => {
-            toast.classList.add("opacity-0");
-        }, duration);
-
-        // Cancel the auto-dismiss when the close button is clicked, and hide the toast
+        if (toast.classList.contains("hidden")) {
+            toast.classList.remove("hidden");
+        }
         closeButton.onclick = () => {
-            clearTimeout(timeoutId);
             toast.classList.add("opacity-0");
         };
+    }
+
+    // Hide the toast
+    function hideToast() {
+        const toast = document.querySelector("#toast-success");
+        toast.classList.add("opacity-0");
     }
 
 </script>
