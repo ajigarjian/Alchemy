@@ -1,4 +1,5 @@
 import json #for api calls
+import logging
 import random #for generating system color for client dashboard
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, FileResponse #for API calls
@@ -39,6 +40,7 @@ import io #for generating the report
 import time
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 ####################################### Public Application when not logged in ##############################################
 
@@ -417,29 +419,29 @@ def dashboard(request, system=None):
 @csrf_exempt
 @login_required
 def generate_ssp(request):
-    print('Start generate_ssp')
+    logger.info('Start generate_ssp')
 
     system_data = json.loads(request.body.decode('utf-8'))
     system_id = system_data['system_id']
 
-    print('Parsed system_id: %s', system_id)
+    logger.info('Parsed system_id: %s', system_id)
 
     # Get system and control data
     system, control_to_role_status_origin, control_to_general, control_to_statements = get_system_and_control_data(system_id)
 
-    print('Got system and control data')
+    logger.info('Got system and control data')
 
     # Create and edit the document
     byte_stream = create_and_edit_doc(system, control_to_role_status_origin, control_to_general, control_to_statements)
 
-    print('Converted new document to byte stream')
+    logger.info('Converted new document to byte stream')
 
     # Upload the document to S3 and get the URL
     url = upload_doc_to_s3(byte_stream, system.name)
 
-    print('Uploaded document to s3')
+    logger.info('Uploaded document to s3')
 
-    print('End generate_ssp')
+    logger.info('End generate_ssp')
 
     return JsonResponse({'url': url})
 
