@@ -1,4 +1,5 @@
 import json #for api calls
+import re
 import logging
 import random #for generating system color for client dashboard
 from django.shortcuts import render, get_object_or_404, redirect
@@ -418,6 +419,68 @@ def dashboard(request, system=None):
 
 @csrf_exempt
 @login_required
+def generate_cis(request):
+
+    # Getting the current system for the CIS worksheet
+    system_data = json.loads(request.body.decode('utf-8'))
+    system_id = system_data['system_id']
+    system = get_object_or_404(System, id=system_id)
+
+    # Get the systems' control implementations
+    control_implementations = ControlImplementation.objects.filter(system=system).select_related('control', 'control__control_family').order_by('control__control_family__family_abbreviation', 'control__control_number')
+
+    #Pull the CIS template
+    static_path = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
+    template_path = os.path.join(static_path, 'SSP-Appendix-J-_CSO_-CIS-and-CRM-Workbook.xlsx')
+
+    # Load workbook and select the specific worksheet in the workbook
+    workbook = load_workbook(filename=template_path)
+    worksheet = workbook['Moderate CIS Worksheet'] 
+
+    # Define the mapping between column index and status
+    status_col_map = {
+        'Implemented': 2,  # 'B' column
+        'Partially Implemented': 3,  # 'C' column
+        'Planned': 4,  # 'D' column
+        'Alternative Implementation': 5,  # 'E' column
+        'Not Applicable': 6  # 'F' column
+    }
+
+    center_aligned_style = Alignment(horizontal='center')
+
+    # Iterate over control implementations in your database
+    for control_imp in control_implementations:
+        control_str = control_imp.control.str_SSP()  # Get the control string
+
+        # Loop through the rows in the worksheet
+        for row in worksheet.iter_rows(min_row=4, min_col=1, max_col=1):
+            cell = row[0]
+            if not cell.value: #If we've run through all of the controls, stop the loop
+                break  # Stop the loop
+            cell_value = re.sub(r'\([a-z]\)$', '', cell.value)  # Remove (a-z) from cell value
+            if re.match(f'^{control_str}$', cell_value) or re.match(f'^{control_str}\([0-9]+\)$', cell_value):
+                # Loop over the implementation statuses
+                for status in control_imp.statuses.all():
+                    target_cell = worksheet.cell(row=cell.row, column=status_col_map[status.status])
+                    # Mark the status column with 'x'
+                    target_cell.value = 'x'
+                    target_cell.alignment = center_aligned_style
+
+    # Save the populated workbook to a byte stream
+    byte_stream = io.BytesIO()
+    workbook.save(byte_stream)
+    byte_stream.seek(0)
+
+    # Upload the document to S3 and get the URL
+    url = upload_doc_to_s3(byte_stream, system.name, 'cis')
+
+    # Make sure to close the workbook after you are done with it.
+    workbook.close()
+
+    return JsonResponse({'url': url})
+
+@csrf_exempt
+@login_required
 def generate_ssp(request):
     logger.info('Start generate_ssp')
 
@@ -437,7 +500,7 @@ def generate_ssp(request):
     logger.info('Converted new document to byte stream')
 
     # Upload the document to S3 and get the URL
-    url = upload_doc_to_s3(byte_stream, system.name)
+    url = upload_doc_to_s3(byte_stream, system.name, 'ssp')
 
     logger.info('Uploaded document to s3')
 
@@ -639,7 +702,14 @@ def create_and_edit_doc(system, control_to_role_status_origin, control_to_genera
     return byte_stream
 
 #Responsible for uploading the generated document to S3.
-def upload_doc_to_s3(byte_stream, system_name):
+def upload_doc_to_s3(byte_stream, system_name, doc_type):
+    if doc_type == 'ssp':
+        extension = 'docx'
+    elif doc_type == 'cis':
+        extension = 'xlsx'
+    else:
+        raise ValueError(f"Invalid doc_type {doc_type}")
+
     # Using AWS Boto3 API to store and retrieve file in S3 bucket
 
     # Generating random session key
@@ -665,7 +735,7 @@ def upload_doc_to_s3(byte_stream, system_name):
             aws_session_token=creds['SessionToken'],
             config=Config(signature_version='v4', region_name=os.getenv("AWS_DEFAULT_REGION", None)))
 
-        filename = f'{system_name}_ssp.docx'
+        filename = f'{system_name}_{doc_type}.{extension}'
         s3.upload_fileobj(
             byte_stream, 
             'alchemyssp-moderate-ssp-reports',
