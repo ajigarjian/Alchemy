@@ -446,6 +446,16 @@ def generate_cis(request):
         'Not Applicable': 6  # 'F' column
     }
 
+    origination_col_map = {
+        'Service Provider Corporate': 7,  # 'G' column
+        'Service Provider System Specific': 8,  # 'H' column
+        'Service Provider Hybrid': 9,  # 'I' column
+        'Configured by Customer': 10,  # 'J' column
+        'Provided by Customer': 11,  # 'K' column
+        'Shared': 12,  # 'L' column
+        'Inherited': 13  # 'M' column
+    }
+    
     center_aligned_style = Alignment(horizontal='center')
 
     # Iterate over control implementations in your database
@@ -458,11 +468,18 @@ def generate_cis(request):
             if not cell.value: #If we've run through all of the controls, stop the loop
                 break  # Stop the loop
             cell_value = re.sub(r'\([a-z]\)$', '', cell.value)  # Remove (a-z) from cell value
-            if re.match(f'^{control_str}$', cell_value) or re.match(f'^{control_str}\([0-9]+\)$', cell_value):
+            if cell_value == control_str:
                 # Loop over the implementation statuses
                 for status in control_imp.statuses.all():
                     target_cell = worksheet.cell(row=cell.row, column=status_col_map[status.status])
                     # Mark the status column with 'x'
+                    target_cell.value = 'x'
+                    target_cell.alignment = center_aligned_style
+
+                # Loop over the originations
+                for origination in control_imp.originations.all():
+                    target_cell = worksheet.cell(row=cell.row, column=origination_col_map[origination.origination])
+                    # Mark the origination column with 'x'
                     target_cell.value = 'x'
                     target_cell.alignment = center_aligned_style
 
