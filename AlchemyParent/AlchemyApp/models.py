@@ -211,8 +211,22 @@ class System(models.Model):
 
     FEDRAMP_COMPLIANCE_STATUS_CHOICES = [
         ('Not Started', 'Not Started'),
-        ('In Progress', 'In Progress'),
+        ('In Process', 'In Process'),
         ('Authorized', 'Authorized'),
+    ]
+
+    SERVICE_MODEL_CHOICES = [
+        ('Infrastructure as a Service (IaaS)', 'Infrastructure as a Service (IaaS)'),
+        ('Platform as a Service (PaaS)', 'Platform as a Service (PaaS)'),
+        ('Software as a Service (SaaS)', 'Software as a Service (SaaS)'),
+        ('Low-Impact Software as a Service (LI-SaaS)', 'Low-Impact Software as a Service (LI-SaaS)')
+    ]
+
+    IMPACT_LEVEL_CHOICES = [
+        ('Low', 'Low'),
+        ('Moderate', 'Moderate'),
+        ('High', 'High'),
+        ('LI-Software as a Service (SaaS)', 'LI-Software as a Service (SaaS)')
     ]
 
     phone_regex = RegexValidator(
@@ -222,14 +236,16 @@ class System(models.Model):
 
     name = models.CharField(max_length=255, blank=True, null=True)  # In-scope system name
     abbreviation = models.CharField(max_length=20, blank=True, null=True) #Short abbreviation
-    environment = models.CharField(max_length=20, choices=ENVIRONMENT_CHOICES, blank=True, null=True, default='Cloud-Based') #Type of hosting environment (on-prem, cloud, hybrid)
+    environment = models.CharField(max_length=20, choices=ENVIRONMENT_CHOICES, blank=True, null=True) #Type of hosting environment (on-prem, cloud, hybrid)
+    service_model = models.CharField (max_length=128, choices=SERVICE_MODEL_CHOICES, blank=True, null=True)
 
     description = models.TextField(blank=True, null=True)  # System purpose description
     authorization_boundary = models.TextField(blank=True, null=True) #  A brief description of the boundary that separates the system from other systems and networks.
 
     operational_status = models.CharField(max_length=20, choices=OPERATIONAL_STATUS_CHOICES, blank=True, null=True) #If system is in dev, operational, or decommed
     last_authorization_date = models.DateField(blank=True, null=True) #The date when the system was last granted an Authorization to Operate (ATO) or Provisional Authorization to Operate (P-ATO) by a federal agency or the Joint Authorization Board (JAB).
-    fedramp_compliance_status = models.CharField(max_length=20, choices=FEDRAMP_COMPLIANCE_STATUS_CHOICES, blank=True, null=True, default='Not Started') #Current status in the FedRAMP authorization process (e.g., not started, in progress, or authorized). 
+    fedramp_compliance_status = models.CharField(max_length=20, choices=FEDRAMP_COMPLIANCE_STATUS_CHOICES, blank=True, null=True, default='Not Started') #Current status in the FedRAMP authorization process (e.g., not started, in progress, or authorized).
+    impact_level = models.CharField(max_length=36, choices=IMPACT_LEVEL_CHOICES, blank=True, null=True) 
     
     owner_name = models.CharField(max_length=255, blank=True, null=True)
     owner_title = models.CharField(max_length=255, blank=True, null=True)
@@ -361,6 +377,35 @@ class ControlFamily(models.Model):
     def __str__(self):
         return f"{self.family_name}"
 
+class NISTControl(models.Model):
+    control_name = models.CharField(max_length=255) #Control Name
+    control_family = models.ForeignKey('AlchemyApp.ControlFamily', related_name='family_controls', on_delete=models.CASCADE) #Control Family  
+    control_number = models.IntegerField() #Control Number
+    control_enhancement = models.IntegerField(blank=True, null=True) #Control Enhancement (can be blank)
+    control_description = models.TextField() #Control description
+    supplemental_guidance = models.TextField(blank=True, null=True) #Supplemental guidance
+    related_controls = models.ManyToManyField('self', blank=True)
+
+    def __str__(self):
+        enhancement_text = ""
+        if self.control_enhancement:
+            enhancement_text = " (" + str(self.control_enhancement) + ")"
+
+        return str((self.control_family.family_abbreviation) + '-' + str(self.control_number) + enhancement_text)
+    
+    # The SSP doesn't have a space between the base control and enhancement - so adding this second option
+    def str_SSP(self):
+        enhancement_text = ""
+        if self.control_enhancement:
+            enhancement_text = "(" + str(self.control_enhancement) + ")"
+
+        return str((self.control_family.family_abbreviation) + '-' + str(self.control_number) + enhancement_text)
+
+    class Meta:
+        verbose_name = "NIST Control"
+        verbose_name_plural = "NIST Controls"
+
+
 class NISTControlElement(models.Model):
     control = models.ForeignKey('NISTControl', related_name='elements', on_delete=models.CASCADE, null=True, blank=True)
     parent = models.ForeignKey('self', related_name='sub_elements', on_delete=models.CASCADE, null=True, blank=True)
@@ -391,44 +436,6 @@ class NISTControlElement(models.Model):
             return f"{self.parent.identifier}{self.identifier}"
         elif self.level == 2:  # This is a sub-sub-part (like "a" under "1" under "a")
             return f"{self.parent.parent.identifier}{self.parent.identifier}{self.identifier}"
-    
-    # def get_full_control_identifier(self)
-    #     if self.level == 0:  # This is a main part (like "a")
-    #             return self.identifier
-    #         elif self.level == 1:  # This is a sub-part (like "1" under "a")
-    #             return f"{self.parent.identifier}{self.identifier}"
-    #         elif self.level == 2:  # This is a sub-sub-part (like "a" under "1" under "a")
-    #             return f"{self.parent.parent.identifier}{self.parent.identifier}{self.identifier}"
-
-
-class NISTControl(models.Model):
-    control_name = models.CharField(max_length=255) #Control Name
-    control_family = models.ForeignKey('AlchemyApp.ControlFamily', related_name='family_controls', on_delete=models.CASCADE) #Control Family  
-    control_number = models.IntegerField() #Control Number
-    control_enhancement = models.IntegerField(blank=True, null=True) #Control Enhancement (can be blank)
-    control_description = models.TextField() #Control description
-    supplemental_guidance = models.TextField(blank=True, null=True) #Supplemental guidance
-    related_controls = models.ManyToManyField('self', blank=True)
-
-    def __str__(self):
-        enhancement_text = ""
-        if self.control_enhancement:
-            enhancement_text = " (" + str(self.control_enhancement) + ")"
-
-        return str((self.control_family.family_abbreviation) + '-' + str(self.control_number) + enhancement_text)
-    
-    # The SSP doesn't have a space between the base control and enhancement - so adding this second option
-    def str_SSP(self):
-        enhancement_text = ""
-        if self.control_enhancement:
-            enhancement_text = "(" + str(self.control_enhancement) + ")"
-
-        return str((self.control_family.family_abbreviation) + '-' + str(self.control_number) + enhancement_text)
-
-    class Meta:
-        verbose_name = "NIST Control"
-        verbose_name_plural = "NIST Controls"
-
 
 # class NISTParameter(models.Model):
 #     control = models.ForeignKey('NISTControl', related_name='NIST_parameters', on_delete=models.CASCADE)
@@ -459,24 +466,6 @@ class FedRAMPParameter(models.Model):
             return f'Parameter for control: {self.control}'
         else:
             return f'Parameter for control element: {self.element}'
-
-class ControlImplementationStatement(models.Model):
-    control_implementation = models.ForeignKey('AlchemyApp.ControlImplementation', related_name='control_statement_elements', on_delete=models.CASCADE)
-    control_element = models.ForeignKey('NISTControlElement', on_delete=models.CASCADE)
-    parent = models.ForeignKey('self', related_name='sub_statements', on_delete=models.CASCADE, null=True, blank=True)
-    statement = models.TextField(blank=True, default='')  # Control Element Implementation description
-    last_updated = models.DateTimeField(auto_now=True)
-    level = models.IntegerField(default=0)  # Add this line
-
-    class Meta:
-        unique_together = ('control_implementation', 'control_element')
-
-    def get_full_identifier(self):
-        element = self.control_element
-        return element.get_full_identifier()
-
-    def __str__(self):
-        return f'{self.control_implementation.system}: {self.control_element.control if self.control_element.control else self.control_element.parent}.{self.control_element} - {self.statement}'
 
 class ImplementationStatus(models.Model):
     STATUS_CHOICES = [
@@ -581,6 +570,24 @@ class ControlImplementation(models.Model):
             for element in self.control.elements.filter(level=2):
                 parent_statement = ControlImplementationStatement.objects.get(control_implementation=self, control_element=element.parent)
                 ControlImplementationStatement.objects.create(control_implementation=self, control_element=element, level=2, parent=parent_statement)
+
+class ControlImplementationStatement(models.Model):
+    control_implementation = models.ForeignKey('AlchemyApp.ControlImplementation', related_name='control_statement_elements', on_delete=models.CASCADE)
+    control_element = models.ForeignKey('NISTControlElement', on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', related_name='sub_statements', on_delete=models.CASCADE, null=True, blank=True)
+    statement = models.TextField(blank=True, default='')  # Control Element Implementation description
+    last_updated = models.DateTimeField(auto_now=True)
+    level = models.IntegerField(default=0)  # Add this line
+
+    class Meta:
+        unique_together = ('control_implementation', 'control_element')
+
+    def get_full_identifier(self):
+        element = self.control_element
+        return element.get_full_identifier()
+
+    def __str__(self):
+        return f'{self.control_implementation.system}: {self.control_element.control if self.control_element.control else self.control_element.parent}.{self.control_element} - {self.statement}'
 
 class Question(models.Model):
 
