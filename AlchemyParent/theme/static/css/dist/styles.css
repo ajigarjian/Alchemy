@@ -2232,6 +2232,10 @@ select {
   margin-left: 0.5rem;
 }
 
+.ml-2\.5 {
+  margin-left: 0.625rem;
+}
+
 .ml-4 {
   margin-left: 1rem;
 }
@@ -2601,6 +2605,10 @@ select {
 
 .w-2 {
   width: .5rem;
+}
+
+.w-2\.5 {
+  width: 0.625rem;
 }
 
 .w-3 {

@@ -287,6 +287,7 @@ def implementation(request, system, control_family, control=None):
         return render(request, "internal/implementation.html", {
             "client": client,
             "system": system_object,
+            "authorized_systems": System.objects.filter(fedramp_compliance_status = 'Authorized'),
             "implementation": implementation_object,
             "control_implementations": control_implementations,
             "implementation_choices": implementation_choices,
@@ -364,8 +365,9 @@ def dashboard(request, system=None):
 
                 # Count the number of ControlImplementations meeting the above criteria
                 control_implementations_count = filtered_control_implementations.count()
+                denominator = control_implementations_count if control_implementations_count != 0 else 1  # Set denominator to 1 if it's zero
+                control_implementations_dict[sys.name] = ceil(100 * (control_implementations_count / denominator))
 
-                control_implementations_dict[sys.name] = ceil(100*(control_implementations_count/(ControlImplementation.objects.filter(system=sys).count())))
 
             return render(request, "internal/dashboard.html", {
                 "client": client,
@@ -455,7 +457,7 @@ def generate_cis(request):
         'Shared': 12,  # 'L' column
         'Inherited': 13  # 'M' column
     }
-    
+
     center_aligned_style = Alignment(horizontal='center')
 
     # Iterate over control implementations in your database
