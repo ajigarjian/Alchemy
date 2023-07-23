@@ -28,17 +28,15 @@
     </nav>
 </div>
 
-
-        
 {% endblock %}
 
 {% block body %}
 
 <div class="body_wrapper flex">
 
-    <div id="sidebar-multi-level-sidebar" class="sticky top-20 left-0 w-72 h-184 border-r" aria-label="Sidebar">
+    <div id="sidebar-multi-level-sidebar" class="sticky top-20 left-0 w-72 h-180 border-r" aria-label="Sidebar">
         <div class="h-full px-3 overflow-y-auto dark:bg-gray-800">
-            <ul class="mt-6">
+            <ul class="my-6">
                 {% for implementation in control_implementations %}
                     <li id="sidebar-control-{{implementation.id}}" class="rounded-lg">
                         <a href="#control-implementation-{{implementation.id}}" class="flex text-xs items-center w-full p-2 text-gray-500 transition duration-75 rounded-lg pl-4 group hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700">{{implementation.control}}: {{implementation.control.control_name}}</a>
@@ -48,7 +46,7 @@
         </div>
     </div>
 
-    <div id="wizard_container" class="py-8 px-12 flex flex-col items-center min-h-screen max-w-4/5 grow">
+    <div id="wizard_container" class="py-8 px-12 flex flex-col items-center min-h-screen max-w-4/5 grow relative">
 
         <div id="control_search" class="w-full mb-8">
 
@@ -273,8 +271,8 @@
                     {% for statement in implementation.control_statement_elements.all %}
                         {% if statement.level == 0 %}
                             <div class="w-full mb-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
-                                <div class="flex items-center justify-between px-3 py-2 border-b dark:border-gray-600">
-                                    <div class="flex flex-wrap items-center dark:divide-gray-600">
+                                <div class="flex items-center justify-between w-full px-3 py-2 border-b dark:border-gray-600">
+                                    <div class="flex flex-wrap justify-between w-full items-center dark:divide-gray-600">
                                         <div class="flex items-center space-x-1 sm:pr-4">
                                             <label class="mr-2 font-black tracking-wide text-gray-500">{{statement.get_full_identifier}}</label>
                     
@@ -292,37 +290,39 @@
                                                 <i class="far fa-save fa-lg"></i>
                                                 <span class="sr-only">Save Text</span>
                                             </button>
-                                            
-                                            <button id="control_tool_button" data-dropdown-toggle="tool_dropdown" data-dropdown-placement="bottom" class="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">Dropdown search <svg class="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-                                              </svg>
-                                            </button>
-                                            
-                                            <!-- Dropdown menu -->
-                                            <div id="tool_dropdown" class="z-10 hidden bg-white rounded-lg shadow w-60 dark:bg-gray-700">
-                                                <div class="p-3">
-                                                  <label for="input-group-search" class="sr-only">Search</label>
-                                                  <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                                      <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                                                      </svg>
-                                                    </div>
-                                                    <input type="text" id="input-group-search" class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search CSO">
-                                                  </div>
-                                                </div>
-                                                <!-- <ul class="h-48 px-3 pb-3 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="control_tool_button">
-                                                    {% for system in authorized_systems %}
-                                                        <li>
-                                                            <div class="flex items-center pl-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-                                                            <input id="auth-system-{{system.id}}" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                                                            <label for="auth-system-{{system.id}}" class="w-full py-2 ml-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300">{{system.name}}</label>
-                                                            </div>
-                                                        </li>
-                                                    {% endfor %} -->
-                                                </ul>
-                                            </div>
                                         </div>
+
+
+                                        <button id="control_tool_button" data-dropdown-toggle="tool_dropdown" data-dropdown-placement="bottom" class="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">CSP Inheritance <svg class="w-2.5 h-2.5 ml-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                                          </svg>
+                                        </button>
+                                        
+                                        <!-- Dropdown menu -->
+                                        <div id="tool_dropdown" class="z-10 hidden bg-white rounded-lg shadow w-60 dark:bg-gray-700">
+                                            <div class="p-3">
+                                              <label for="input-group-search" class="sr-only">Search</label>
+                                              <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                                  <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                                                  </svg>
+                                                </div>
+                                                <input type="text" id="input-group-search" class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search CSO">
+                                              </div>
+                                            </div>
+                                            <!-- <ul class="h-48 px-3 pb-3 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="control_tool_button">
+                                                {% for system in authorized_systems %}
+                                                    <li>
+                                                        <div class="flex items-center pl-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                        <input id="auth-system-{{system.id}}" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                                        <label for="auth-system-{{system.id}}" class="w-full py-2 ml-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300">{{system.name}}</label>
+                                                        </div>
+                                                    </li>
+                                                {% endfor %} -->
+                                            </ul>
+                                        </div>
+
                                     </div>
                                 </div>
                     
@@ -481,8 +481,43 @@
                 <i class="fas fa-times fa-lg"></i>
             </button>
         </div>
-        
-        <button id ="scrollButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hidden">
+
+        <button id ="chatButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+            <i id="chatIcon" class="far fa-comments"></i>
+        </button>
+
+        <div id="chat_box" class="flex flex-col flex-grow w-full max-w-sm bg-white shadow-xl border rounded-lg overflow-hidden fixed right-8 bottom-24 z-40 hidden">
+            <div id="chat_messages" class="flex flex-col flex-grow h-72 p-4 overflow-auto">
+                <div class="flex w-full mt-2 space-x-3 max-w-xs">
+                    <div class="flex-shrink-0 mr-1 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-white">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div>
+                        <div class="bg-gray-300 p-3 rounded-r-lg rounded-bl-lg">
+                            <p class="text-sm">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                        </div>
+                        <span class="text-xs text-gray-500 leading-none">2 min ago</span>
+                    </div>
+                </div>
+                <div class="flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end">
+                    <div>
+                        <div class="w-full bg-blue-600 text-white p-3 rounded-l-lg rounded-br-lg">
+                            <p class="text-sm">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.</p>
+                        </div>
+                        <span class="text-xs text-gray-500 leading-none">2 min ago</span>
+                    </div>
+                    <div class="flex-shrink-0 ml-1 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-white">
+                        <i class="fa-regular fa-user"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="chat_input" class="bg-gray-300 p-4">
+                <input class="flex items-center h-10 w-full rounded px-3 text-sm" type="text" placeholder="Type your message…">
+            </div>
+        </div>
+
+        <button id ="scrollButton" class="fixed right-24 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hidden">
             <i id="scrollIcon" class="fas fa-chevron-up"></i>
         </button>
     </div>
@@ -534,6 +569,56 @@
                 });
             }
         });
+    });
+
+    // Show/hide function for chatbox. When the circular chat button in bottom right is clicked, it will either show or hide the chatbox depending on its current visibility
+    document.getElementById("chatButton").addEventListener("click", function() {
+        const chatBox = document.getElementById("chat_box");
+
+        if (chatBox.classList.contains("hidden")) {
+        chatBox.classList.remove("hidden"); // Show the chat box if it's hidden
+        } else {
+            chatBox.classList.add("hidden"); // Hide the chat box if it's visible
+        }
+    });
+
+    document.getElementById('chat_input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            var messageContent = e.target.value;  // get the text from input field
+            e.target.value = "";  // clear the input field
+
+            var messageContainer = document.createElement("div");
+            messageContainer.classList.add("flex", "mt-2", "space-x-3", "max-w-xs", "ml-auto", "justify-end");
+
+            var messageDiv = document.createElement("div");
+            var messageBubble = document.createElement("div");
+            messageBubble.classList.add("bg-blue-600", "w-full", "text-white", "p-3", "rounded-l-lg", "rounded-br-lg");
+            var messageText = document.createElement("p");
+            messageText.classList.add("text-sm");
+            messageText.innerText = messageContent;
+            messageBubble.appendChild(messageText);
+            messageDiv.appendChild(messageBubble);
+            
+            var timeSpan = document.createElement("span");
+            timeSpan.classList.add("text-xs", "text-gray-500", "leading-none");
+            var now = new Date();
+            timeSpan.innerText = `${now.getHours()}:${now.getMinutes()}`;  // add the current time
+            messageDiv.appendChild(timeSpan);
+
+            var userIcon = document.createElement("div");
+            userIcon.classList.add("flex-shrink-0", "ml-1", "h-10", "w-10", "rounded-full", "bg-gray-300", "flex", "items-center", "justify-center", "text-white");
+
+            var Icon = document.createElement("i");
+            Icon.classList.add("fa-regular", "fa-user")
+
+            messageContainer.appendChild(messageDiv);
+            messageContainer.appendChild(userIcon);
+            userIcon.appendChild(Icon);
+
+            var messageArea = document.getElementById("chat_messages");
+            messageArea.appendChild(messageContainer);  // add new message to the chat
+            messageArea.scrollTop = messageArea.scrollHeight;  // scroll to the bottom
+        }
     });
 
     // Scrolling function for category selection view. When the circular scroll button in bottom right is clicked, it will either scroll down or up to show more of the categories
