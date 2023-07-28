@@ -53,6 +53,7 @@ urlpatterns = [
     path("update_responsible_role", views.update_responsible_role, name="update_responsible_role"),
     path("add_role", views.add_role, name="add_role"),
     path("save_control_text", views.save_control_text, name="save_control_text"),
+    path("generate_chat_response", views.generate_chat_response, name="generate_chat_response"),
     path("generate_ai_statement", views.generate_ai_statement, name="generate_ai_statement"),
 
     path('api/get_roles/', views.get_roles, name='get_roles'),
