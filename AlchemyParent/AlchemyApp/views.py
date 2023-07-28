@@ -19,8 +19,6 @@ import os, openai
 from dotenv import load_dotenv
 from urllib.parse import unquote #to decode url strings passed through urls as parameters, e.g. client
 from django.db.models.functions import Coalesce #for treating base controls with enhancements as null as high values 
-from io import StringIO # For Innovation Hub reading CSV
-# import pandas as pd # For Innovation Hub reading CSV
 from openpyxl.styles import Alignment
 from openpyxl import load_workbook
 from django.conf import settings
@@ -40,14 +38,8 @@ from botocore.exceptions import NoCredentialsError #for generating the report
 import io #for generating the report
 import time
 
-# from langchain.llms import OpenAI
-# from langchain.chat_models import ChatOpenAI
-
 load_dotenv()
 logger = logging.getLogger(__name__)
-
-# llm = OpenAI()
-# chat_model = ChatOpenAI()
 
 ####################################### Public Application when not logged in ##############################################
 
@@ -1106,7 +1098,7 @@ def generate_chat_response(request):
     completion = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements."},
+                    {"role": "system", "content": "Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements. Only give responses for exactly the question answered - no more."},
                     {"role": "user", "content": """I am an information security employee. I am filling out a FedRAMP SSP document so that we may get our system FedRAMP Authorized. Not knowing FedRAMP too well, here is a question I have: """ + user_prompt}
                 ],
                 temperature=0.2
