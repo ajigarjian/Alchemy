@@ -40,8 +40,8 @@ from botocore.exceptions import NoCredentialsError #for generating the report
 import io #for generating the report
 import time
 
-from langchain.llms import OpenAI
-from langchain.chat_models import ChatOpenAI
+# from langchain.llms import OpenAI
+# from langchain.chat_models import ChatOpenAI
 
 load_dotenv()
 logger = logging.getLogger(__name__)
