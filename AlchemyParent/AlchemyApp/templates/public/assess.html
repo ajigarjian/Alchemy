@@ -23,70 +23,238 @@
         <i class="fas fa-times fa-lg"></i>
     </button>
 </div>
+
+<div class="relative h-screen">
+    <button id ="chatButton" class="fixed right-8 bottom-8 bg-blue-500 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+        <i id="chatIcon" class="far fa-comments"></i>
+    </button>
+
+    <div id="chat_box" class="flex flex-col flex-grow w-full max-w-md bg-white shadow-xl border rounded-lg overflow-hidden fixed right-8 bottom-24 z-40 hidden">
+        <div id="chat_messages" class="flex flex-col flex-grow h-72 p-4 overflow-auto">
+            <div class="flex w-full mt-2 space-x-3 max-md">
+                <div class="flex-shrink-0 mr-1 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-white">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div>
+                    <div class="bg-gray-300 p-3 rounded-r-lg rounded-bl-lg">
+                        <p class="text-sm">Ask me anything about information security compliance!</p>
+                    </div>
+                    <span class="text-xs text-gray-500 leading-none">Now</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="chat_input" class="bg-gray-300 p-4">
+            <input class="flex items-center h-10 w-full rounded px-3 text-sm" type="text" placeholder="Type your message…">
+        </div>
+    </div>
+</div>
       
-    <!-- Javascript for interactive aspects of the onboarding wizard -->
-    <script type="text/javascript">
+<!-- Javascript for interactive aspects of the onboarding wizard -->
+<script type="text/javascript">
 
-        const dropzoneFileInput = document.querySelector('#dropzone-file');
+    // Show/hide function for chatbox. When the circular chat button in bottom right is clicked, it will either show or hide the chatbox depending on its current visibility
+    document.getElementById("chatButton").addEventListener("click", function() {
+        const chatBox = document.getElementById("chat_box");
 
-        dropzoneFileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            uploadFile(file);
-        });
+        if (chatBox.classList.contains("hidden")) {
+        chatBox.classList.remove("hidden"); // Show the chat box if it's hidden
+        } else {
+            chatBox.classList.add("hidden"); // Hide the chat box if it's visible
+        }
+    });
 
-        function uploadFile(file) {
-            const formData = new FormData();
-            formData.append('data_file', file);
-            showToast('Assessing the provided information against NIST CSF...');
+    document.getElementById('chat_input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
 
-            fetch('/generate_ai_assessment', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `output.${file.name.split('.').pop()}`;  // get file extension from input file
-                a.click();
-            })
-            .catch((error) => {
-                console.error('Error:', error);
+            // THIS SECTION IS FOR ADDING THE TEXT BUBBLE
+            var messageContent = e.target.value;  // get the text from input field
+            e.target.value = "";  // clear the input field
+
+            var messageContainer = document.createElement("div");
+            messageContainer.classList.add("flex", "mt-2", "space-x-3", "max-w-md", "ml-auto", "justify-end");
+
+            var messageDiv = document.createElement("div");
+            var messageBubble = document.createElement("div");
+            messageBubble.classList.add("bg-blue-500", "w-full", "text-white", "p-3", "rounded-l-lg", "rounded-br-lg");
+            var messageText = document.createElement("p");
+            messageText.classList.add("text-sm");
+            messageText.innerText = messageContent;
+            messageBubble.appendChild(messageText);
+            messageDiv.appendChild(messageBubble);
+            
+
+            // Get the time and add it to underneath the message bubble
+            var timeSpan = document.createElement("span");
+            timeSpan.classList.add("text-xs", "text-gray-500", "leading-none");
+            var now = new Date();
+            var hours = now.getHours();
+            var minutes = now.getMinutes();
+            var ampm = hours >= 12 ? 'pm' : 'am';
+
+            // Convert hours from 24 hour format to 12 hour format
+            hours = hours % 12;
+
+            // The hour '0' should be '12'
+            hours = hours ? hours : 12;
+
+            // Add a leading zero to the minutes if required
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+
+            // Add the text into the div
+            timeSpan.innerText = `${hours}:${minutes}${ampm}`;
+            messageDiv.appendChild(timeSpan);
+
+            var userIcon = document.createElement("div");
+            userIcon.classList.add("flex-shrink-0", "ml-1", "h-10", "w-10", "rounded-full", "bg-gray-300", "flex", "items-center", "justify-center", "text-white");
+
+            var Icon = document.createElement("i");
+            Icon.classList.add("fa-regular", "fa-user")
+
+            messageContainer.appendChild(messageDiv);
+            messageContainer.appendChild(userIcon);
+            userIcon.appendChild(Icon);
+
+            var messageArea = document.getElementById("chat_messages");
+            messageArea.appendChild(messageContainer);  // add new message to the chat
+            messageArea.scrollTop = messageArea.scrollHeight;  // scroll to the bottom
+
+            // THIS SECTION THEN CONNECTS TO THE AI MODEL and returns the system's bubble in the chat
+            chatAICall(messageContent).then(AImessageContent => {
+                // ADD AI message content as its own bubble
+                var messageContainerAI = document.createElement("div");
+                messageContainerAI.classList.add("flex", "w-full", "mt-2", "space-x-3", "max-w-md", "mr-auto", "justify-start");
+
+                var userIconAI = document.createElement("div");
+                userIconAI.classList.add("flex-shrink-0", "mr-1", "h-10", "w-10", "rounded-full", "bg-gray-300", "flex", "items-center", "justify-center", "text-white");
+                
+                var IconAI = document.createElement("i");
+                IconAI.classList.add("fa-solid", "fa-wand-magic-sparkles");
+                userIconAI.appendChild(IconAI);
+
+                var messageDivAI = document.createElement("div");
+
+                var messageBubbleAI = document.createElement("div");
+                messageBubbleAI.classList.add("bg-gray-300", "p-3", "rounded-r-lg", "rounded-bl-lg");
+                var messageTextAI = document.createElement("p");
+                messageTextAI.classList.add("text-sm");
+                messageTextAI.innerText = AImessageContent;
+                messageBubbleAI.appendChild(messageTextAI);
+                messageDivAI.appendChild(messageBubbleAI);
+                        
+                // Same process as for user - get time and add it to underneath the message bubble
+                var timeSpanAI = document.createElement("span");
+                timeSpanAI.classList.add("text-xs", "text-gray-500", "leading-none");
+                var now = new Date();
+                var hours = now.getHours();
+                var minutes = now.getMinutes();
+                var ampm = hours >= 12 ? 'pm' : 'am';
+
+                // Convert hours from 24 hour format to 12 hour format
+                hours = hours % 12;
+
+                // The hour '0' should be '12'
+                hours = hours ? hours : 12;
+
+                // Add a leading zero to the minutes if required
+                minutes = minutes < 10 ? '0'+minutes : minutes;
+
+                timeSpanAI.innerText = `${hours}:${minutes}${ampm}`;  // add the current time
+                messageDivAI.appendChild(timeSpanAI);
+
+                messageContainerAI.appendChild(userIconAI);
+                messageContainerAI.appendChild(messageDivAI);
+
+                var messageArea = document.getElementById("chat_messages");
+                messageArea.appendChild(messageContainerAI);  // add new AI message to the chat
+                messageArea.scrollTop = messageArea.scrollHeight;  // scroll to the bottom
             });
         }
+    });
 
-    // functionality to show toast messages when AI call is successful
-    function showToast(message, duration = 15000) {
-        // Get the toast element
-        const toast = document.querySelector("#toast-success");
+    function chatAICall(userPrompt) {
 
-        // Get the close button
-        const closeButton = toast.querySelector("button[data-dismiss-target='#toast-success']");
+        console.log(userPrompt);
 
-        // Set the toast message
-        toast.querySelector(".text-sm").innerText = message;
-
-        // Show the toast
-        toast.classList.remove("opacity-0");
-
-         // Remove the "hidden" class if it's present
-            if (toast.classList.contains("hidden")) {
-                toast.classList.remove("hidden");
-            }
-
-        // Remove the toast after `duration` ms
-        let timeoutId = setTimeout(() => {
-            toast.classList.add("opacity-0");
-        }, duration);
-
-        // Cancel the auto-dismiss when the close button is clicked, and hide the toast
-        closeButton.onclick = () => {
-            clearTimeout(timeoutId);
-            toast.classList.add("opacity-0");
-        };
+        // Fetch API call to Django URL
+        return fetch('/generate_chat_response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'user_prompt': userPrompt
+            })
+        })
+        
+        .then(response => response.json())
+        .then(result => {
+            // RETURN MESSAGE CONTENT to add as html/css in wider event listener in chat box above
+            return result.output;
+        })
+        .catch(error => console.log('Error:', error));
     }
-    
-    </script>
+
+    const dropzoneFileInput = document.querySelector('#dropzone-file');
+
+    dropzoneFileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        uploadFile(file);
+    });
+
+    function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('data_file', file);
+        showToast('Assessing the provided information against NIST CSF...');
+
+        fetch('/generate_ai_assessment', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `output.${file.name.split('.').pop()}`;  // get file extension from input file
+            a.click();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+
+// functionality to show toast messages when AI call is successful
+function showToast(message, duration = 15000) {
+    // Get the toast element
+    const toast = document.querySelector("#toast-success");
+
+    // Get the close button
+    const closeButton = toast.querySelector("button[data-dismiss-target='#toast-success']");
+
+    // Set the toast message
+    toast.querySelector(".text-sm").innerText = message;
+
+    // Show the toast
+    toast.classList.remove("opacity-0");
+
+        // Remove the "hidden" class if it's present
+        if (toast.classList.contains("hidden")) {
+            toast.classList.remove("hidden");
+        }
+
+    // Remove the toast after `duration` ms
+    let timeoutId = setTimeout(() => {
+        toast.classList.add("opacity-0");
+    }, duration);
+
+    // Cancel the auto-dismiss when the close button is clicked, and hide the toast
+    closeButton.onclick = () => {
+        clearTimeout(timeoutId);
+        toast.classList.add("opacity-0");
+    };
+}
+
+</script>
     
 {% endblock %}
