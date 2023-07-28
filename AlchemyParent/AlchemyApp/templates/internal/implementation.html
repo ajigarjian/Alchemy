@@ -482,32 +482,21 @@
             </button>
         </div>
 
-        <button id ="chatButton" class="fixed right-8 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+        <button id ="chatButton" class="fixed right-8 bottom-8 bg-blue-500 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
             <i id="chatIcon" class="far fa-comments"></i>
         </button>
 
-        <div id="chat_box" class="flex flex-col flex-grow w-full max-w-sm bg-white shadow-xl border rounded-lg overflow-hidden fixed right-8 bottom-24 z-40 hidden">
+        <div id="chat_box" class="flex flex-col flex-grow w-full max-w-md bg-white shadow-xl border rounded-lg overflow-hidden fixed right-8 bottom-24 z-40 hidden">
             <div id="chat_messages" class="flex flex-col flex-grow h-72 p-4 overflow-auto">
-                <div class="flex w-full mt-2 space-x-3 max-w-xs">
+                <div class="flex w-full mt-2 space-x-3 max-md">
                     <div class="flex-shrink-0 mr-1 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-white">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                     </div>
                     <div>
                         <div class="bg-gray-300 p-3 rounded-r-lg rounded-bl-lg">
-                            <p class="text-sm">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                            <p class="text-sm">Ask me anything about FedRAMP & creating SSPs!</p>
                         </div>
-                        <span class="text-xs text-gray-500 leading-none">2 min ago</span>
-                    </div>
-                </div>
-                <div class="flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end">
-                    <div>
-                        <div class="w-full bg-blue-600 text-white p-3 rounded-l-lg rounded-br-lg">
-                            <p class="text-sm">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.</p>
-                        </div>
-                        <span class="text-xs text-gray-500 leading-none">2 min ago</span>
-                    </div>
-                    <div class="flex-shrink-0 ml-1 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-white">
-                        <i class="fa-regular fa-user"></i>
+                        <span class="text-xs text-gray-500 leading-none">Now</span>
                     </div>
                 </div>
             </div>
@@ -517,7 +506,7 @@
             </div>
         </div>
 
-        <button id ="scrollButton" class="fixed right-24 bottom-8 bg-blue-600 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hidden">
+        <button id ="scrollButton" class="fixed right-24 bottom-8 bg-blue-500 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg hidden">
             <i id="scrollIcon" class="fas fa-chevron-up"></i>
         </button>
     </div>
@@ -584,25 +573,43 @@
 
     document.getElementById('chat_input').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
+
+            // THIS SECTION IS FOR ADDING THE TEXT BUBBLE
             var messageContent = e.target.value;  // get the text from input field
             e.target.value = "";  // clear the input field
 
             var messageContainer = document.createElement("div");
-            messageContainer.classList.add("flex", "mt-2", "space-x-3", "max-w-xs", "ml-auto", "justify-end");
+            messageContainer.classList.add("flex", "mt-2", "space-x-3", "max-w-md", "ml-auto", "justify-end");
 
             var messageDiv = document.createElement("div");
             var messageBubble = document.createElement("div");
-            messageBubble.classList.add("bg-blue-600", "w-full", "text-white", "p-3", "rounded-l-lg", "rounded-br-lg");
+            messageBubble.classList.add("bg-blue-500", "w-full", "text-white", "p-3", "rounded-l-lg", "rounded-br-lg");
             var messageText = document.createElement("p");
             messageText.classList.add("text-sm");
             messageText.innerText = messageContent;
             messageBubble.appendChild(messageText);
             messageDiv.appendChild(messageBubble);
             
+
+            // Get the time and add it to underneath the message bubble
             var timeSpan = document.createElement("span");
             timeSpan.classList.add("text-xs", "text-gray-500", "leading-none");
             var now = new Date();
-            timeSpan.innerText = `${now.getHours()}:${now.getMinutes()}`;  // add the current time
+            var hours = now.getHours();
+            var minutes = now.getMinutes();
+            var ampm = hours >= 12 ? 'pm' : 'am';
+
+            // Convert hours from 24 hour format to 12 hour format
+            hours = hours % 12;
+
+            // The hour '0' should be '12'
+            hours = hours ? hours : 12;
+
+            // Add a leading zero to the minutes if required
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+
+            // Add the text into the div
+            timeSpan.innerText = `${hours}:${minutes}${ampm}`;
             messageDiv.appendChild(timeSpan);
 
             var userIcon = document.createElement("div");
@@ -618,8 +625,80 @@
             var messageArea = document.getElementById("chat_messages");
             messageArea.appendChild(messageContainer);  // add new message to the chat
             messageArea.scrollTop = messageArea.scrollHeight;  // scroll to the bottom
+
+            // THIS SECTION THEN CONNECTS TO THE AI MODEL and returns the system's bubble in the chat
+            chatAICall(messageContent).then(AImessageContent => {
+                // ADD AI message content as its own bubble
+                var messageContainerAI = document.createElement("div");
+                messageContainerAI.classList.add("flex", "w-full", "mt-2", "space-x-3", "max-w-md", "mr-auto", "justify-start");
+
+                var userIconAI = document.createElement("div");
+                userIconAI.classList.add("flex-shrink-0", "mr-1", "h-10", "w-10", "rounded-full", "bg-gray-300", "flex", "items-center", "justify-center", "text-white");
+                
+                var IconAI = document.createElement("i");
+                IconAI.classList.add("fa-solid", "fa-wand-magic-sparkles");
+                userIconAI.appendChild(IconAI);
+
+                var messageDivAI = document.createElement("div");
+
+                var messageBubbleAI = document.createElement("div");
+                messageBubbleAI.classList.add("bg-gray-300", "p-3", "rounded-r-lg", "rounded-bl-lg");
+                var messageTextAI = document.createElement("p");
+                messageTextAI.classList.add("text-sm");
+                messageTextAI.innerText = AImessageContent;
+                messageBubbleAI.appendChild(messageTextAI);
+                messageDivAI.appendChild(messageBubbleAI);
+                        
+                // Same process as for user - get time and add it to underneath the message bubble
+                var timeSpanAI = document.createElement("span");
+                timeSpanAI.classList.add("text-xs", "text-gray-500", "leading-none");
+                var now = new Date();
+                var hours = now.getHours();
+                var minutes = now.getMinutes();
+                var ampm = hours >= 12 ? 'pm' : 'am';
+
+                // Convert hours from 24 hour format to 12 hour format
+                hours = hours % 12;
+
+                // The hour '0' should be '12'
+                hours = hours ? hours : 12;
+
+                // Add a leading zero to the minutes if required
+                minutes = minutes < 10 ? '0'+minutes : minutes;
+
+                timeSpanAI.innerText = `${hours}:${minutes}${ampm}`;  // add the current time
+                messageDivAI.appendChild(timeSpanAI);
+
+                messageContainerAI.appendChild(userIconAI);
+                messageContainerAI.appendChild(messageDivAI);
+
+                var messageArea = document.getElementById("chat_messages");
+                messageArea.appendChild(messageContainerAI);  // add new AI message to the chat
+                messageArea.scrollTop = messageArea.scrollHeight;  // scroll to the bottom
+            });
         }
     });
+
+    function chatAICall(userPrompt) {
+
+        // Fetch API call to Django URL
+        return fetch('/generate_chat_response', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                'user_prompt': userPrompt
+            })
+        })
+        
+        .then(response => response.json())
+        .then(result => {
+            // RETURN MESSAGE CONTENT to add as html/css in wider event listener in chat box above
+            return result.output;
+        })
+        .catch(error => console.log('Error:', error));
+    }
 
     // Scrolling function for category selection view. When the circular scroll button in bottom right is clicked, it will either scroll down or up to show more of the categories
     document.getElementById("scrollButton").addEventListener("click", function() {
