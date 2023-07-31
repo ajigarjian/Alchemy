@@ -1080,7 +1080,7 @@ def save_control_text(request):
         # Return an error response if the request method is not POST
         return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-
+# View that takes in a string (a user's query) and returns a response from the OpenAI gpt-3.5-turbo, prompted as a FedRAMP expert
 @csrf_exempt
 @login_required
 def generate_chat_response(request):
@@ -1098,8 +1098,8 @@ def generate_chat_response(request):
     completion = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "Let's transition into a discussion about information security regulations; specifically, NIST CSF, Federal Risk and Authorization Management Program (FedRAMP), HIPAA, and CMMC. As an AI with extensive training in various topics, I would like you to draw from your understanding of these regulations for the next series of questions. Please provide information and advice as an expert on information security frameworks and regulations, processes, and authorization requirements. Only give responses for exactly the question answered - no more. Please provide links to resources that are helpful where applicable."},
-                    {"role": "user", "content": """I am an information security employee. I am filling out a reporting document that details how we meet various information security control frameworks and regulations. Not knowing these frameworks too well, here is a question I have: """ + user_prompt}
+                    {"role": "system", "content": """Let's transition into a discussion about the Federal Risk and Authorization Management Program (FedRAMP). As an AI with extensive training in various topics, I would like you to draw from your understanding of FedRAMP for the next series of questions. Please provide information and advice as an expert on FedRAMP regulations, processes, and authorization requirements. Only give responses for exactly the question answered - no more."""},
+                    {"role": "user", "content": """I am an information security employee. I am filling out a FedRAMP SSP document so that we may get our system FedRAMP Authorized. Not knowing FedRAMP too well, here is a question I have: """ + user_prompt + """."""}
                 ],
                 temperature=0.2
         )
@@ -1107,6 +1107,7 @@ def generate_chat_response(request):
     return JsonResponse({"message": "Post published successfully.",
                         "output": completion.choices[0].message.content}, status=201)
 
+# View that takes in info about a company, its system, the control it wants a statement for, and returns a response from the OpenAI gpt-3.5-turbo model, prompted as a FedRMAP expert
 @csrf_exempt
 @login_required
 def generate_ai_statement(request):
@@ -1138,6 +1139,7 @@ def generate_ai_statement(request):
 
     return JsonResponse({"message": "Post published successfully.",
                         "output": completion.choices[0].message.content}, status=201)
+                        
 
 # Simple API call to get the roles and return them to populate dropdown in implementation.html (hopefully will simplify querying load times)
 @csrf_exempt
