@@ -54,7 +54,7 @@ Pillow==9.5.0
 pipdeptree==2.9.5
 portalocker==2.7.0
 protobuf==4.23.4
-psycopg2==2.9.6
+psycopg2-binary~=2.9.3
 pyasn1==0.5.0
 pycocotools==2.0.6
 pycparser==2.21
