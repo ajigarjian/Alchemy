@@ -1,16 +1,403 @@
 {% extends "public/public.html" %}
+{% load static %}
 
 {% block body %}
-<div class="mx-16 mt-12 flex items-center justify-center">
-    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-            <svg aria-hidden="true" class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload </span> or drag and drop</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">.CSV and .XLSX</p>
+<div id='assess_section' class="flex flex-col items-center mt-6 mb-12 h-[85vh] min-w-3xl">
+
+    <div id="tool_title" class="mt-12 mb-6 mx-auto">
+        <div class="flex">
+            <i class="fa-solid text-4xl fa-wand-magic-sparkles" style="color: #3b82f6;"></i>
+            <div class="ml-2">
+                <h1 class="font-semibold text-3xl">Alchemy GenAI Assessment Tool</h1>
+                <span><i>Powered by OpenAI</i></span>
+            </div>
         </div>
-        <input id="dropzone-file" type="file" name="file" accept=".csv, .xlsx" class="hidden" />
-    </label>
+    </div>
+
+    <div id="tool_nav" class="mb-8">
+        <ul class="flex flex-wrap -mb-px text-xl font-medium text-center" id="tool_nav_options" data-tabs-toggle="#tool_nav_content" role="tablist">
+            <li class="mr-2 w-72" role="presentation">
+                <button id="nav_assess_tab_button" class="inline-block w-full p-4 border-b-2 rounded-t-lg" id="assess-tab" data-tabs-target="#assess_input" type="button" role="tab" aria-controls="assess_input" aria-selected="false">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Assessment
+                </button>
+            </li>
+            <li class="w-72" role="presentation">
+                <button id="nav_results_tab_button" class="flex items-center justify-center inline-block w-full p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 cursor-not-allowed" id="results-tab" data-tabs-target="#results" type="button" role="tab" aria-controls="results" aria-selected="false" disabled>
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-square-poll-vertical mr-2"></i>
+                        Results
+                    </div>
+                </button>
+                
+            </li>
+        </ul>
+    </div>
+
+    <div id="tool_nav_content" class="flex justify-center w-full">
+
+        <div id="assess_input" class="hidden flex p-4 rounded-lg bg-gray-50 justify-center w-2/3 mb-12" role="tabpanel" aria-labelledby="assess-tab">
+            <label for="client-file-input" class="flex items-center justify-center bg-white h-120 w-2/3 rounded-lg cursor-pointer shadow hover:bg-blue-50">
+                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <img src="{% static 'upload_doc_icon.svg' %}" alt="Upload File icon"/>
+                    <div class="h-12 w-72 rounded-md text-white text-xl font-semibold bg-blue-500 hover:bg-blue-700 flex flex-col justify-center items-center focus:outline-none focus:shadow-outline duration-200">
+                            <span class="mx-auto">Choose files</span>
+                    </div>
+                    <div id="file-names" class="flex flex-col items-center my-4 text-sm text-gray-500 w-128 px-8">
+                        <span class="font-semibold ">or drag and drop</span>
+                    </div>
+                </div>
+                <input id="client-file-input" type="file" name="file" accept="application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden" multiple/>
+            </label>
+    
+            <!-- Area of app to specify how the assessment should be conducted -->
+            <div id="assessment_criteria_area" class="grow flex ml-4 flex-col justify-center">
+                <form id="assessment_submission_form" action="#" method="post">
+    
+                    <!-- Dropdown to choose the framework to access againast -->
+                    <label for="framework_selection" class="block mb-2 text-sm font-medium text-gray-900">Select a control framework</label>
+                    <select id="framework_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        <option class="bg-blue-100" value="FedRAMP">FedRAMP</option>
+                    </select>
+    
+                    <!-- Dropdown to choose the framework's families -->
+                    <label for="family_selection" class="mt-8 block mb-2 text-sm font-medium text-gray-900">Select a control family</label>
+                    <select id="family_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        <option value="AC">Access Control</option>
+                        <option value="AT">Awareness and Training</option>
+                        <option value="AU">Audit and Accountability</option>
+                        <option value="CA">Assessment, Authorization, and Monitoring</option>
+                        <option value="CM">Configuration Management</option>
+                        <option value="CP">Contingency Planning</option>
+                        <option value="IA">Identification and Authentication</option>
+                        <option value="IR">Incident Response</option>
+                        <option value="MA">Maintenance</option>
+                        <option value="MP">Media Protection</option>
+                    </select>
+    
+                    <!-- Dropdown to choose the model to assess with -->
+                    <label for="model_selection" class="mt-8 block mb-2 text-sm font-medium text-gray-900">Select a model</label>
+                    <select id="model_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        <option selected="gpt-4">gpt-4</option>
+                        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                    </select>
+    
+                    <!-- Submit button to assess the file(s) -->
+                    <button id="assessment_submission" class="relative mt-16 w-full bg-gray-500 text-xl text-white font-semibold py-2 px-4 rounded-md cursor-not-allowed" disabled>
+                        Assess
+                    </button>
+                </form>
+    
+            </div>
+        </div>
+
+        <div id="results" role="tabpanel" aria-labelledby="results-tab" class="hidden w-2/3 mb-48">
+
+            <div class="mb-4 dark:border-gray-700 flex flex-between w-full">
+                <ul class="w-1/2 min-w-lg flex flex-wrap -mb-px text-sm font-medium text-center" id="results_tab_list" data-tabs-toggle="#tab_list_content" role="tablist">
+                    <li class="mr-2" role="presentation">
+                        <button class="inline-block p-4 border-b-2 rounded-t-lg" id="overview-tab" data-tabs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="false">Overview</button>
+                    </li>
+                    <li class="mr-2" role="presentation">
+                        <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="testing-tab" data-tabs-target="#testing" type="button" role="tab" aria-controls="testing" aria-selected="false">Testing</button>
+                    </li>
+                    <li class="mr-2" role="presentation">
+                        <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="recommendations-tab" data-tabs-target="#recommendations" type="button" role="tab" aria-controls="recommendations" aria-selected="false">Recommendations</button>
+                    </li>
+                </ul>
+    
+                <div class="w-1/2 flex justify-end items-end">
+                    <a id="xlsx_report" href="#"
+                        class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                        .xlsx report
+                        <i class="ml-2 fa-solid fa-download"></i>
+                    </a>
+                </div>
+            </div>
+    
+            <div id="tab_list_content">
+                <div class="flex hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                    <div class="max-w-sm w-full">
+                        <div class="bg-white rounded-lg shadow dark:bg-gray-800 p-4 md:p-6">
+    
+                            <div class="flex justify-between mb-3">
+                                <div class="flex items-center">
+                                    <div class="flex justify-center items-center">
+                                        <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pr-1">Controls Coverage</h5>
+                                        <svg data-popover-target="chart-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
+                                        </svg>
+                                        
+                                        <div data-popover id="chart-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                            <div class="p-3 space-y-2">
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental</h3>
+                                                <p>Report helps navigate cumulative growth of community activities. Ideally, the chart should have a growing trend, as stagnating chart signifies a significant decrease of community activity.</p>
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
+                                                <p>For each date bucket, the all-time volume of activities is calculated. This means that activities in period n contain all activities up to period n, plus the activities generated by your community in period.</p>
+                                            </div>
+                                            <div data-popper-arrow></div>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                                <div class="grid grid-cols-3 gap-3 mb-2">
+                                    <dl class="bg-teal-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-20">
+                                        <dt id="control_implemented_count" class="w-8 h-8 rounded-full bg-teal-100 dark:bg-gray-500 text-teal-600 dark:text-teal-300 text-sm font-medium flex items-center justify-center mb-1">4</dt>
+                                        <dd class="text-teal-600 dark:text-teal-300 text-sm font-medium">Implemented</dd>
+                                    </dl>
+                                    <dl class="bg-blue-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-20">
+                                        <dt id="control_partial_count" class="w-8 h-8 rounded-full bg-blue-100 dark:bg-gray-500 text-blue-600 dark:text-blue-300 text-sm font-medium flex items-center justify-center mb-1">2</dt>
+                                        <dd class="text-blue-600 dark:text-blue-300 text-sm font-medium">Partial</dd>
+                                    </dl>
+                                    <dl class="bg-orange-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-20">
+                                        <dt id="control_not_count" class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1">3</dt>
+                                        <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">Not</dd>
+                                    </dl>
+                                </div>
+                                    <button data-collapse-toggle="more-details" type="button" class="hover:underline text-xs text-gray-500 dark:text-gray-400 font-medium inline-flex items-center">Show more details <svg class="w-2 h-2 ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                                    </svg>
+                                    </button>
+                                    <div id="more-details" class="border-gray-200 border-t dark:border-gray-600 pt-3 mt-3 hidden">
+                                    <dl class="flex items-center justify-between">
+                                        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Number of documents scanned:</dt>
+                                        <dd class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">2</dd>
+                                    </dl>
+                                    <dl class="flex items-center justify-between mt-2">
+                                        <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Number of controls analyzed:</dt>
+                                        <dd id="controls_count" class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">6</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                            
+                            <!-- Radial Chart -->
+                            <div class="py-6" id="radial-chart"></div>
+                            
+                                <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
+                                    <div class="flex justify-end items-center pt-5">
+                                    <!-- Button -->
+                                    <a
+                                        href="#"
+                                        class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                        Testing
+                                        <svg class="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="bg-white rounded-lg shadow dark:bg-gray-800 mt-4 p-4 md:p-6">
+    
+                            <div class="flex justify-between">
+                                <div class="w-full">
+                                    <div class="flex justify-start items-center">
+                                        <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pr-1">Top Recommendations</h5>
+                                        <svg data-popover-target="chart-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
+                                        </svg>
+                                        
+                                        <div data-popover id="chart-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                            <div class="p-3 space-y-2">
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental</h3>
+                                                <p>Report helps navigate cumulative growth of community activities. Ideally, the chart should have a growing trend, as stagnating chart signifies a significant decrease of community activity.</p>
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
+                                                <p>For each date bucket, the all-time volume of activities is calculated. This means that activities in period n contain all activities up to period n, plus the activities generated by your community in period.</p>
+                                            </div>
+                                            <div data-popper-arrow></div>
+                                        </div>
+                                    </div>
+    
+                                    <div id="accordion-flush" data-accordion="collapse" data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white" data-inactive-classes="text-gray-500 dark:text-gray-400">
+                                        <h2 id="accordion-flush-heading-1">
+                                        <button type="button" class="flex items-center justify-between w-full py-5 font-medium text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-flush-body-1" aria-expanded="true" aria-controls="accordion-flush-body-1">
+                                            <span>Privacy Training</span>
+                                            <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+                                            </svg>
+                                        </button>
+                                        </h2>
+                                        <div id="accordion-flush-body-1" class="hidden" aria-labelledby="accordion-flush-heading-1">
+                                        <div class="py-5 border-b border-gray-200 dark:border-gray-700">
+                                            <p class="mb-2 text-gray-500 dark:text-gray-400">Include privacy training and awareness activities into the document to meet controls AT-2, AT-2 (2), and AT-(3).</p>
+                                        </div>
+                                        </div>
+                                        <h2 id="accordion-flush-heading-2">
+                                        <button type="button" class="flex items-center justify-between w-full py-5 font-medium text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-flush-body-2" aria-expanded="false" aria-controls="accordion-flush-body-2">
+                                            <span>Documenting Review</span>
+                                            <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+                                            </svg>
+                                        </button>
+                                        </h2>
+                                        <div id="accordion-flush-body-2" class="hidden" aria-labelledby="accordion-flush-heading-2">
+                                        <div class="py-5 border-b border-gray-200 dark:border-gray-700">
+                                            <p class="mb-2 text-gray-500 dark:text-gray-400">Add a review table to the document and ensure that stakeholders are aware it must be updated on at least an annual basis</p>
+                                        </div>
+                                        </div>
+                                        <h2 id="accordion-flush-heading-3">
+                                        <button type="button" class="flex items-center justify-between w-full py-5 font-medium text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-flush-body-3" aria-expanded="false" aria-controls="accordion-flush-body-3">
+                                            <span>Including Policies & Directives</span>
+                                            <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+                                            </svg>
+                                        </button>
+                                        </h2>
+                                        <div id="accordion-flush-body-3" class="hidden" aria-labelledby="accordion-flush-heading-3">
+                                        <div class="py-5 border-b border-gray-200 dark:border-gray-700">
+                                            <p class="mb-2 text-gray-500 dark:text-gray-400">Add a section in your document that catalogs the relevant regulations, laws, and directives that the document pertains to.</p>
+                                        </div>
+                                        </div>
+                                    </div>
+    
+                                    <div class="grid grid-cols-1 items-center justify-between">
+                                        <div class="flex justify-end items-end pt-5">
+                                            <a href="#"class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                            RECOMMENDATIONS
+                                                <svg class="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+      
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+          
+                    <div class="relative overflow-x-auto w-full pl-4">
+    
+                        <div class="relative overflow-y-auto w-full max-h-72">
+                            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3">
+                                            Control ID
+                                        </th>
+                                        <th scope="col" class="px-6 py-3">
+                                            
+                                        </th>
+                                        <th scope="col" class="px-6 py-3">
+                                            
+                                        </th>
+                                        <th scope="col" class="px-6 py-3">
+                                            Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="control_status_table_body">
+                                </tbody>
+                            </table>
+                        </div>
+    
+                        <div class="w-full mx-auto bg-white rounded-lg shadow dark:bg-gray-800 mt-4 p-4 md:p-6">
+    
+                            <div class="flex justify-between items-start w-full">
+                                <div class="flex-col items-center">
+                                    <div class="flex items-center mb-1">
+                                        <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white mr-1">Test Procedures Results</h5>
+                                        <svg data-popover-target="chart-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
+                                        </svg>
+                                        <div data-popover id="chart-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                            <div class="p-3 space-y-2">
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental</h3>
+                                                <p>Report helps navigate cumulative growth of community activities. Ideally, the chart should have a growing trend, as stagnating chart signifies a significant decrease of community activity.</p>
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
+                                                <p>For each date bucket, the all-time volume of activities is calculated. This means that activities in period n contain all activities up to period n, plus the activities generated by your community in period.</p>
+                                                <a href="#" class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">Read more 
+                                                    <svg class="w-2 h-2 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                            <div data-popper-arrow></div>
+                                        </div>
+                                    </div>
+                                </div> 
+                            </div>
+                        
+                            <!-- Pie Chart -->
+                            <div class="py-6" id="pie-chart"></div>
+    
+                            <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
+                                <div class="flex justify-end items-center pt-5">
+                                    <a href="#"class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                    Testing
+                                        <svg class="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="w-full bg-white rounded-lg shadow dark:bg-gray-800 mt-4 p-4 md:p-6">
+                            <div class="flex justify-between pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center mr-3">
+                                        <i class="fa-solid fa-microscope fa-2xl text-gray-500" aria-hidden="true"></i>
+                                        <!-- <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 19">
+                                            <path d="M14.5 0A3.987 3.987 0 0 0 11 2.1a4.977 4.977 0 0 1 3.9 5.858A3.989 3.989 0 0 0 14.5 0ZM9 13h2a4 4 0 0 1 4 4v2H5v-2a4 4 0 0 1 4-4Z"/>
+                                            <path d="M5 19h10v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2ZM5 7a5.008 5.008 0 0 1 4-4.9 3.988 3.988 0 1 0-3.9 5.859A4.974 4.974 0 0 1 5 7Zm5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm5-1h-.424a5.016 5.016 0 0 1-1.942 2.232A6.007 6.007 0 0 1 17 17h2a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5ZM5.424 9H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h2a6.007 6.007 0 0 1 4.366-5.768A5.016 5.016 0 0 1 5.424 9Z"/>
+                                        </svg> -->
+                                    </div>
+                                    <div>
+                                        <h5 id='testing_pass_count' class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1"></h5>
+                                        <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Test Procedures Passed</p>
+                                    </div>
+                            </div>
+                            
+                            </div>
+                        
+                            <div class="grid grid-cols-2">
+                                <dl class="flex items-center">
+                                    <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal mr-1">Procedures Tested:</dt>
+                                    <dd id="procedures_count" class="text-gray-900 text-sm dark:text-white font-semibold"></dd>
+                                </dl>
+                                <dl class="flex items-center justify-end">
+                                    <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal mr-1">Pass rate:</dt>
+                                    <dd id="testing_pass_rate" class="text-gray-900 text-sm dark:text-white font-semibold"></dd>
+                                </dl>
+                            </div>
+                        
+                            <div id="column-chart"></div>
+                            <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
+                                <div class="flex justify-end items-center pt-5">
+                                    <a
+                                        href="#"
+                                        class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                        Testing
+                                        <svg class="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>  
+                    </div>
+                </div>
+    
+                <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="testing" role="tabpanel" aria-labelledby="testing-tab">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">This is some placeholder content the <strong class="font-medium text-gray-800 dark:text-white">Dashboard tab's associated content</strong>. Clicking another tab will toggle the visibility of this one for the next. The tab JavaScript swaps classes to control the content visibility and styling.</p>
+                </div>
+                <div class="hidden p-4 rounded-lg bg-gray-50 dark:bg-gray-800" id="recommendations" role="tabpanel" aria-labelledby="recommendations-tab">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">This is some placeholder content the <strong class="font-medium text-gray-800 dark:text-white">Settings tab's associated content</strong>. Clicking another tab will toggle the visibility of this one for the next. The tab JavaScript swaps classes to control the content visibility and styling.</p>
+                </div>
+            </div>
+    
+        </div>
+
+    </div>
+    
 </div> 
+
+
 <div id="toast-success" class="fixed transition opacity-0 duration-300 left-0 right-0 bottom-4 flex items-center w-96 p-4 mx-auto mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
     <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 mr-2 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
         <i class="fas fa-check"></i>
@@ -24,205 +411,285 @@
     </button>
 </div>
 
-<div class="relative h-screen">
-    <button id ="chatButton" class="fixed right-8 bottom-8 bg-blue-500 hover:bg-blue-700 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
-        <i id="chatIcon" class="far fa-comments"></i>
-    </button>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js" defer></script>
 
-    <div id="chat_box" class="flex flex-col flex-grow w-full max-w-md bg-white shadow-xl border rounded-lg overflow-hidden fixed right-8 bottom-24 z-40 hidden">
-        <div id="chat_messages" class="flex flex-col flex-grow h-104 p-4 overflow-auto">
-            <div class="flex w-full mt-2 space-x-3 max-md">
-                <div class="flex-shrink-0 mr-1 h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-white">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </div>
-                <div>
-                    <div class="bg-gray-300 p-3 rounded-r-lg rounded-bl-lg">
-                        <p class="text-sm">Ask me anything about information security compliance!</p>
-                    </div>
-                    <span class="text-xs text-gray-500 leading-none">Now</span>
-                </div>
-            </div>
-        </div>
-        
-        <div id="chat_input" class="bg-gray-300 p-4">
-            <input class="flex items-center h-10 w-full rounded px-3 text-sm" type="text" placeholder="Type your message…">
-        </div>
-    </div>
-</div>
-      
 <!-- Javascript for interactive aspects of the onboarding wizard -->
 <script type="text/javascript">
 
-    // Show/hide function for chatbox. When the circular chat button in bottom right is clicked, it will either show or hide the chatbox depending on its current visibility
-    document.getElementById("chatButton").addEventListener("click", function() {
-        const chatBox = document.getElementById("chat_box");
+    // Logic for the AI assessment upload
 
-        if (chatBox.classList.contains("hidden")) {
-        chatBox.classList.remove("hidden"); // Show the chat box if it's hidden
-        } else {
-            chatBox.classList.add("hidden"); // Hide the chat box if it's visible
-        }
-    });
-
-    document.getElementById('chat_input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-
-            // THIS SECTION IS FOR ADDING THE TEXT BUBBLE
-            var messageContent = e.target.value;  // get the text from input field
-            e.target.value = "";  // clear the input field
-
-            var messageContainer = document.createElement("div");
-            messageContainer.classList.add("flex", "mt-2", "space-x-3", "max-w-md", "ml-auto", "justify-end");
-
-            var messageDiv = document.createElement("div");
-            var messageBubble = document.createElement("div");
-            messageBubble.classList.add("bg-blue-500", "w-full", "text-white", "p-3", "rounded-l-lg", "rounded-br-lg");
-            var messageText = document.createElement("p");
-            messageText.classList.add("text-sm");
-            messageText.innerText = messageContent;
-            messageBubble.appendChild(messageText);
-            messageDiv.appendChild(messageBubble);
-            
-
-            // Get the time and add it to underneath the message bubble
-            var timeSpan = document.createElement("span");
-            timeSpan.classList.add("text-xs", "text-gray-500", "leading-none");
-            var now = new Date();
-            var hours = now.getHours();
-            var minutes = now.getMinutes();
-            var ampm = hours >= 12 ? 'pm' : 'am';
-
-            // Convert hours from 24 hour format to 12 hour format
-            hours = hours % 12;
-
-            // The hour '0' should be '12'
-            hours = hours ? hours : 12;
-
-            // Add a leading zero to the minutes if required
-            minutes = minutes < 10 ? '0'+minutes : minutes;
-
-            // Add the text into the div
-            timeSpan.innerText = `${hours}:${minutes}${ampm}`;
-            messageDiv.appendChild(timeSpan);
-
-            var userIcon = document.createElement("div");
-            userIcon.classList.add("flex-shrink-0", "ml-1", "h-10", "w-10", "rounded-full", "bg-gray-300", "flex", "items-center", "justify-center", "text-white");
-
-            var Icon = document.createElement("i");
-            Icon.classList.add("fa-regular", "fa-user")
-
-            messageContainer.appendChild(messageDiv);
-            messageContainer.appendChild(userIcon);
-            userIcon.appendChild(Icon);
-
-            var messageArea = document.getElementById("chat_messages");
-            messageArea.appendChild(messageContainer);  // add new message to the chat
-            messageArea.scrollTop = messageArea.scrollHeight;  // scroll to the bottom
-
-            // THIS SECTION THEN CONNECTS TO THE AI MODEL and returns the system's bubble in the chat
-            chatAICall(messageContent).then(AImessageContent => {
-                // ADD AI message content as its own bubble
-                var messageContainerAI = document.createElement("div");
-                messageContainerAI.classList.add("flex", "w-full", "mt-2", "space-x-3", "max-w-md", "mr-auto", "justify-start");
-
-                var userIconAI = document.createElement("div");
-                userIconAI.classList.add("flex-shrink-0", "mr-1", "h-10", "w-10", "rounded-full", "bg-gray-300", "flex", "items-center", "justify-center", "text-white");
-                
-                var IconAI = document.createElement("i");
-                IconAI.classList.add("fa-solid", "fa-wand-magic-sparkles");
-                userIconAI.appendChild(IconAI);
-
-                var messageDivAI = document.createElement("div");
-
-                var messageBubbleAI = document.createElement("div");
-                messageBubbleAI.classList.add("bg-gray-300", "p-3", "rounded-r-lg", "rounded-bl-lg");
-                var messageTextAI = document.createElement("p");
-                messageTextAI.classList.add("text-sm");
-                messageTextAI.innerText = AImessageContent;
-                messageBubbleAI.appendChild(messageTextAI);
-                messageDivAI.appendChild(messageBubbleAI);
-                        
-                // Same process as for user - get time and add it to underneath the message bubble
-                var timeSpanAI = document.createElement("span");
-                timeSpanAI.classList.add("text-xs", "text-gray-500", "leading-none");
-                var now = new Date();
-                var hours = now.getHours();
-                var minutes = now.getMinutes();
-                var ampm = hours >= 12 ? 'pm' : 'am';
-
-                // Convert hours from 24 hour format to 12 hour format
-                hours = hours % 12;
-
-                // The hour '0' should be '12'
-                hours = hours ? hours : 12;
-
-                // Add a leading zero to the minutes if required
-                minutes = minutes < 10 ? '0'+minutes : minutes;
-
-                timeSpanAI.innerText = `${hours}:${minutes}${ampm}`;  // add the current time
-                messageDivAI.appendChild(timeSpanAI);
-
-                messageContainerAI.appendChild(userIconAI);
-                messageContainerAI.appendChild(messageDivAI);
-
-                var messageArea = document.getElementById("chat_messages");
-                messageArea.appendChild(messageContainerAI);  // add new AI message to the chat
-                messageArea.scrollTop = messageArea.scrollHeight;  // scroll to the bottom
-            });
-        }
-    });
-
-    function chatAICall(userPrompt) {
-
-        console.log(userPrompt);
-
-        // Fetch API call to Django URL
-        return fetch('/generate_chat_response', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'user_prompt': userPrompt
-            })
-        })
-        
-        .then(response => response.json())
-        .then(result => {
-            // RETURN MESSAGE CONTENT to add as html/css in wider event listener in chat box above
-            return result.output;
-        })
-        .catch(error => console.log('Error:', error));
-    }
-
-    const dropzoneFileInput = document.querySelector('#dropzone-file');
+    // Logic to update the form upload area with the name of the file
+    const dropzoneFileInput = document.querySelector('#client-file-input');
+    const fileNamesContainer = document.querySelector('#file-names');
 
     dropzoneFileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        uploadFile(file);
+        const files = event.target.files;
+        fileNamesContainer.innerHTML = ''; // clear the existing content
+
+        // Getting the assessment button to toggle clickability on depending on if files has been updated or not
+        assessment_button = document.getElementById("assessment_submission");
+
+        if (files.length) {
+            for (let i = 0; i < files.length; i++) {
+
+                // Create the wrapper div for each file row
+                const div = document.createElement('div');
+                div.classList.add('flex', 'items-center', 'justify-center', 'w-full');
+
+                // Create the icon element
+                const doc_icon = document.createElement('i');
+                doc_icon.classList.add("fa-solid", "fa-file", 'mr-2');
+                div.appendChild(doc_icon);
+
+                // Create another div to wrap the file name and apply overflow-x-auto
+                const fileNameWrapper = document.createElement('div');
+                fileNameWrapper.classList.add('overflow-x-auto', 'whitespace-nowrap');
+
+                // Create the file name element
+                const p = document.createElement('p');
+                p.textContent = files[i].name;
+                p.id = 'document_' + i;
+                fileNameWrapper.appendChild(p);
+
+                // Add the file name wrapper to the main div
+                div.appendChild(fileNameWrapper);
+
+                // Add it to the upload area div
+                fileNamesContainer.appendChild(div);
+            }
+
+            assessment_button.disabled = false; 
+            assessment_button.classList.add("bg-blue-500", "hover:bg-blue-700");
+            assessment_button.classList.remove("bg-gray-500", "cursor-not-allowed");
+
+        } else {
+            const span = document.createElement('span');
+            span.className = 'font-semibold';
+            span.textContent = 'or drag and drop';
+            fileNamesContainer.appendChild(span);
+
+            assessment_button.disabled = true;
+            assessment_button.classList.remove("bg-blue-500", "hover:bg-blue-700");
+            assessment_button.classList.add("bg-gray-500", "cursor-not-allowed");
+
+        }
+    }); 
+
+    // Get the form element
+    const form = document.querySelector("#assessment_submission_form");
+
+    // Add a submit event listener to the form
+    form.addEventListener("submit", function(event) {
+
+        // Prevent the default form submission behavior
+        event.preventDefault();
+
+        const files = dropzoneFileInput.files;
+        const selectedFramework = document.getElementById("framework_selection").value;
+        const selectedFamily = document.getElementById("family_selection").value;
+        const selectedModel = document.getElementById("model_selection").value;
+
+        const formData = new FormData();
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append('data_files', files[i]); // Loop through all files
+        }
+        formData.append('selectedFramework', selectedFramework);
+        formData.append('selectedFamily', selectedFamily);
+        formData.append('selectedModel', selectedModel);
+
+        uploadFile(formData);
     });
 
-    function uploadFile(file) {
-        const formData = new FormData();
-        formData.append('data_file', file);
-        showToast('Assessing the provided information against NIST CSF...');
+    function uploadFile(formData) {
+
+        // Get the assess button
+        const assess_button = document.getElementById('assessment_submission');
+        
+        // Update it's text from 'Assess' to 'Assessing' to show in progress
+        assess_button.textContent = "Assessing..."
+
+        // Create the <i> element that shows assessment in progress
+        const iconElement = document.createElement('i');
+        iconElement.id = "assess_button_spinner";
+        iconElement.className = 'fa-solid fa-circle-notch fa-spin mr-2';
+        iconElement.style.color = '#ffffff';
+
+        // Insert the <i> element as the first child of the assess button
+        assess_button.insertBefore(iconElement, assess_button.firstChild);
 
         fetch('/generate_ai_assessment', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `output.${file.name.split('.').pop()}`;  // get file extension from input file
-            a.click();
+
+        .then(response => response.arrayBuffer())
+        .then(buffer => {
+
+            JSZip.loadAsync(buffer).then(zip => {
+
+                // Reset the assess button now that the assessment is complete
+                assess_button.textContent = "Assess";
+                iconElement.remove();
+
+                // Make the results tab clickable and give it the pinging icon
+                const resultsTab = document.getElementById('nav_results_tab_button');
+                resultsTab.disabled = false;
+                resultsTab.classList.remove("cursor-not-allowed");
+
+                const notificationDiv = document.createElement('div');
+                notificationDiv.classList.add('ml-4', 'relative', 'flex');
+
+                const pingSpan = document.createElement('span');
+                pingSpan.classList.add('absolute', 'animate-ping', 'h-4', 'w-4', 'rounded-full', 'bg-blue-500', 'opacity-75');
+
+                const regularSpan = document.createElement('span');
+                regularSpan.classList.add('inline-flex', 'h-4', 'w-4', 'rounded-full', 'bg-blue-600');
+
+                // Append the spans to the div
+                notificationDiv.appendChild(pingSpan);
+                notificationDiv.appendChild(regularSpan);
+
+                resultsTab.insertBefore(notificationDiv, resultsTab.children[1]);
+
+                resultsTab.addEventListener('click', function removeDivOnFirstClick() {
+                if (notificationDiv && notificationDiv.parentNode === resultsTab) {
+                    notificationDiv.remove();
+                }
+                // Remove the event listener itself after executing once
+                resultsTab.removeEventListener('click', removeDivOnFirstClick);
+            }, { once: true });  // This ensures the listener is triggered only once
+
+                // Parse the JSON for metrics
+                zip.file("metrics.json").async("text").then(content => {
+                    const metrics = JSON.parse(content);
+                    console.log(metrics);  // Here you have your metrics! Use it to update your frontend.
+
+                    // Get the dictionary of controls' IDs, names, and implementation statuses
+                    const controlResults = metrics.control_results;
+
+                    // Loop through each control in that dictionary 'control_results' and add a row for each one in the table in the Overview Tab using the helper function 'addTableRow'
+                    for (const controlId in controlResults) {
+                        const controlName = controlResults[controlId].Name;
+                        const controlStatus = controlResults[controlId].Status;
+                        console.log(controlStatus)
+                        addTableRow(controlId, controlName, controlStatus);
+                    }
+
+                    // Access the elements within the Controls Coverage section of Overview tab
+                    const controlsCountElement = document.getElementById('controls_count');
+                    const proceduresCountElement = document.getElementById('procedures_count');
+                    const implementedCountElement = document.getElementById('control_implemented_count');
+                    const partialCountElement = document.getElementById('control_partial_count');
+                    const notImplementedCountElement = document.getElementById('control_not_count');
+                    
+                    // Set the textContent of the Controls Coverage section elements to the corresponding values from the metrics JSON dictionary
+                    controlsCountElement.textContent = metrics.total_controls;
+                    proceduresCountElement.textContent = metrics.total_procedures;
+                    implementedCountElement.textContent = metrics.implemented_controls_count;
+                    partialCountElement.textContent = metrics.partially_implemented_controls_count;
+                    notImplementedCountElement.textContent = metrics.not_implemented_controls_count;
+
+                    // Additionally, for calculated metrics (%s for Controls Coverage Chart), retrieve them and create them
+                    const implementedPercentage = (metrics.implemented_controls_count / metrics.total_controls) * 100;
+                    const partiallyImplementedPercentage = (metrics.partially_implemented_controls_count / metrics.total_controls) * 100;
+                    const notImplementedPercentage = (metrics.not_implemented_controls_count / metrics.total_controls) * 100;
+
+                    // Calculate pie chart percentages for the Test Procedures Results sections of Overview tab
+                    const passPercentage = (metrics.passed_procedures_count / metrics.total_procedures) * 100;
+                    const failPercentage = (metrics.failed_procedures_count / metrics.total_procedures) * 100;
+
+                    const passRateElement = document.getElementById('testing_pass_rate');
+                    passRateElement.textContent = Math.round(passPercentage) + "%"
+
+                    const passedProcedureElement = document.getElementById('testing_pass_count');
+                    passedProcedureElement.textContent = metrics.passed_procedures_count + " of " + metrics.total_procedures;
+
+                    // Store calculated metrics for both charts of Overview tab as series and update the pre-rendered charts with the actual data
+                    // Assuming metrics are ordered: [implementedPercentage, partiallyImplementedPercentage, notImplementedPercentage]
+                    const radialSeriesValues = [notImplementedPercentage, partiallyImplementedPercentage, implementedPercentage];
+
+                    const pieSeriesValues = [passPercentage, failPercentage];
+
+                    if (radialChart) {
+                        radialChart.updateSeries(radialSeriesValues);
+                    }
+
+                    if (pieChart) {
+                        pieChart.updateSeries(pieSeriesValues);
+                    }
+                });
+
+                // Create a blob URL for the Excel file and set it to the <a> tag
+                zip.file("Assessment Workbook with Analysis.xlsx").async("blob").then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const xlsxReportLink = document.getElementById("xlsx_report");
+                    xlsxReportLink.href = url;
+                    xlsxReportLink.download = 'Assessment Workbook with Answers.xlsx'; // This suggests the name for the downloaded file
+                });
+            });
         })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
     }
+    
+function addTableRow(controlId, controlName, status) {
+    
+    // Create elements
+    let row = document.createElement('tr');
+    let th = document.createElement('th');
+    let td1 = document.createElement('td');
+    let td2 = document.createElement('td');
+    let td3 = document.createElement('td');
+    let textElement = document.createElement('text');
+    let iElement = document.createElement('i');
+    let tooltipDiv = document.createElement('div');
+
+    // Set row attributes and classes
+    row.classList.add('bg-white', 'border-b', 'dark:bg-gray-800', 'dark:border-gray-700');
+
+    // Set th attributes and classes
+    th.setAttribute('scope', 'row');
+    th.classList.add('flex', 'items-center', 'px-6', 'py-4', 'font-medium', 'text-gray-900', 'whitespace-nowrap', 'dark:text-white');
+    th.textContent = controlId + ' ';  // Adding space for separation from SVG
+
+    // Tooltip <i> element setup
+    iElement.setAttribute('data-popover-target', 'tooltip-' + controlId);
+    iElement.setAttribute('data-popover-placement', 'right');
+    iElement.classList.add('fas', 'fa-info-circle', 'w-3.5', 'h-3.5', 'text-gray-500', 'hover:text-gray-900', 'cursor-pointer', 'ml-1');
+    iElement.setAttribute('aria-hidden', 'true');
+
+    // Tooltip <div> setup
+    tooltipDiv.setAttribute('id', 'tooltip-' + controlId);
+    tooltipDiv.setAttribute('role', 'tooltip');
+    tooltipDiv.classList.add('absolute', 'z-10', 'invisible', 'inline-block', 'px-3', 'py-2', 'text-sm', 'font-medium', 'text-white', 'transition-opacity', 'duration-300', 'bg-gray-900', 'rounded-lg', 'shadow-sm', 'opacity-0', 'tooltip', 'dark:bg-gray-700');
+    tooltipDiv.innerHTML = controlName + '<div class="tooltip-arrow" data-popper-arrow></div>';
+
+    // Append tooltip <i> element to th
+    th.appendChild(iElement);
+
+    // Set background color and text based on status for the td3
+    td3.classList.add('pl-3.5', 'pr-3', 'py-4');
+    if (status === 'Implemented') {
+        textElement.classList.add('bg-teal-100', 'text-teal-600', 'rounded-md', 'px-2.5', 'py-1.5');
+    } else if (status === 'Partially Implemented') {
+        textElement.classList.add('bg-blue-100', 'text-blue-600', 'rounded-md', 'px-2.5', 'py-1.5');
+    } else {
+        textElement.classList.add('bg-orange-100', 'text-orange-600', 'rounded-md', 'px-2.5', 'py-1.5');
+    }
+    textElement.textContent = status;
+
+    // Append children
+    td3.appendChild(textElement);
+    row.appendChild(th);
+    row.appendChild(td1);
+    row.appendChild(td2);
+    row.appendChild(td3);
+
+    // Append to the table body
+    const tableBody = document.getElementById('control_status_table_body');
+    tableBody.appendChild(row);
+    tableBody.appendChild(tooltipDiv);
+}
 
 // functionality to show toast messages when AI call is successful
 function showToast(message, duration = 15000) {
@@ -255,6 +722,252 @@ function showToast(message, duration = 15000) {
     };
 }
 
+var radialChart;
+var pieChart;
+var barChart;
+
+// Donut ApexChart options and config for Controls Coverage Overview
+window.addEventListener("load", function() {
+    const getChartOptions = (seriesValues) => {
+        return {
+        series: seriesValues,
+        colors: ["#FDBA8C", "#1C64F2", "#16BDCA"], 
+        chart: {
+            height: "380px",
+            width: "100%",
+            type: "radialBar",
+            sparkline: {
+            enabled: true,
+            },
+        },
+        plotOptions: {
+            radialBar: {
+            track: {
+                background: '#E5E7EB',
+            },
+            dataLabels: {
+                show: false,
+            },
+            hollow: {
+                margin: 0,
+                size: "32%",
+            }
+            },
+        },
+        grid: {
+            show: false,
+            strokeDashArray: 4,
+            padding: {
+            left: 2,
+            right: 2,
+            top: -23,
+            bottom: -20,
+            },
+        },
+        labels: ["Not", "Partial", "Implemented"],
+        legend: {
+            show: true,
+            position: "bottom",
+            fontFamily: "Inter, sans-serif",
+        },
+        tooltip: {
+            enabled: true,
+            x: {
+            show: false,
+            },
+        },
+        yaxis: {
+            show: false,
+            labels: {
+            formatter: function (value) {
+                return value + '%';
+            }
+            }
+        }
+        }
+    }
+    
+    if (document.getElementById("radial-chart") && typeof ApexCharts !== 'undefined') {
+        radialChart = new ApexCharts(document.querySelector("#radial-chart"), getChartOptions([0, 0, 0]));
+        radialChart.render();
+    }
+});
+
+// Pie ApexChart options and config for Test Procedures Overview
+window.addEventListener("load", function() {
+const getChartOptions = (seriesValues) => {
+    return {
+        series: seriesValues,
+        colors: ["#1C64F2", "#16BDCA",],
+        chart: {
+        height: 420,
+        width: "100%",
+        type: "pie",
+        },
+        stroke: {
+        colors: ["white"],
+        lineCap: "",
+        },
+        plotOptions: {
+        pie: {
+            labels: {
+            show: true,
+            },
+            size: "100%",
+            dataLabels: {
+            offset: -25
+            }
+        },
+        },
+        labels: ["Fail", "Pass"],
+        dataLabels: {
+        enabled: true,
+        style: {
+            fontFamily: "Inter, sans-serif",
+        },
+        },
+        legend: {
+        position: "bottom",
+        fontFamily: "Inter, sans-serif",
+        },
+        yaxis: {
+        labels: {
+            formatter: function (value) {
+            return value + "%"
+            },
+        },
+        },
+        xaxis: {
+        labels: {
+            formatter: function (value) {
+            return value  + "%"
+            },
+        },
+        axisTicks: {
+            show: false,
+        },
+        axisBorder: {
+            show: false,
+        },
+        },
+    }
+    }
+
+    if (document.getElementById("pie-chart") && typeof ApexCharts !== 'undefined') {
+    pieChart = new ApexCharts(document.getElementById("pie-chart"), getChartOptions([0.0, 0.0]));
+    pieChart.render();
+    }
+});
+
+window.addEventListener("load", function() {
+    const options = {
+        colors: ["#1A56DB", "#FDBA8C"],
+        series: [
+            {
+            name: "Pass",
+            color: "#1A56DB",
+            data: [
+                { x: "AT-1", y: 231 },
+                { x: "AT-2", y: 122 },
+                { x: "AT-2 (2)", y: 63 },
+                { x: "AT-3", y: 421 },
+                { x: "AT-3 (1)", y: 122 },
+                { x: "AT-4", y: 323 },
+            ],
+            },
+            {
+            name: "Fail",
+            color: "#FDBA8C",
+            data: [
+                { x: "AT-1", y: 232 },
+                { x: "AT-2", y: 113 },
+                { x: "AT-2 (2)", y: 341 },
+                { x: "AT-3", y: 224 },
+                { x: "AT-3 (1)", y: 522 },
+                { x: "AT-4", y: 411 },
+            ],
+            },
+        ],
+        chart: {
+            type: "bar",
+            height: "320px",
+            fontFamily: "Inter, sans-serif",
+            toolbar: {
+            show: false,
+            },
+        },
+        plotOptions: {
+            bar: {
+            horizontal: false,
+            columnWidth: "70%",
+            borderRadiusApplication: "end",
+            borderRadius: 8,
+            },
+        },
+        tooltip: {
+            shared: true,
+            intersect: false,
+            style: {
+            fontFamily: "Inter, sans-serif",
+            },
+        },
+        states: {
+            hover: {
+            filter: {
+                type: "darken",
+                value: 1,
+            },
+            },
+        },
+        stroke: {
+            show: true,
+            width: 0,
+            colors: ["transparent"],
+        },
+        grid: {
+            show: false,
+            strokeDashArray: 4,
+            padding: {
+            left: 2,
+            right: 2,
+            top: -14
+            },
+        },
+        dataLabels: {
+            enabled: false,
+        },
+        legend: {
+            show: false,
+        },
+        xaxis: {
+            floating: false,
+            labels: {
+            show: true,
+            style: {
+                fontFamily: "Inter, sans-serif",
+                cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400'
+            }
+            },
+            axisBorder: {
+            show: false,
+            },
+            axisTicks: {
+            show: false,
+            },
+        },
+        yaxis: {
+            show: false,
+        },
+        fill: {
+            opacity: 1,
+        },
+        }
+
+        if(document.getElementById("column-chart") && typeof ApexCharts !== 'undefined') {
+        const chart = new ApexCharts(document.getElementById("column-chart"), options);
+        chart.render();
+        }
+});
 </script>
     
 {% endblock %}

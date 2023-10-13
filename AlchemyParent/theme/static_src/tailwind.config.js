@@ -125,6 +125,8 @@ module.exports = {
         require('@tailwindcss/typography'),
         require('@tailwindcss/line-clamp'),
         require('@tailwindcss/aspect-ratio'),
-        require('flowbite/plugin'), //added for flowbite css components
+        require('flowbite/plugin')({  //added for flowbite css components and ApexCharts
+            charts: true,
+        }),
     ],
 }
