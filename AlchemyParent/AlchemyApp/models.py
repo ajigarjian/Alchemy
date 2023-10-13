@@ -405,7 +405,6 @@ class NISTControl(models.Model):
         verbose_name = "NIST Control"
         verbose_name_plural = "NIST Controls"
 
-
 class NISTControlElement(models.Model):
     control = models.ForeignKey('NISTControl', related_name='elements', on_delete=models.CASCADE, null=True, blank=True)
     parent = models.ForeignKey('self', related_name='sub_elements', on_delete=models.CASCADE, null=True, blank=True)
@@ -437,24 +436,9 @@ class NISTControlElement(models.Model):
         elif self.level == 2:  # This is a sub-sub-part (like "a" under "1" under "a")
             return f"{self.parent.parent.identifier}{self.parent.identifier}{self.identifier}"
 
-# class NISTParameter(models.Model):
-#     control = models.ForeignKey('NISTControl', related_name='NIST_parameters', on_delete=models.CASCADE)
-#     element = models.ForeignKey('NISTControlElement', related_name='NIST_parameters', null=True, blank=True, on_delete=models.CASCADE)
-#     description = models.TextField()
-
-#     class Meta:
-#         verbose_name = "Parameter"
-#         verbose_name_plural = "Parameters"
-
-#     def __str__(self):
-#         if self.control:
-#             return f'NIST Parameter for control: {self.control}'
-#         else:
-#             return f'NIST Parameter for control element: {self.element}'
-
-class FedRAMPParameter(models.Model):
-    control = models.ForeignKey('NISTControl', related_name='FedRAMP_parameters', null=True, blank=True, on_delete=models.CASCADE)
-    element = models.ForeignKey('NISTControlElement', related_name='FedRAMP_parameters', null=True, blank=True, on_delete=models.CASCADE)
+class ControlParameter(models.Model):
+    control = models.ForeignKey('NISTControl', related_name='parameters', null=True, blank=True, on_delete=models.CASCADE)
+    element = models.ForeignKey('NISTControlElement', related_name='parameters', null=True, blank=True, on_delete=models.CASCADE)
     description = models.TextField()
 
     class Meta:
