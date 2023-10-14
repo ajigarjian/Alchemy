@@ -1,6 +1,5 @@
 import json #for api calls
 import re
-import logging
 import random #for generating system color for client dashboard
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse #for API calls
@@ -37,7 +36,6 @@ from langchain.chat_models import ChatOpenAI #Importing langchain's abstraction 
 from langchain.prompts import PromptTemplate #for creating a prompt template that will provide context to user queries/other inputs to llm
 
 load_dotenv()
-logger = logging.getLogger(__name__)
 
 ####################################### Public Application when not logged in ##############################################
 
