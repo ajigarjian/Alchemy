@@ -7,13 +7,12 @@
     "start": "python manage.py runserver",
     "heroku-postbuild": "npm install && npm run build:css"
   },
-  "dependencies": {
-    "tailwindcss": "^2.0.2",
-    "flowbite": "^1.6.5"
-  },
+  "dependencies": {},
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "depcheck": "^1.4.6"
+    "depcheck": "^1.4.6",
+    "tailwindcss": "^2.0.2",
+    "flowbite": "^1.6.5"
   },
   "repository": {
     "type": "git",
