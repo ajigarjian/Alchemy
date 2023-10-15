@@ -332,7 +332,7 @@ def assess_controls_in_workbook(worksheet, duplicate_worksheet, organization_nam
     for row_index, row in enumerate(worksheet.iter_rows(min_row=starting_row, values_only=True), start=starting_row): # Assuming your data starts from the second row (skipping header)
         
         #skip the row if it is empty
-        if row_index >= 21:
+        if row_index >= 15:
 
             # Getting the current control description from this row in the spreadsheet
             control_description = row[4]
