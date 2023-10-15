@@ -1,1 +1,7 @@
 venv
+node_modules
+.git
+.DS_Store
+*.code-workspace
+db.sqlite3
+output.dat
