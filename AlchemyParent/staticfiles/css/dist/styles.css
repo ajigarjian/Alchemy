@@ -689,6 +689,10 @@ select {
   --tw-backdrop-saturate:  ;
   --tw-backdrop-sepia:  ;
 }
+.drop-shadow-sm	{
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.05));
+}
+/* drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)] */
 
 .container {
   width: 100%;
@@ -2816,6 +2820,10 @@ select {
   width: 83.333333%;
 }
 
+.w-9\/10 {
+  width: 90%;
+}
+
 .w-96 {
   width: 24rem;
 }
@@ -3808,6 +3816,41 @@ select {
   padding-right: 3.5rem;
 }
 
+.px-16 {
+  padding-left: 4rem;
+  padding-right: 4rem;
+}
+
+.px-18 {
+  padding-left: 4.5rem;
+  padding-right: 4.5rem;
+}
+
+.px-20 {
+  padding-left: 5rem;
+  padding-right: 5rem;
+}
+
+.px-22 {
+  padding-left: 5.5rem;
+  padding-right: 5.5rem;
+}
+
+.px-24 {
+  padding-left: 6rem;
+  padding-right: 6rem;
+}
+
+.px-28 {
+  padding-left: 7rem;
+  padding-right: 7rem;
+}
+
+.px-32 {
+  padding-left: 8rem;
+  padding-right: 8rem;
+}
+
 .px-2 {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -4492,6 +4535,11 @@ select {
     line-height: 2.5rem;
   }
 
+  .sm\:text-5xl {
+    font-size: 4rem;
+    line-height: 3.5rem;
+  }
+
   .sm\:text-base {
     font-size: 1rem;
     line-height: 1.5rem;
@@ -4564,7 +4612,7 @@ select {
 
   .md\:text-6xl {
     font-size: 4rem;
-    line-height: 4.5rem;
+    line-height: 6rem;
   }
 
   .md\:block {
@@ -7956,10 +8004,6 @@ column-gap: 24rem; /* 384px */
 .gap-y-96 {
 row-gap: 24rem; /* 384px */
 }
-
-
-    
-    
     
     
     
