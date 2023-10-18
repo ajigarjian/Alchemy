@@ -5,3 +5,20 @@ node_modules
 *.code-workspace
 db.sqlite3
 output.dat
+
+
+.vercel
+*.log
+*.pyc
+__pycache__
+db.sqlite3
+media
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
