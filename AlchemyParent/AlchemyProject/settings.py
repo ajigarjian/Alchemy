@@ -46,7 +46,7 @@ def str2bool(v):
 DEBUG = str2bool(os.getenv('DJANGO_DEBUG', 'True'))
 
 # vercel app included
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['https://comply-with-alchemy.azurewebsites.net/', '*']
 
 #Added to provide functionality for Django-tailwind
 TAILWIND_APP_NAME = 'theme'
@@ -84,8 +84,6 @@ MIDDLEWARE = [
 if DEBUG:
     INSTALLED_APPS.append('debug_toolbar')
     MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
-
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'AlchemyProject.urls'
 
@@ -173,6 +171,7 @@ STATICFILES_DIRS = [
      BASE_DIR / 'AlchemyApp' / 'static',
 ]
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
