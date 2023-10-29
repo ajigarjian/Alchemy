@@ -46,7 +46,7 @@ def str2bool(v):
 DEBUG = str2bool(os.getenv('DJANGO_DEBUG', 'True'))
 
 # vercel app included
-ALLOWED_HOSTS = ['https://comply-with-alchemy.azurewebsites.net/', '*']
+ALLOWED_HOSTS = ['https://comply-with-alchemy.azurewebsites.net', '*']
 
 #Added to provide functionality for Django-tailwind
 TAILWIND_APP_NAME = 'theme'
@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'whitenoise.runserver_nostatic'
 ]
 
 MIDDLEWARE = [
