@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/d74fb988-0c83-40ff-b95f-94330d628ca3/resourceGroups/comply-with-alchemy/providers/Microsoft.Web/sites/comply-with-alchemy",
+    "appService.deploySubpath": "."
+}

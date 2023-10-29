@@ -1,3 +1,3 @@
-venv/
-AlchemyParent/.env
+venv
+AlchemyApp/.env
 .DS_Store
