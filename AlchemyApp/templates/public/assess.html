@@ -68,7 +68,7 @@
                     </select>
     
                     <!-- Dropdown to choose the framework's families -->
-                    <label for="family_selection" class="mt-8 block mb-2 text-sm font-medium text-gray-900">Select a control family</label>
+                    <!-- <label for="family_selection" class="mt-8 block mb-2 text-sm font-medium text-gray-900">Select a control family</label>
                     <select id="family_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                         <option value="AC">Access Control</option>
                         <option value="AT">Awareness and Training</option>
@@ -80,11 +80,21 @@
                         <option value="IR">Incident Response</option>
                         <option value="MA">Maintenance</option>
                         <option value="MP">Media Protection</option>
-                    </select>
+                        <option value="PE">Physical and Environmental Protection</option>
+                        <option value="PL">Planning</option>
+                        <option value="PS">Personnel Security</option>
+                        <option value="RA">Risk Assessment</option>
+                        <option value="SA">System and Services Acquisition</option>
+                        <option value="SC">System and Communications Protection</option>
+                        <option value="SI">System and Information Integrity</option>
+                        <option value="SR">Supply Chain Risk Management</option>
+
+                    </select> -->
     
                     <!-- Dropdown to choose the model to assess with -->
                     <label for="model_selection" class="mt-8 block mb-2 text-sm font-medium text-gray-900">Select a model</label>
                     <select id="model_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        <option value="gpt-4-1106-preview">gpt-4-1106-preview</option>
                         <option selected="gpt-4">gpt-4</option>
                         <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
                     </select>
@@ -495,7 +505,7 @@
 
         const files = dropzoneFileInput.files;
         const selectedFramework = document.getElementById("framework_selection").value;
-        const selectedFamily = document.getElementById("family_selection").value;
+        // const selectedFamily = document.getElementById("family_selection").value;
         const selectedModel = document.getElementById("model_selection").value;
 
         const formData = new FormData();
@@ -504,7 +514,7 @@
             formData.append('data_files', files[i]); // Loop through all files
         }
         formData.append('selectedFramework', selectedFramework);
-        formData.append('selectedFamily', selectedFamily);
+        // formData.append('selectedFamily', selectedFamily);
         formData.append('selectedModel', selectedModel);
 
         uploadFile(formData);

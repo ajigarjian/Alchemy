@@ -14,6 +14,7 @@ from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required #to redirect user to login route if they try to access an app page past login
 from django.db.models import Count, Q, OuterRef, Exists
 import os, openai
+# from openai import OpenAI
 from dotenv import load_dotenv #for access to .env variables, like OPENAI API key
 from urllib.parse import unquote #to decode url strings passed through urls as parameters, e.g. client
 from openpyxl.styles import Alignment
@@ -32,6 +33,9 @@ from langchain.text_splitter import CharacterTextSplitter #for taking langchain 
 from langchain.embeddings.openai import OpenAIEmbeddings #for taking document chunks and embedding them as vectors for similarity searching
 from langchain.vectorstores import FAISS #for storing the vector representations of document chunks, vectorizing the given query, and retrieving the relevant text via similarity search. Will not be long term solution
 from langchain.chains import RetrievalQA #Langchain chain for distilling the retrieved document chunks into an human-like answer using an llm/chat model, like gpt-turbo-3.5
+from langchain.chains.summarize import load_summarize_chain
+from langchain.chains import LLMChain
+from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI #Importing langchain's abstraction on top of the OpenAI API
 from langchain.prompts import PromptTemplate #for creating a prompt template that will provide context to user queries/other inputs to llm
 
@@ -135,9 +139,24 @@ def generate_ai_assessment(request):
     # Get the relevant info from the user (files, settings)
     uploaded_files = request.FILES.getlist('data_files')
     selected_framework = request.POST['selectedFramework']
-    selected_family = request.POST['selectedFamily']
+    # selected_family = request.POST['selectedFamily']
     selected_model = request.POST['selectedModel']
 
+    relevant_control_families = set()
+
+    # Instantiate the llm we'll be using to tag the files' associated control families
+    metadata_llm = OpenAI(model_name=selected_model, openai_api_key=openai_api_key)
+
+    # Create the prompt template, prompt, and chain we'll use for the tagging
+    metadata_template = """Please provide the most relevant FedRAMP control family for a document summarized as follows: {summary}
+    Provide nothing but the abbreviation (in all caps) of the control family, e.g. "AT" or "CP" - and nothing else. Your response should only be two letters long."""
+    metadata_prompt = PromptTemplate(template=metadata_template, input_variables=["summary"])
+    metadata_chain = LLMChain(prompt=metadata_prompt, llm=metadata_llm)
+
+    #Also, use the metadata llm to summarize the files as they come in (pre-processing step)
+    summarize_chain = load_summarize_chain(metadata_llm, chain_type="stuff")
+
+    #Instantiate empty vector database to store vectorizations of the files' content
     vectorstore = None
 
     for index, uploaded_file in enumerate(uploaded_files): # Loop through all uploaded files
@@ -145,8 +164,10 @@ def generate_ai_assessment(request):
         if uploaded_file.multiple_chunks():
             return JsonResponse({"error": "Uploaded file is too big (%.2f MB)." % (uploaded_file.size/(1000*1000),)}, status=400)
 
-        # Create a temporary file to save the uploaded data
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        # Create a temporary file (with original filename) to save the uploaded data 
+        temp_dir = tempfile.mkdtemp()
+        temp_file_path = os.path.join(temp_dir, uploaded_file.name)
+        with open(temp_file_path, 'wb') as temp_file:
             for chunk in uploaded_file.chunks():
                 temp_file.write(chunk)
 
@@ -158,7 +179,7 @@ def generate_ai_assessment(request):
         else:
             return JsonResponse({"error": "Unsupported file type."}, status=400)
 
-        #chunk up the loaded document. Can tweak chunking parameters for optimal performance 
+        #splitter to chunk up the loaded file. Can tweak chunking parameters for optimal performance 
         text_splitter = CharacterTextSplitter(        
             separator = "\n",
             chunk_size = 1000,
@@ -166,50 +187,75 @@ def generate_ai_assessment(request):
             length_function = len,
         )
 
-        pages = loader.load_and_split(text_splitter)
+        # Use the text splitter to chunk up the file into chunks (i.e. "Documents"), each page also has metadata (page number, source file name)
+        documents = loader.load_and_split(text_splitter)
+
+        # Run the previously created summarize chain on the Document chunks from the file to get a summary of the file
+        file_summary = summarize_chain.run(documents)
+
+        # Now, with the summary in hand, retrieve the associated control family abbreviation (future state - will be more than just FedRAMP control families)
+        file_control_family = metadata_chain.run(file_summary)
+
+        # Tag all the Documents for the given file with the associated control family in its metadata for later use
+        for document in documents:
+            # Add the 'control_family' field to the metadata
+            document.metadata['control_family'] = file_control_family
+            # print(document)
+            # print("")
+        
+        relevant_control_families.add(file_control_family)
 
         if index == 0:
-            # Take the first file's page chunks and store them as vector embeddings within FAISS vector storage.
-            vectorstore = FAISS.from_documents(pages, OpenAIEmbeddings(openai_api_key=openai_api_key))
+            # Take the first file's document chunks and store them as vector embeddings within FAISS vector storage.
+            vectorstore = FAISS.from_documents(documents, OpenAIEmbeddings(openai_api_key=openai_api_key))
         
         else:
             # Add every subsequent file's page chunks into the initialized vector storage
-            vectorstore.add_documents(pages)
-
+            vectorstore.add_documents(documents)
+    
     # Instantiate the llm we'll be using to analyze the documents using the user's selected OpenAI model
     llm = ChatOpenAI(model_name=selected_model, temperature=0, openai_api_key=openai_api_key)
-    
-    #Instantiate the query/answer chain we'll use with the llm and PDF's vector store for answering any questions about the document.
-    qa_chain = RetrievalQA.from_chain_type(llm,retriever=vectorstore.as_retriever())
 
-    template = """{organization} has implemented security processes based on the provided documents. Please analyze the documents against the following information security test procedure: {control_description}. For this test procedure, please respond with exactly each of the 4 items, with each prefaced by their "Analysis_Part" + the number of the section, e.g. "Analysis_Part1:" (without any introduction or explanation, just your analysis):
+    template = """{organization} has implemented security processes based on the provided documents. Please analyze the documents against the following information security test procedure: "{control_description}". None of your responses should contain "I'm sorry", "I apologize" or similar. For this test procedure, please respond with exactly each of the 5 items, with each prefaced by their "Analysis_Part" + the number of the section, e.g. "Analysis_Part1:" (without any introduction or explanation, just your analysis):
 
-    1. Without any introduction or explanation, the snippets of the relevant sections of text that offer evidence to support that the test requirement is implemented. Include the page number, where possible. (if it is not at all applicable, do not provide anything);
-    2. An analysis of how well the document(s) meets the requirements of the given test procedure;
-    3. An implementation status based on 1. and 2. of "Pass", "Fail"; and
-    4. If the status was deemend "Fail" in 3., then recommendations for control remediation. If it was deemed "Pass", then do not provide anything.
+    1. Without any introduction or explanation, the snippets of the relevant sections of text that offer evidence to support that the test requirement is implemented. Include the page number, where possible. (If there are no relevant text sections, do not provide anything);
+    2. An analysis of how well the document(s) meets the requirements of the given test procedure (If there were no relevant text sections in 1., then explain there was no match);
+    3. An implementation status based on 1. and 2. of "Pass" or "Fail" (and nothing else);
+    4. If the status was deemed "Fail" in 3., then recommendations for control remediation. If it was deemed "Pass", then do not provide anything; and
+    5. Based on the relevant text in 1. and the recommendation in 4., what updated text could look like to meet the procedure. If the status was deemed "Pass" in 3., then do not provide anything.
     """
 
-    # """{organization} has implemented security processes based on the provided document. How well does the provided document meet the requirements of the following information security control: '{control_description}'. Please also provide recommendations for remediation if the control is not fully met."""
+    # Generating a Langchain prompt template using the string from above
     prompt_template = PromptTemplate.from_template(template)
 
-    document_org = qa_chain({"query": "What is the name of the organization that the document is for? Reply with the name and nothing else."})['result']
+    org_chain = RetrievalQA.from_chain_type(llm,retriever=vectorstore.as_retriever(), return_source_documents=True)
+    document_org = org_chain({"query": "What is the name of the organization that the document is for? Reply with the name and nothing else."})['result']
 
     #Pull the testing workbook
     static_path = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
     template_path = os.path.join(static_path, 'SRC_Innovation_Documents/FedRAMP Assessment Workbook.xlsx')
 
-    # Load workbook and select the specific testing worksheet in the workbook
+    # Load workbook
     workbook = load_workbook(filename=template_path)
-    
-    worksheet = workbook[selected_family]
 
     # Create a duplicate of the original workbook for output
     duplicate_workbook = copy(workbook)
-    duplicate_worksheet = duplicate_workbook[selected_family]
 
-    # Perform analysis based on the test procedures in the controls workbook, the prompt and QA chain, and update the duplicate workbook with the output
-    procedure_results = assess_controls_in_workbook(worksheet, duplicate_worksheet, document_org, prompt_template, qa_chain)
+    list_of_results = []
+
+    #iterate and test through the relevant control families based on the uploaded files
+    for control_family in relevant_control_families:
+
+        qa_chain = RetrievalQA.from_chain_type(llm,retriever=vectorstore.as_retriever(search_kwargs={'k': 2, 'filter': {'control_family':control_family}}), return_source_documents=True)
+
+        # select the control family's worksheet in the original workbook and output workbook
+        worksheet = workbook[control_family]
+        duplicate_worksheet = duplicate_workbook[control_family]
+    
+        # Perform analysis based on the test procedures in the controls workbook, the prompt and QA chain, and update the duplicate workbook with the output
+        procedure_results = assess_controls_in_worksheet(worksheet, duplicate_worksheet, document_org, prompt_template, qa_chain)
+
+        list_of_results.append(procedure_results)
 
     # -------------------- SECTION TO GET METRICS FROM FILLED OUT WORKBOOK FOR FRONT END ----------------
 
@@ -217,9 +263,12 @@ def generate_ai_assessment(request):
     control_intermediate = {}
 
     # Process each test procedure
-    for procedure, data in procedure_results.items():
+    for procedure, data in list_of_results[0].items():
         
         status = data["result"] #Getting each procedure's pass/fail
+        if status == 'Partial Pass' or status == 'Error':
+            status = 'Fail'
+
         control_name = data["name"] #Getting each procedure's 'name' (really control name)
         control = procedure.rsplit('.', 1)[0] #Getting the control ID from each procedure ID
 
@@ -250,8 +299,8 @@ def generate_ai_assessment(request):
         }
             
     # Metrics
-    total_procedures = len(procedure_results)
-    passed_procedures_count = sum(1 for data in procedure_results.values() if data["result"] == 'Pass')
+    total_procedures = len(list_of_results[0])
+    passed_procedures_count = sum(1 for data in list_of_results[0].values() if data["result"] == 'Pass')
     failed_procedures_count = total_procedures - passed_procedures_count
 
     total_controls = len(control_results)
@@ -319,7 +368,7 @@ def generate_ai_assessment(request):
     # return response
 
 # Helper function to /generate_ai_assessment that takes in the worksheet, name of the organization, and the prompt template, and updates the workbook accordingly with the output of the analysis
-def assess_controls_in_workbook(worksheet, duplicate_worksheet, organization_name, prompt_template, qa_chain):
+def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_name, prompt_template, qa_chain):
 
     procedure_results = {}
 
@@ -332,20 +381,47 @@ def assess_controls_in_workbook(worksheet, duplicate_worksheet, organization_nam
     for row_index, row in enumerate(worksheet.iter_rows(min_row=starting_row, values_only=True), start=starting_row): # Assuming your data starts from the second row (skipping header)
         
         #skip the row if it is empty
-        if row_index >= 20:
+        if row[0]:
 
             # Getting the current control description from this row in the spreadsheet
             control_description = row[4]
 
             # Querying the llm to perform a similarity search with the templated query against our vector store
-            query = prompt_template.format(control_description=control_description, organization=organization_name)
-            result = qa_chain({"query": query})
+            question = prompt_template.format(control_description=control_description, organization=organization_name)
+            result = qa_chain({"query": question})
+
+            source_set = set()
+
+            # Iterate through the source documents for this procedure
+            for doc in result["source_documents"]:
+
+                # Replace the full path of the Document's source with just the filename
+                doc.metadata['source'] = os.path.basename(doc.metadata['source'])
+
+                # Add the source string to the set
+                source_set.add(doc.metadata['source'])
+            
+            # Join all metadata strings into a single string, separated by a delimiter (e.g., newline)
+            all_sources = '\n'.join(source_set)
+
+            # Set the value of the cell to the aggregated metadata string
+            cell = duplicate_worksheet.cell(row=row_index, column=6, value=all_sources)
+            cell.alignment = Alignment(wrap_text=True)
+
+            print(result['result'])
+            print("")
+
+            # for doc in result["source_documents"]:
+            #     print(doc)
+            #     print("")
+            #     print(doc.metadata)
+            #     print("")
 
             # Storing the response string into separate variables by section to upload to different columns
             split_output = extract_parts(result['result'])
 
-            #Taking the split output and populating each row's columns G through J with it
-            column_index = 8
+            #Taking the split output and populating each row's columns F through K with it
+            column_index = 7
 
             for part in split_output:
                 # Add the answer to the current column of the current row in the duplicate worksheet
@@ -354,7 +430,7 @@ def assess_controls_in_workbook(worksheet, duplicate_worksheet, organization_nam
                 cell.alignment = Alignment(wrap_text=True)
 
                 #If filling in the pass/fail Column I, then center the text in the cell horizontally and vertically
-                if column_index == 10:
+                if column_index == 9:
                     cell.alignment = Alignment(horizontal='center', vertical='center')
 
                 # Move to the next column for the next loop
@@ -362,7 +438,7 @@ def assess_controls_in_workbook(worksheet, duplicate_worksheet, organization_nam
 
             procedure_id = row[2]
             procedure_name = row[3]
-            procedure_result = duplicate_worksheet.cell(row=row_index, column=10).value
+            procedure_result = duplicate_worksheet.cell(row=row_index, column=9).value
 
             procedure_results[procedure_id] = {
                 "name": procedure_name,
@@ -377,38 +453,49 @@ def assess_controls_in_workbook(worksheet, duplicate_worksheet, organization_nam
 # Helper function to /generate_ai_assessment that takes the output from the query to OpenAI from the similarity search, and splits it so that we can put the info into the right columns
 def extract_parts(input_str):
     # Define the markers that we will use to split the text
-    markers = ["Analysis_Part1:", "Analysis_Part2:", "Analysis_Part3:", "Analysis_Part4:"]
+    primary_markers = ["Analysis_Part1:", "Analysis_Part2:", "Analysis_Part3:", "Analysis_Part4:", "Analysis_Part5:"]
+    secondary_markers = ["1.", "2.", "3.", "4.", "5."]
+
+    error_message = "I'm sorry, but I can't assist with that."
+    if error_message == input_str:
+        return ("Error", "Error", "Error", "Error", "Error")
     
-    # Initialize an empty list to hold the parts
-    parts = []
-    
-    # Iterate through the markers to split the text
-    for i in range(len(markers)):
-        start_marker = markers[i]
-        try:
-            end_marker = markers[i + 1]
-        except IndexError:
-            end_marker = None
-            
-        if end_marker:
-            # Find the indices of the start and end markers
-            start_idx = input_str.index(start_marker) + len(start_marker)
-            end_idx = input_str.index(end_marker)
-            
-            # Extract the part in between the markers and strip whitespace
-            part = input_str[start_idx:end_idx].strip()
-        else:
-            # We are at the last marker; extract everything after it
-            start_idx = input_str.index(start_marker) + len(start_marker)
-            part = input_str[start_idx:].strip()
-        
-        # Append the part to the list
-        parts.append(part)
-        
-    if len(parts) != 4:
-        raise ValueError("Invalid input: Expected exactly 4 parts.")
-        
-    return tuple(parts)
+    # Function to extract parts using a given set of markers
+    def extract_with_markers(markers):
+        parts = []
+        for i in range(len(markers)):
+            start_marker = markers[i]
+            try:
+                end_marker = markers[i + 1]
+            except IndexError:
+                end_marker = None
+
+            if end_marker:
+                start_idx = input_str.find(start_marker) + len(start_marker)
+                end_idx = input_str.find(end_marker)
+                if start_idx == -1 or end_idx == -1:
+                    return None  # Marker not found
+                part = input_str[start_idx:end_idx].strip()
+            else:
+                start_idx = input_str.find(start_marker) + len(start_marker)
+                if start_idx == -1:
+                    return None  # Marker not found
+                part = input_str[start_idx:].strip()
+            parts.append(part)
+        return parts
+
+    # Try extracting with primary markers
+    extracted_parts = extract_with_markers(primary_markers)
+    if extracted_parts is not None and len(extracted_parts) == 5:
+        return tuple(extracted_parts)
+
+    # Try extracting with secondary markers
+    extracted_parts = extract_with_markers(secondary_markers)
+    if extracted_parts is not None and len(extracted_parts) == 5:
+        return tuple(extracted_parts)
+
+    # Handle case where neither set of markers worked
+    return ('Error', 'Error', 'Error', 'Error', 'Error')
 
 ####################################### Internal Application once logged in ##############################################
 
