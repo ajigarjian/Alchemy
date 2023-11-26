@@ -10,6 +10,7 @@
         "src": "/(.*)",
         "dest": "AlchemyProject/wsgi.py"
       }
+<<<<<<< HEAD
     ],
     "functions": {
       "api/**": {
@@ -17,3 +18,7 @@
       }
     }
 }
+=======
+    ]
+}
+>>>>>>> 5eb2d70a2e81a25385adc8299d6d0b79fd716473
