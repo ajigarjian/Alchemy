@@ -1,3 +1,4 @@
 venv
 AlchemyApp/.env
 .DS_Store
+.vercel
