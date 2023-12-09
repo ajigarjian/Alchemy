@@ -4567,6 +4567,10 @@ select {
     font-size: 1.25rem;
     line-height: 1.75rem;
   }
+
+  .sm\:w-1\/2 {
+    width: 50%;
+  }
 }
 
 @media (min-width: 768px) {
@@ -4764,6 +4768,10 @@ select {
 
   .lg\:w-9\/10 {
     width: 90%;
+  }
+
+  .lg\:w-48 {
+    width: 12rem;
   }
 
   .lg\:w-256 {

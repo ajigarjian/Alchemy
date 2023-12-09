@@ -1,0 +1,9 @@
+runtime: python310
+entrypoint: gunicorn -t 0 -b :$PORT AlchemyProject.wsgi
+instance_class: F4
+env_variables:
+  OPENAI_API_KEY: "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"
+  DJANGO_SECRET_KEY: "rxmzr_g&x@w%wcj(-99h63v+&=@+bw!-=!a^xh1a&8u9r-)x$)"
+  GITHUB_ACCOUNT_KEY: "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"
+  SUPABASE_ACCOUNT_KEY: "sbp_484503e2cf01808a1eb0b63c9735358e6b8262a5"
+  DATABASE_URI: "postgresql://postgres:Prot3ctYourReput@tion!@db.xapzxccjutkbjmfcpdkd.supabase.co:5432/postgres"

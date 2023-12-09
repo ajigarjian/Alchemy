@@ -43,10 +43,12 @@ def str2bool(v):
     return str(v).lower() in ("yes", "true", "t", "1")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = str2bool(os.getenv('DJANGO_DEBUG', 'True'))
+DEBUG = False
 
 # vercel app included
-ALLOWED_HOSTS = ['https://comply-with-alchemy.azurewebsites.net', '*']
+ALLOWED_HOSTS = ['*']
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 #Added to provide functionality for Django-tailwind
 TAILWIND_APP_NAME = 'theme'
@@ -68,6 +70,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'whitenoise.runserver_nostatic'
 ]
 
@@ -75,6 +78,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -111,7 +115,7 @@ TEMPLATES = [
 ]
 
 # vercel app
-WSGI_APPLICATION = 'AlchemyProject.wsgi.app'
+WSGI_APPLICATION = 'AlchemyProject.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

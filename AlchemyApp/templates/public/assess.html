@@ -115,18 +115,20 @@
                     <li class="mr-2" role="presentation">
                         <button class="inline-block p-4 border-b-2 rounded-t-lg" id="overview-tab" data-tabs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="false">Overview</button>
                     </li>
+
+                    <!-- Add 'role="tab"' as button attributes to the tabs to regain functionality once they are built out' -->
                     <li class="mr-2" role="presentation">
-                        <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 cursor-not-allowed" id="testing-tab" data-tabs-target="#testing" type="button" aria-controls="testing" aria-selected="false">Testing 
-                            <span class="w-8 h-8 rounded-lg bg-red-100 dark:bg-gray-500 text-red-600 p-2">
+                        <button class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 cursor-not-allowed" id="testing-tab" data-tabs-target="#testing" type="button" aria-controls="testing" aria-selected="false">Testing 
+                            <span class="ml-2 rounded-lg bg-red-100 dark:bg-gray-500 text-red-600 px-2 whitespace-nowrap">
                                 Coming Soon
                             </span>
                         </button>
                     </li>
                     <li class="mr-2" role="presentation">
-                        <button class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 cursor-not-allowed" id="recommendations-tab" data-tabs-target="#recommendations" type="button" aria-controls="recommendations" aria-selected="false">Recommendations
-                            <span class="w-8 h-8 rounded-lg bg-red-100 dark:bg-gray-500 text-red-600 p-2">
+                        <button class="inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 cursor-not-allowed" id="recommendations-tab" data-tabs-target="#recommendations" type="button" aria-controls="recommendations" aria-selected="false">Recommendations
+                            <span class="ml-2 rounded-lg bg-red-100 dark:bg-gray-500 text-red-600 px-2 whitespace-nowrap">
                                 Coming Soon
-                            </span>
+                            </span>                                
                         </button>
                     </li>
                 </ul>
@@ -149,16 +151,18 @@
                                 <div class="flex items-center">
                                     <div class="flex justify-center items-center">
                                         <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pr-1">Controls Coverage</h5>
-                                        <svg data-popover-target="chart-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg data-popover-target="controls-coverage-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
                                         </svg>
                                         
-                                        <div data-popover id="chart-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                        <div data-popover id="controls-coverage-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
                                             <div class="p-3 space-y-2">
-                                                <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental</h3>
-                                                <p>Report helps navigate cumulative growth of community activities. Ideally, the chart should have a growing trend, as stagnating chart signifies a significant decrease of community activity.</p>
-                                                <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
-                                                <p>For each date bucket, the all-time volume of activities is calculated. This means that activities in period n contain all activities up to period n, plus the activities generated by your community in period.</p>
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Implemented</h3>
+                                                <p>Indicates that a given security control tested is fully in place and operational as intended within the in-scope environment based on the security program documentation provided.</p>
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Partial</h3>
+                                                <p>Indicates that a given security control tested is only partly in place or operational. This might mean that certain aspects of the control are functioning, but not all requirements are met. Partial implementation can also suggest that the control is in the process of being implemented or that it functions in some areas or times but is inconsistent.</p>
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Not</h3>
+                                                <p>Indicates that a given security control tested has not been put into practice at all. As based on the documentation provided, the organization has either not begun implementation of the control or has not documented its implementation.</p>
                                             </div>
                                             <div data-popper-arrow></div>
                                         </div>
@@ -177,9 +181,9 @@
                                         <dt id="control_partial_count" class="w-8 h-8 rounded-full bg-blue-100 dark:bg-gray-500 text-blue-600 dark:text-blue-300 text-sm font-medium flex items-center justify-center mb-1">2</dt>
                                         <dd class="text-blue-600 dark:text-blue-300 text-sm font-medium">Partial</dd>
                                     </dl>
-                                    <dl class="bg-orange-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-20">
-                                        <dt id="control_not_count" class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1">3</dt>
-                                        <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">Not</dd>
+                                    <dl class="bg-red-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-20">
+                                        <dt id="control_not_count" class="w-8 h-8 rounded-full bg-red-100 dark:bg-gray-500 text-red-600 dark:text-red-300 text-sm font-medium flex items-center justify-center mb-1">3</dt>
+                                        <dd class="text-red-600 dark:text-red-300 text-sm font-medium">Not</dd>
                                     </dl>
                                 </div>
                                     <button data-collapse-toggle="more-details" type="button" class="hover:underline text-xs text-gray-500 dark:text-gray-400 font-medium inline-flex items-center">Show more details <svg class="w-2 h-2 ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
@@ -189,7 +193,7 @@
                                     <div id="more-details" class="border-gray-200 border-t dark:border-gray-600 pt-3 mt-3 hidden">
                                     <dl class="flex items-center justify-between">
                                         <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Number of documents scanned:</dt>
-                                        <dd class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">2</dd>
+                                        <dd class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">1</dd>
                                     </dl>
                                     <dl class="flex items-center justify-between mt-2">
                                         <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Number of controls analyzed:</dt>
@@ -215,26 +219,72 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <div class="bg-white rounded-lg shadow dark:bg-gray-800 mt-4 p-4 md:p-6">
+        
+                            <div class="flex justify-between">
+                                <div class="w-full">
+                                    <div class="flex justify-start items-center">
+                                        <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pr-1">Files Analyzed</h5>
+                                        <svg data-popover-target="documents-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
+                                        </svg>
+                                        
+                                        <div data-popover id="documents-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                            <div class="p-3 space-y-2">
+                                                <p>Describes the documents uploaded that reflect the maturity of the security program at hand.</p>
+                                            </div>
+                                            <div data-popper-arrow></div>
+                                        </div>
+                                    </div>
     
+                                    <div id="accordion-documents" data-accordion="collapse" data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white" data-inactive-classes="text-gray-500 dark:text-gray-400">
+                                        <h2 id="accordion-documents-heading-1">
+                                        <button type="button" class="flex items-center justify-between w-full py-5 font-medium text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-documents-body-1" aria-expanded="true" aria-controls="accordion-documents-body-1">
+                                            <span>Security Awareness and Training Policy</span>
+                                            <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+                                            </svg>
+                                        </button>
+                                        </h2>
+                                        <div id="accordion-documents-body-1" class="hidden" aria-labelledby="accordion-documents-heading-1">
+                                        <div class="py-5 border-b border-gray-200 dark:border-gray-700">
+                                            <p class="mb-2 text-gray-500 dark:text-gray-400">Security Awareness and Training Policy designed to ensure that all Information Technology (IT) users receive the proper level of information security awareness training</p>
+                                        </div>
+                                        </div>
+                                    </div>
+    
+                                    <div class="grid grid-cols-1 items-center justify-between">
+                                        <div class="flex justify-end items-end pt-5">
+                                            <a href="#"class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                            TESTING
+                                                <svg class="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+    
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="bg-white rounded-lg shadow dark:bg-gray-800 mt-4 p-4 md:p-6">
     
                             <div class="flex justify-between">
                                 <div class="w-full">
                                     <div class="flex justify-start items-center">
                                         <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pr-1">Top Recommendations</h5>
-                                        <svg data-popover-target="chart-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
-                                        </svg>
-                                        
-                                        <div data-popover id="chart-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
-                                            <div class="p-3 space-y-2">
-                                                <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental</h3>
-                                                <p>Report helps navigate cumulative growth of community activities. Ideally, the chart should have a growing trend, as stagnating chart signifies a significant decrease of community activity.</p>
-                                                <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
-                                                <p>For each date bucket, the all-time volume of activities is calculated. This means that activities in period n contain all activities up to period n, plus the activities generated by your community in period.</p>
+                                            <svg data-popover-target="chart-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
+                                            </svg>
+                                            
+                                            <div data-popover id="chart-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                                <div class="p-3 space-y-2">
+                                                    <p>Highlights key areas where the documented information security program can be bolstered to remediate existing gaps.</p>
+                                                </div>
+                                                <div data-popper-arrow></div>
                                             </div>
-                                            <div data-popper-arrow></div>
-                                        </div>
                                     </div>
     
                                     <div id="accordion-flush" data-accordion="collapse" data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white" data-inactive-classes="text-gray-500 dark:text-gray-400">
@@ -297,7 +347,7 @@
           
                     <div class="relative overflow-x-auto w-full pl-4">
     
-                        <div class="relative overflow-y-auto w-full max-h-72">
+                        <div class="relative w-full">
                             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
@@ -326,20 +376,15 @@
                                 <div class="flex-col items-center">
                                     <div class="flex items-center mb-1">
                                         <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white mr-1">Test Procedures Results</h5>
-                                        <svg data-popover-target="chart-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg data-popover-target="pie-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
                                         </svg>
-                                        <div data-popover id="chart-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                        <div data-popover id="pie-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
                                             <div class="p-3 space-y-2">
-                                                <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental</h3>
-                                                <p>Report helps navigate cumulative growth of community activities. Ideally, the chart should have a growing trend, as stagnating chart signifies a significant decrease of community activity.</p>
-                                                <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
-                                                <p>For each date bucket, the all-time volume of activities is calculated. This means that activities in period n contain all activities up to period n, plus the activities generated by your community in period.</p>
-                                                <a href="#" class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">Read more 
-                                                    <svg class="w-2 h-2 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-                                                    </svg>
-                                                </a>
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Pass</h3>
+                                                <p>Indicates that a given test procedure, which is an element of an overarching security control, was deemed to be passed based on the documentation provided.</p>
+                                                <h3 class="font-semibold text-gray-900 dark:text-white">Fail</h3>
+                                                <p>Indicates that a given test procedure, which is an element of an overarching security control, was deemed to be failed based on the documentation provided.</p>
                                             </div>
                                             <div data-popper-arrow></div>
                                         </div>
@@ -545,7 +590,7 @@
         // Insert the <i> element as the first child of the assess button
         assess_button.insertBefore(iconElement, assess_button.firstChild);
 
-        fetch('/generate_ai_assessment', {
+        fetch('https://decent-habitat-407303.uk.r.appspot.com/generate_ai_assessment', {
             method: 'POST',
             body: formData
         })
@@ -700,7 +745,7 @@ function addTableRow(controlId, controlName, status) {
     } else if (status === 'Partially Implemented') {
         textElement.classList.add('bg-blue-100', 'text-blue-600', 'rounded-md', 'px-2.5', 'py-1.5');
     } else {
-        textElement.classList.add('bg-orange-100', 'text-orange-600', 'rounded-md', 'px-2.5', 'py-1.5');
+        textElement.classList.add('bg-red-100', 'text-red-600', 'rounded-md', 'px-2.5', 'py-1.5');
     }
     textElement.textContent = status;
 
@@ -757,7 +802,7 @@ window.addEventListener("load", function() {
     const getChartOptions = (seriesValues) => {
         return {
         series: seriesValues,
-        colors: ["#FDBA8C", "#1C64F2", "#16BDCA"], 
+        colors: ["#CC3333", "#1C64F2", "#16BDCA"], 
         chart: {
             height: "380px",
             width: "100%",
@@ -824,7 +869,7 @@ window.addEventListener("load", function() {
 const getChartOptions = (seriesValues) => {
     return {
         series: seriesValues,
-        colors: ["#1C64F2", "#16BDCA",],
+        colors: ["#CC3333", "#16BDCA",],
         chart: {
         height: 420,
         width: "100%",
@@ -848,7 +893,11 @@ const getChartOptions = (seriesValues) => {
         labels: ["Fail", "Pass"],
         dataLabels: {
         enabled: true,
+        formatter: function (val) {
+            return Math.trunc(val) + "%"; // Truncate the decimal part
+        },
         style: {
+            fontSize: '24px',
             fontFamily: "Inter, sans-serif",
         },
         },
@@ -859,14 +908,14 @@ const getChartOptions = (seriesValues) => {
         yaxis: {
         labels: {
             formatter: function (value) {
-            return value + "%"
+            return Math.trunc(value) + "%"; // Truncate the decimal part
             },
         },
         },
         xaxis: {
         labels: {
             formatter: function (value) {
-            return value  + "%"
+            return Math.trunc(value) + "%"; // Truncate the decimal part
             },
         },
         axisTicks: {
