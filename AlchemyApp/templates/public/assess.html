@@ -193,11 +193,11 @@
                                     <div id="more-details" class="border-gray-200 border-t dark:border-gray-600 pt-3 mt-3 hidden">
                                     <dl class="flex items-center justify-between">
                                         <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Number of documents scanned:</dt>
-                                        <dd class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">1</dd>
+                                        <dd id="files_count" class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">X</dd>
                                     </dl>
                                     <dl class="flex items-center justify-between mt-2">
                                         <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Number of controls analyzed:</dt>
-                                        <dd id="controls_count" class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">6</dd>
+                                        <dd id="controls_count" class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">X</dd>
                                     </dl>
                                 </div>
                             </div>
@@ -240,28 +240,28 @@
     
                                     <div id="accordion-documents" data-accordion="collapse" data-active-classes="bg-white dark:bg-gray-900 text-gray-900 dark:text-white" data-inactive-classes="text-gray-500 dark:text-gray-400">
                                         <h2 id="accordion-documents-heading-1">
-                                        <button type="button" class="flex items-center justify-between w-full py-5 font-medium text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-documents-body-1" aria-expanded="true" aria-controls="accordion-documents-body-1">
-                                            <span>Security Awareness and Training Policy</span>
-                                            <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
-                                            </svg>
-                                        </button>
+                                            <button type="button" class="flex items-center justify-between w-full py-5 font-medium text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-documents-body-1" aria-expanded="true" aria-controls="accordion-documents-body-1">
+                                                <span>Security Awareness and Training Policy</span>
+                                                <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+                                                </svg>
+                                            </button>
                                         </h2>
                                         <div id="accordion-documents-body-1" class="hidden" aria-labelledby="accordion-documents-heading-1">
-                                        <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                                            <p class="mb-2 text-gray-500 dark:text-gray-400">Security Awareness and Training Policy designed to ensure that all Information Technology (IT) users receive the proper level of information security awareness training</p>
-                                        </div>
+                                            <div class="py-5 border-b border-gray-200 dark:border-gray-700">
+                                                <p class="mb-2 text-gray-500 dark:text-gray-400">Security Awareness and Training Policy designed to ensure that all Information Technology (IT) users receive the proper level of information security awareness training.</p>
+                                            </div>
                                         </div>
                                     </div>
     
                                     <div class="grid grid-cols-1 items-center justify-between">
                                         <div class="flex justify-end items-end pt-5">
-                                            <a href="#"class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                            <text href="#"class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2 cursor-not-allowed">
                                             TESTING
                                                 <svg class="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                                                 </svg>
-                                            </a>
+                                            </text>
                                         </div>
                                     </div>
     
@@ -269,7 +269,7 @@
                             </div>
                         </div>
 
-                        <div class="bg-white rounded-lg shadow dark:bg-gray-800 mt-4 p-4 md:p-6">
+                        <!-- <div class="bg-white rounded-lg shadow dark:bg-gray-800 mt-4 p-4 md:p-6">
     
                             <div class="flex justify-between">
                                 <div class="w-full">
@@ -331,23 +331,23 @@
     
                                     <div class="grid grid-cols-1 items-center justify-between">
                                         <div class="flex justify-end items-end pt-5">
-                                            <a href="#"class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                            <text href="#"class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2 cursor-not-allowed">
                                             RECOMMENDATIONS
                                                 <svg class="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                                                 </svg>
-                                            </a>
+                                            </text>
                                         </div>
                                     </div>
       
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
           
                     <div class="relative overflow-x-auto w-full pl-4">
     
-                        <div class="relative w-full">
+                        <div class="relative overflow-y-auto max-h-184 w-full">
                             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                     <tr>
@@ -397,12 +397,12 @@
     
                             <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
                                 <div class="flex justify-end items-center pt-5">
-                                    <a href="#"class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                    <text href="#"class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2 cursor-not-allowed">
                                     Testing
                                         <svg class="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                                         </svg>
-                                    </a>
+                                    </text>
                                 </div>
                             </div>
                         </div>
@@ -438,16 +438,17 @@
                             </div>
                         
                             <div id="column-chart"></div>
+                            
                             <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
                                 <div class="flex justify-end items-center pt-5">
-                                    <a
+                                    <text
                                         href="#"
-                                        class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                        class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2 cursor-not-allowed">
                                         Testing
                                         <svg class="w-2.5 h-2.5 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                                         </svg>
-                                    </a>
+                                    </text>
                                 </div>
                             </div>
                         </div>  
@@ -590,7 +591,9 @@
         // Insert the <i> element as the first child of the assess button
         assess_button.insertBefore(iconElement, assess_button.firstChild);
 
-        fetch('https://decent-habitat-407303.uk.r.appspot.com/generate_ai_assessment', {
+
+        // use 'https://decent-habitat-407303.uk.r.appspot.com/generate_ai_assessment' for the production environment
+        fetch('/generate_ai_assessment', {
             method: 'POST',
             body: formData
         })
@@ -635,7 +638,8 @@
                 // Parse the JSON for metrics
                 zip.file("metrics.json").async("text").then(content => {
                     const metrics = JSON.parse(content);
-                    console.log(metrics);  // Here you have your metrics! Use it to update your frontend.
+                    
+                    // FILLING IN THE CONTROL RESULTS TABLE IN UPPER RIGHT OF DASHBOARD -------------------------------
 
                     // Get the dictionary of controls' IDs, names, and implementation statuses
                     const controlResults = metrics.control_results;
@@ -644,11 +648,12 @@
                     for (const controlId in controlResults) {
                         const controlName = controlResults[controlId].Name;
                         const controlStatus = controlResults[controlId].Status;
-                        console.log(controlStatus)
                         addTableRow(controlId, controlName, controlStatus);
                     }
 
-                    // Access the elements within the Controls Coverage section of Overview tab
+                    // UPDATING CONTROLS COVERAGE PORTION OF DASHBOARD -----------------------------
+
+                    const filesCountElement = document.getElementById('files_count');
                     const controlsCountElement = document.getElementById('controls_count');
                     const proceduresCountElement = document.getElementById('procedures_count');
                     const implementedCountElement = document.getElementById('control_implemented_count');
@@ -656,11 +661,14 @@
                     const notImplementedCountElement = document.getElementById('control_not_count');
                     
                     // Set the textContent of the Controls Coverage section elements to the corresponding values from the metrics JSON dictionary
+                    filesCountElement.textContent = metrics.number_of_files;
                     controlsCountElement.textContent = metrics.total_controls;
                     proceduresCountElement.textContent = metrics.total_procedures;
                     implementedCountElement.textContent = metrics.implemented_controls_count;
                     partialCountElement.textContent = metrics.partially_implemented_controls_count;
                     notImplementedCountElement.textContent = metrics.not_implemented_controls_count;
+
+                    // UPDATING THE GRAPHS IN THE DASHBOARD
 
                     // Additionally, for calculated metrics (%s for Controls Coverage Chart), retrieve them and create them
                     const implementedPercentage = (metrics.implemented_controls_count / metrics.total_controls) * 100;
@@ -677,19 +685,48 @@
                     const passedProcedureElement = document.getElementById('testing_pass_count');
                     passedProcedureElement.textContent = metrics.passed_procedures_count + " of " + metrics.total_procedures;
 
-                    // Store calculated metrics for both charts of Overview tab as series and update the pre-rendered charts with the actual data
-                    // Assuming metrics are ordered: [implementedPercentage, partiallyImplementedPercentage, notImplementedPercentage]
-                    const radialSeriesValues = [notImplementedPercentage, partiallyImplementedPercentage, implementedPercentage];
+                    // Update charts with the processed data
+                    updateCharts(metrics);
 
-                    const pieSeriesValues = [passPercentage, failPercentage];
+                    // UPDATING THE FILES ANALYZED PORTION OF THE DASHBOARD -------------------------
 
-                    if (radialChart) {
-                        radialChart.updateSeries(radialSeriesValues);
-                    }
+                    // Accessing the analyzed_file_summaries from the metrics object
+                    const fileSummaries = metrics.analyzed_file_summaries;
 
-                    if (pieChart) {
-                        pieChart.updateSeries(pieSeriesValues);
-                    }
+                    // Getting the container where we want add the accordion items
+                    const accordionContainer = document.getElementById('accordion-documents');
+
+                    // Clear existing content (if any)
+                    accordionContainer.innerHTML = '';
+
+                    // Loop through each file in fileSummaries and create an accordion item
+                    Object.keys(fileSummaries).forEach((fileName, index) => {
+                        const fileSummary = fileSummaries[fileName];
+
+                        // Create the accordion heading
+                        const heading = document.createElement('h2');
+                        heading.id = `accordion-documents-heading-${index}`;
+                        heading.innerHTML = `
+                            <button type="button" class="flex items-center justify-between w-full py-5 text-sm text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-documents-body-${index}" aria-expanded="false" aria-controls="accordion-documents-body-${index}">
+                                <span class="truncate">${fileName}</span>
+                            </button>
+                        `;
+
+                        // // Create the accordion body
+                        // const body = document.createElement('div');
+                        // body.id = `accordion-documents-body-${index}`;
+                        // body.className = 'hidden';
+                        // body.setAttribute('aria-labelledby', `accordion-documents-heading-${index}`);
+                        // body.innerHTML = `
+                        //     <div class="py-5 border-b border-gray-200 dark:border-gray-700">
+                        //         <p class="mb-2 text-gray-500 dark:text-gray-400">${fileSummary}</p>
+                        //     </div>
+                        // `;
+
+                        // Append the heading and body to the accordion container
+                        accordionContainer.appendChild(heading);
+                        // accordionContainer.appendChild(body);
+                    });
                 });
 
                 // Create a blob URL for the Excel file and set it to the <a> tag
@@ -850,8 +887,8 @@ window.addEventListener("load", function() {
         yaxis: {
             show: false,
             labels: {
-            formatter: function (value) {
-                return value + '%';
+            formatter: function (val) {
+            return Math.trunc(val) + "%"; // Truncate the decimal part
             }
             }
         }
@@ -869,7 +906,7 @@ window.addEventListener("load", function() {
 const getChartOptions = (seriesValues) => {
     return {
         series: seriesValues,
-        colors: ["#CC3333", "#16BDCA",],
+        colors: ["#16BDCA", "#CC3333",],
         chart: {
         height: 420,
         width: "100%",
@@ -890,7 +927,7 @@ const getChartOptions = (seriesValues) => {
             }
         },
         },
-        labels: ["Fail", "Pass"],
+        labels: ["Pass", "Fail"],
         dataLabels: {
         enabled: true,
         formatter: function (val) {
@@ -929,40 +966,16 @@ const getChartOptions = (seriesValues) => {
     }
 
     if (document.getElementById("pie-chart") && typeof ApexCharts !== 'undefined') {
-    pieChart = new ApexCharts(document.getElementById("pie-chart"), getChartOptions([0.0, 0.0]));
-    pieChart.render();
+        pieChart = new ApexCharts(document.getElementById("pie-chart"), getChartOptions([0.0, 0.0]));
+        pieChart.render();
     }
 });
 
 window.addEventListener("load", function() {
-    const options = {
+const getChartOptions = (seriesValues) => {
+    return {
         colors: ["#1A56DB", "#FDBA8C"],
-        series: [
-            {
-            name: "Pass",
-            color: "#1A56DB",
-            data: [
-                { x: "AT-1", y: 231 },
-                { x: "AT-2", y: 122 },
-                { x: "AT-2 (2)", y: 63 },
-                { x: "AT-3", y: 421 },
-                { x: "AT-3 (1)", y: 122 },
-                { x: "AT-4", y: 323 },
-            ],
-            },
-            {
-            name: "Fail",
-            color: "#FDBA8C",
-            data: [
-                { x: "AT-1", y: 232 },
-                { x: "AT-2", y: 113 },
-                { x: "AT-2 (2)", y: 341 },
-                { x: "AT-3", y: 224 },
-                { x: "AT-3 (1)", y: 522 },
-                { x: "AT-4", y: 411 },
-            ],
-            },
-        ],
+        series: seriesValues,
         chart: {
             type: "bar",
             height: "320px",
@@ -1036,13 +1049,62 @@ window.addEventListener("load", function() {
         fill: {
             opacity: 1,
         },
-        }
+    }
+    }
 
-        if(document.getElementById("column-chart") && typeof ApexCharts !== 'undefined') {
-        const chart = new ApexCharts(document.getElementById("column-chart"), options);
-        chart.render();
-        }
+    // Initialize barChart with placeholder data
+    if(document.getElementById("column-chart") && typeof ApexCharts !== 'undefined') {
+        barChart = new ApexCharts(document.getElementById("column-chart"), getChartOptions(
+            [
+                { name: "Pass", color: "#1A56DB", data: [{ x: "Placeholder", y: 0 }] },
+                { name: "Fail", color: "#FDBA8C", data: [{ x: "Placeholder", y: 0 }] }
+            ]
+        ));
+        barChart.render();
+    }
 });
+
+function updateCharts(metrics) {
+    // Data preparation for barChart
+    const passData = [];
+    const failData = [];
+
+    Object.keys(metrics.control_results).forEach(controlId => {
+        const controlData = metrics.control_results[controlId];
+        passData.push({ x: controlId, y: controlData.ProcedurePassCount });
+        failData.push({ x: controlId, y: controlData.ProcedureFailCount });
+    });
+
+    // Update barChart if it has been initialized
+    if (barChart) {
+        barChart.updateSeries([
+            { name: "Pass", color: "#16BDCA", data: passData },
+            { name: "Fail", color: "#FDBA8C", data: failData }
+        ], true);
+    }
+
+    // Data preparation for radialChart and pieChart
+    const implementedPercentage = (metrics.implemented_controls_count / metrics.total_controls) * 100;
+    const partiallyImplementedPercentage = (metrics.partially_implemented_controls_count / metrics.total_controls) * 100;
+    const notImplementedPercentage = (metrics.not_implemented_controls_count / metrics.total_controls) * 100;
+
+    const passPercentage = (metrics.passed_procedures_count / metrics.total_procedures) * 100;
+    const failPercentage = (metrics.failed_procedures_count / metrics.total_procedures) * 100;
+
+    const radialSeriesValues = [notImplementedPercentage, partiallyImplementedPercentage, implementedPercentage];
+    const pieSeriesValues = [passPercentage, failPercentage];
+
+    // Update radialChart if it has been initialized
+    if (radialChart) {
+        radialChart.updateSeries(radialSeriesValues);
+    }
+
+    // Update pieChart if it has been initialized
+    if (pieChart) {
+        pieChart.updateSeries(pieSeriesValues);
+    }
+}
+
 </script>
     
 {% endblock %}

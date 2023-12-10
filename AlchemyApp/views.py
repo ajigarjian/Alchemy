@@ -159,6 +159,8 @@ def generate_ai_assessment(request):
     #Instantiate empty vector database to store vectorizations of the files' content
     vectorstore = None
 
+    analyzed_file_summaries = {}
+
     for index, uploaded_file in enumerate(uploaded_files): # Loop through all uploaded files
         # If the file is too big, reject it
         if uploaded_file.multiple_chunks():
@@ -193,6 +195,11 @@ def generate_ai_assessment(request):
         # Run the previously created summarize chain on the Document chunks from the file to get a summary of the file
         file_summary = summarize_chain.run(documents)
 
+        #Getting the first few sentences from the file's summary for the dashboard
+        sentences = file_summary.split('. ')
+        first_two_sentences = '. '.join(sentences[:2]) + ('.' if len(sentences) > 1 else '')
+        analyzed_file_summaries[uploaded_file.name] = first_two_sentences
+
         # Now, with the summary in hand, retrieve the associated control family abbreviation (future state - will be more than just FedRAMP control families)
         file_control_family = metadata_chain.run(file_summary)
 
@@ -212,7 +219,7 @@ def generate_ai_assessment(request):
         else:
             # Add every subsequent file's page chunks into the initialized vector storage
             vectorstore.add_documents(documents)
-    
+
     # Instantiate the llm we'll be using to analyze the documents using the user's selected OpenAI model
     llm = ChatOpenAI(model_name=selected_model, temperature=0, openai_api_key=openai_api_key)
 
@@ -257,27 +264,28 @@ def generate_ai_assessment(request):
 
         list_of_results.append(procedure_results)
 
-    # -------------------- SECTION TO GET METRICS FROM FILLED OUT WORKBOOK FOR FRONT END ----------------
+    # -------------------- INTERMEDIARY SECTION TO GET METRICS FROM FILLED OUT WORKBOOK FOR FRONT END ----------------
 
     # Dictionary to store the intermediate results
     control_intermediate = {}
 
     # Process each test procedure
-    for procedure, data in list_of_results[0].items():
-        
-        status = data["result"] #Getting each procedure's pass/fail
-        if status == 'Partial Pass' or status == 'Error':
-            status = 'Fail'
+    for control_family in list_of_results:
+        for procedure, data in control_family.items():
+            
+            status = data["result"] #Getting each procedure's pass/fail
+            if status == 'Partial Pass' or status == 'Error':
+                status = 'Fail'
 
-        control_name = data["name"] #Getting each procedure's 'name' (really control name)
-        control = procedure.rsplit('.', 1)[0] #Getting the control ID from each procedure ID
+            control_name = data["name"] #Getting each procedure's 'name' (really control name)
+            control = procedure.rsplit('.', 1)[0] #Getting the control ID from each procedure ID
 
-        # If control isn't in the intermediate dictionary yet, initialize it
-        if control not in control_intermediate:
-            control_intermediate[control] = {'Pass': 0, 'Fail': 0, 'Name': control_name}
+            # If control isn't in the intermediate dictionary yet, initialize it
+            if control not in control_intermediate:
+                control_intermediate[control] = {'Pass': 0, 'Fail': 0, 'Name': control_name}
 
-        # Increase the count for the current status (either Pass or Fail) for the current control
-        control_intermediate[control][status] += 1
+            # Increase the count for the current status (either Pass or Fail) for the current control
+            control_intermediate[control][status] += 1
 
     # Final dictionary for control results
     control_results = {}
@@ -295,14 +303,26 @@ def generate_ai_assessment(request):
         
         control_results[control] = {
             'Name': control_name,
-            'Status': status
+            'Status': status,
+            'ProcedurePassCount': statuses['Pass'],
+            'ProcedureFailCount': statuses['Fail']
         }
             
-    # Metrics
-    total_procedures = len(list_of_results[0])
-    passed_procedures_count = sum(1 for data in list_of_results[0].values() if data["result"] == 'Pass')
+    # --------------------------- METRICS ------------------------------
+
+    # Initialize procedure-specific metric variables
+    total_procedures = 0
+    passed_procedures_count = 0
+    failed_procedures_count = 0
+
+    # Iterate through each control family's results at the procedure level
+    for family_results in list_of_results:
+        total_procedures += len(family_results)
+        passed_procedures_count += sum(1 for data in family_results.values() if data["result"] == 'Pass')
+
     failed_procedures_count = total_procedures - passed_procedures_count
 
+    #Create control-specific metric variables
     total_controls = len(control_results)
     implemented_controls_count = sum(1 for data in control_results.values() if data['Status'] == 'Implemented')
     partially_implemented_controls_count = sum(1 for data in control_results.values() if data['Status'] == 'Partially Implemented')
@@ -318,9 +338,10 @@ def generate_ai_assessment(request):
         'total_controls': total_controls,
         'implemented_controls_count': implemented_controls_count,
         'partially_implemented_controls_count': partially_implemented_controls_count,
-        'not_implemented_controls_count': not_implemented_controls_count
+        'not_implemented_controls_count': not_implemented_controls_count,
+        'analyzed_file_summaries': analyzed_file_summaries,
+        'number_of_files': len(analyzed_file_summaries)
     }
-
 
     # ---------------------------------- SECTION TO TEMPORARILY SAVE OUTPUTS (METRICS & TESTING WORKBOOK) FOR FRONT END ---------------------
 
@@ -353,19 +374,6 @@ def generate_ai_assessment(request):
     shutil.rmtree(temp_dir)
     
     return response
-    
-    # # Read the saved workbook into memory
-    # with open(temp_file_name, 'rb') as f:
-    #     file_data = f.read()
-
-    # # Remove the temporary file
-    # os.remove(temp_file_name)
-
-    # # Create an HTTP response with the file
-    # response = HttpResponse(file_data, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    # response['Content-Disposition'] = 'attachment; filename="Assessment Workbook with Analysis.xlsx"'
-
-    # return response
 
 # Helper function to /generate_ai_assessment that takes in the worksheet, name of the organization, and the prompt template, and updates the workbook accordingly with the output of the analysis
 def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_name, prompt_template, qa_chain):
@@ -381,7 +389,7 @@ def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_na
     for row_index, row in enumerate(worksheet.iter_rows(min_row=starting_row, values_only=True), start=starting_row): # Assuming your data starts from the second row (skipping header)
         
         #skip the row if it is empty
-        if row[0]:
+        if row_index > 8 and row_index < 15:
 
             # Getting the current control description from this row in the spreadsheet
             control_description = row[4]
@@ -447,6 +455,7 @@ def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_na
 
             # progress bar in command line
             print(f"{round(100*((row_index-1)/(total_rows)))}% complete")
+            print("")
     
     return procedure_results
 
