@@ -43,7 +43,8 @@ def str2bool(v):
     return str(v).lower() in ("yes", "true", "t", "1")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Read DEBUG setting from environment variable
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
 # vercel app included
 ALLOWED_HOSTS = ['*']
@@ -71,7 +72,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    'whitenoise.runserver_nostatic'
+    'whitenoise.runserver_nostatic',
+    'celery_progress', #Added for functionality for progress bars etc.
 ]
 
 MIDDLEWARE = [
@@ -114,7 +116,7 @@ TEMPLATES = [
     },
 ]
 
-# vercel app
+# app
 WSGI_APPLICATION = 'AlchemyProject.wsgi.application'
 
 # Database
@@ -178,6 +180,18 @@ STATICFILES_DIRS = [
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# ----- FOR CELERY --------
+
+# Celery Configuration - sets RabbitMQ running on localhost as the message broker for Celery
+CELERY_BROKER_URL = 'amqp://localhost' # Default RabbitMQ broker URL when local
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0' #Sets up the backend for the task workers to store results while task is being performed and after it finishes (set up for Redis)
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_IGNORE_RESULT = False
+CELERY_TASK_TRACK_STARTED = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

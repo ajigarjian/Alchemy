@@ -33,78 +33,95 @@
         </ul>
     </div>
 
-    <div id="tool_nav_content" class="flex justify-center w-full">
+    <div id="percentage_container" class="w-2/3">
+        <div class="flex justify-end mb-1">
+            <span id="percentage_text" class="text-sm font-medium text-blue-500 dark:text-white"></span>
+        </div>
+    </div>
 
-        <div id="assess_input" class="hidden flex p-4 rounded-lg bg-gray-50 justify-center w-2/3 mb-12" role="tabpanel" aria-labelledby="assess-tab">
-            <label for="client-file-input" class="flex items-center justify-center bg-white h-120 w-2/3 rounded-lg cursor-pointer shadow hover:bg-blue-50">
-                <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                    <img src="{% static 'upload_doc_icon.svg' %}" alt="Upload File icon"/>
-                    <div class="h-12 w-72 rounded-md text-white text-xl font-semibold bg-blue-500 hover:bg-blue-700 flex flex-col justify-center items-center focus:outline-none focus:shadow-outline duration-200">
-                            <span class="mx-auto">Choose documents</span>
+    <div id="tool_nav_content" class="flex justify-center w-full relative">
+
+        <!-- Progress Bar at the Top, using absolute positioning -->
+        <div class="absolute top-0 w-2/3">
+
+            <div id="progress_container" class="w-full h-2.5 animate-pulse">
+                <div id="progress_bar" class="bg-blue-500 h-2.5 rounded" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div id="assess_input" class="hidden flex rounded-lg bg-gray-50 justify-center w-2/3 mb-12" role="tabpanel" aria-labelledby="assess-tab">
+
+            <div class="flex w-full p-6">
+                <label for="client-file-input" class="flex items-center justify-center bg-white h-120 w-2/3 rounded-lg cursor-pointer shadow hover:bg-blue-50">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <img src="{% static 'upload_doc_icon.svg' %}" alt="Upload File icon"/>
+                        <div class="h-12 w-72 rounded-md text-white text-xl font-semibold bg-blue-500 hover:bg-blue-700 flex flex-col justify-center items-center focus:outline-none focus:shadow-outline duration-200">
+                                <span class="mx-auto">Choose documents</span>
+                        </div>
+                        <div id="file-names" class="flex flex-col items-center my-4 text-sm text-gray-500 w-128 px-8">
+                            <span class="font-semibold ">or drag and drop</span>
+                        </div>
                     </div>
-                    <div id="file-names" class="flex flex-col items-center my-4 text-sm text-gray-500 w-128 px-8">
-                        <span class="font-semibold ">or drag and drop</span>
-                    </div>
+                    <input id="client-file-input" type="file" name="file" accept="application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden" multiple/>
+                </label>
+        
+                <!-- Area of app to specify how the assessment should be conducted -->
+                <div id="assessment_criteria_area" class="grow flex ml-4 flex-col justify-center">
+                    <form id="assessment_submission_form" action="#" method="post">
+        
+                        <!-- Dropdown to choose the framework to access againast -->
+                        <label for="framework_selection" class="block mb-2 text-sm font-medium text-gray-900">Select a control framework</label>
+                        <select id="framework_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <option disabled class="bg-blue-100" value="AICPA TSC">AICPA TSC</option>
+                            <option selected class="bg-blue-100" value="FedRAMP">FedRAMP</option>
+                            <option disabled class="bg-blue-100" value="HIPAA">HIPAA Security Rule</option>
+                            <option disabled class="bg-blue-100" value="HITRUST">HITRUST CSF</option>
+                            <option disabled class="bg-blue-100" value="ISO 27001">ISO 27001</option>
+                            <option disabled class="bg-blue-100" value="NIST 800-53">NIST 800-53</option>
+                            <option disabled class="bg-blue-100" value="NIST 800-171">NIST 800-171</option>
+                            <option disabled class="bg-blue-100" value="NIST CSF">NIST CSF</option>
+                            <option disabled class="bg-blue-100" value="PCI DSS">PCI DSS</option>
+                        </select>
+        
+                        <!-- Dropdown to choose the framework's families -->
+                        <!-- <label for="family_selection" class="mt-8 block mb-2 text-sm font-medium text-gray-900">Select a control family</label>
+                        <select id="family_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <option value="AC">Access Control</option>
+                            <option value="AT">Awareness and Training</option>
+                            <option value="AU">Audit and Accountability</option>
+                            <option value="CA">Assessment, Authorization, and Monitoring</option>
+                            <option value="CM">Configuration Management</option>
+                            <option value="CP">Contingency Planning</option>
+                            <option value="IA">Identification and Authentication</option>
+                            <option value="IR">Incident Response</option>
+                            <option value="MA">Maintenance</option>
+                            <option value="MP">Media Protection</option>
+                            <option value="PE">Physical and Environmental Protection</option>
+                            <option value="PL">Planning</option>
+                            <option value="PS">Personnel Security</option>
+                            <option value="RA">Risk Assessment</option>
+                            <option value="SA">System and Services Acquisition</option>
+                            <option value="SC">System and Communications Protection</option>
+                            <option value="SI">System and Information Integrity</option>
+                            <option value="SR">Supply Chain Risk Management</option>
+
+                        </select> -->
+        
+                        <!-- Dropdown to choose the model to assess with -->
+                        <label for="model_selection" class="mt-8 block mb-2 text-sm font-medium text-gray-900">Select a model</label>
+                        <select id="model_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                            <option value="gpt-4-1106-preview">gpt-4-1106-preview</option>
+                            <option selected="gpt-4">gpt-4</option>
+                            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                        </select>
+        
+                        <!-- Submit button to assess the file(s) -->
+                        <button id="assessment_submission" class="relative mt-16 w-full bg-gray-500 text-xl text-white font-semibold py-2 px-4 rounded-md cursor-not-allowed" disabled>
+                            Assess
+                        </button>
+                    </form>
+        
                 </div>
-                <input id="client-file-input" type="file" name="file" accept="application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden" multiple/>
-            </label>
-    
-            <!-- Area of app to specify how the assessment should be conducted -->
-            <div id="assessment_criteria_area" class="grow flex ml-4 flex-col justify-center">
-                <form id="assessment_submission_form" action="#" method="post">
-    
-                    <!-- Dropdown to choose the framework to access againast -->
-                    <label for="framework_selection" class="block mb-2 text-sm font-medium text-gray-900">Select a control framework</label>
-                    <select id="framework_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                        <option disabled class="bg-blue-100" value="AICPA TSC">AICPA TSC</option>
-                        <option selected class="bg-blue-100" value="FedRAMP">FedRAMP</option>
-                        <option disabled class="bg-blue-100" value="HIPAA">HIPAA Security Rule</option>
-                        <option disabled class="bg-blue-100" value="HITRUST">HITRUST CSF</option>
-                        <option disabled class="bg-blue-100" value="ISO 27001">ISO 27001</option>
-                        <option disabled class="bg-blue-100" value="NIST 800-53">NIST 800-53</option>
-                        <option disabled class="bg-blue-100" value="NIST 800-171">NIST 800-171</option>
-                        <option disabled class="bg-blue-100" value="NIST CSF">NIST CSF</option>
-                        <option disabled class="bg-blue-100" value="PCI DSS">PCI DSS</option>
-                    </select>
-    
-                    <!-- Dropdown to choose the framework's families -->
-                    <!-- <label for="family_selection" class="mt-8 block mb-2 text-sm font-medium text-gray-900">Select a control family</label>
-                    <select id="family_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                        <option value="AC">Access Control</option>
-                        <option value="AT">Awareness and Training</option>
-                        <option value="AU">Audit and Accountability</option>
-                        <option value="CA">Assessment, Authorization, and Monitoring</option>
-                        <option value="CM">Configuration Management</option>
-                        <option value="CP">Contingency Planning</option>
-                        <option value="IA">Identification and Authentication</option>
-                        <option value="IR">Incident Response</option>
-                        <option value="MA">Maintenance</option>
-                        <option value="MP">Media Protection</option>
-                        <option value="PE">Physical and Environmental Protection</option>
-                        <option value="PL">Planning</option>
-                        <option value="PS">Personnel Security</option>
-                        <option value="RA">Risk Assessment</option>
-                        <option value="SA">System and Services Acquisition</option>
-                        <option value="SC">System and Communications Protection</option>
-                        <option value="SI">System and Information Integrity</option>
-                        <option value="SR">Supply Chain Risk Management</option>
-
-                    </select> -->
-    
-                    <!-- Dropdown to choose the model to assess with -->
-                    <label for="model_selection" class="mt-8 block mb-2 text-sm font-medium text-gray-900">Select a model</label>
-                    <select id="model_selection" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                        <option value="gpt-4-1106-preview">gpt-4-1106-preview</option>
-                        <option selected="gpt-4">gpt-4</option>
-                        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                    </select>
-    
-                    <!-- Submit button to assess the file(s) -->
-                    <button id="assessment_submission" class="relative mt-16 w-full bg-gray-500 text-xl text-white font-semibold py-2 px-4 rounded-md cursor-not-allowed" disabled>
-                        Assess
-                    </button>
-                </form>
-    
             </div>
         </div>
 
@@ -489,6 +506,14 @@
 <!-- Javascript for interactive aspects of the onboarding wizard -->
 <script type="text/javascript">
 
+    // Define the base URL variable based on if local environment or in production
+    let baseUrl = '';
+
+    // Check if the current hostname matches your production hostname
+    if (window.location.hostname === 'decent-habitat-407303.uk.r.appspot.com') {
+        baseUrl = 'https://decent-habitat-407303.uk.r.appspot.com';
+    }
+
     // Logic for the AI assessment upload
 
     // Logic to update the form upload area with the name of the file
@@ -591,154 +616,207 @@
         // Insert the <i> element as the first child of the assess button
         assess_button.insertBefore(iconElement, assess_button.firstChild);
 
-
         // use 'https://decent-habitat-407303.uk.r.appspot.com/generate_ai_assessment' for the production environment
-        fetch('/generate_ai_assessment', {
+        fetch(baseUrl + '/generate_ai_assessment', {
             method: 'POST',
             body: formData
         })
-
-        .then(response => response.arrayBuffer())
-        .then(buffer => {
-
-            JSZip.loadAsync(buffer).then(zip => {
-
-                // Reset the assess button now that the assessment is complete
-                assess_button.textContent = "Assess";
-                iconElement.remove();
-
-                // Make the results tab clickable and give it the pinging icon
-                const resultsTab = document.getElementById('nav_results_tab_button');
-                resultsTab.disabled = false;
-                resultsTab.classList.remove("cursor-not-allowed");
-
-                const notificationDiv = document.createElement('div');
-                notificationDiv.classList.add('ml-4', 'relative', 'flex');
-
-                const pingSpan = document.createElement('span');
-                pingSpan.classList.add('absolute', 'animate-ping', 'h-4', 'w-4', 'rounded-full', 'bg-blue-500', 'opacity-75');
-
-                const regularSpan = document.createElement('span');
-                regularSpan.classList.add('inline-flex', 'h-4', 'w-4', 'rounded-full', 'bg-blue-600');
-
-                // Append the spans to the div
-                notificationDiv.appendChild(pingSpan);
-                notificationDiv.appendChild(regularSpan);
-
-                resultsTab.insertBefore(notificationDiv, resultsTab.children[1]);
-
-                resultsTab.addEventListener('click', function removeDivOnFirstClick() {
-                if (notificationDiv && notificationDiv.parentNode === resultsTab) {
-                    notificationDiv.remove();
-                }
-                // Remove the event listener itself after executing once
-                resultsTab.removeEventListener('click', removeDivOnFirstClick);
-            }, { once: true });  // This ensures the listener is triggered only once
-
-                // Parse the JSON for metrics
-                zip.file("metrics.json").async("text").then(content => {
-                    const metrics = JSON.parse(content);
-                    
-                    // FILLING IN THE CONTROL RESULTS TABLE IN UPPER RIGHT OF DASHBOARD -------------------------------
-
-                    // Get the dictionary of controls' IDs, names, and implementation statuses
-                    const controlResults = metrics.control_results;
-
-                    // Loop through each control in that dictionary 'control_results' and add a row for each one in the table in the Overview Tab using the helper function 'addTableRow'
-                    for (const controlId in controlResults) {
-                        const controlName = controlResults[controlId].Name;
-                        const controlStatus = controlResults[controlId].Status;
-                        addTableRow(controlId, controlName, controlStatus);
-                    }
-
-                    // UPDATING CONTROLS COVERAGE PORTION OF DASHBOARD -----------------------------
-
-                    const filesCountElement = document.getElementById('files_count');
-                    const controlsCountElement = document.getElementById('controls_count');
-                    const proceduresCountElement = document.getElementById('procedures_count');
-                    const implementedCountElement = document.getElementById('control_implemented_count');
-                    const partialCountElement = document.getElementById('control_partial_count');
-                    const notImplementedCountElement = document.getElementById('control_not_count');
-                    
-                    // Set the textContent of the Controls Coverage section elements to the corresponding values from the metrics JSON dictionary
-                    filesCountElement.textContent = metrics.number_of_files;
-                    controlsCountElement.textContent = metrics.total_controls;
-                    proceduresCountElement.textContent = metrics.total_procedures;
-                    implementedCountElement.textContent = metrics.implemented_controls_count;
-                    partialCountElement.textContent = metrics.partially_implemented_controls_count;
-                    notImplementedCountElement.textContent = metrics.not_implemented_controls_count;
-
-                    // UPDATING THE GRAPHS IN THE DASHBOARD
-
-                    // Additionally, for calculated metrics (%s for Controls Coverage Chart), retrieve them and create them
-                    const implementedPercentage = (metrics.implemented_controls_count / metrics.total_controls) * 100;
-                    const partiallyImplementedPercentage = (metrics.partially_implemented_controls_count / metrics.total_controls) * 100;
-                    const notImplementedPercentage = (metrics.not_implemented_controls_count / metrics.total_controls) * 100;
-
-                    // Calculate pie chart percentages for the Test Procedures Results sections of Overview tab
-                    const passPercentage = (metrics.passed_procedures_count / metrics.total_procedures) * 100;
-                    const failPercentage = (metrics.failed_procedures_count / metrics.total_procedures) * 100;
-
-                    const passRateElement = document.getElementById('testing_pass_rate');
-                    passRateElement.textContent = Math.round(passPercentage) + "%"
-
-                    const passedProcedureElement = document.getElementById('testing_pass_count');
-                    passedProcedureElement.textContent = metrics.passed_procedures_count + " of " + metrics.total_procedures;
-
-                    // Update charts with the processed data
-                    updateCharts(metrics);
-
-                    // UPDATING THE FILES ANALYZED PORTION OF THE DASHBOARD -------------------------
-
-                    // Accessing the analyzed_file_summaries from the metrics object
-                    const fileSummaries = metrics.analyzed_file_summaries;
-
-                    // Getting the container where we want add the accordion items
-                    const accordionContainer = document.getElementById('accordion-documents');
-
-                    // Clear existing content (if any)
-                    accordionContainer.innerHTML = '';
-
-                    // Loop through each file in fileSummaries and create an accordion item
-                    Object.keys(fileSummaries).forEach((fileName, index) => {
-                        const fileSummary = fileSummaries[fileName];
-
-                        // Create the accordion heading
-                        const heading = document.createElement('h2');
-                        heading.id = `accordion-documents-heading-${index}`;
-                        heading.innerHTML = `
-                            <button type="button" class="flex items-center justify-between w-full py-5 text-sm text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-documents-body-${index}" aria-expanded="false" aria-controls="accordion-documents-body-${index}">
-                                <span class="truncate">${fileName}</span>
-                            </button>
-                        `;
-
-                        // // Create the accordion body
-                        // const body = document.createElement('div');
-                        // body.id = `accordion-documents-body-${index}`;
-                        // body.className = 'hidden';
-                        // body.setAttribute('aria-labelledby', `accordion-documents-heading-${index}`);
-                        // body.innerHTML = `
-                        //     <div class="py-5 border-b border-gray-200 dark:border-gray-700">
-                        //         <p class="mb-2 text-gray-500 dark:text-gray-400">${fileSummary}</p>
-                        //     </div>
-                        // `;
-
-                        // Append the heading and body to the accordion container
-                        accordionContainer.appendChild(heading);
-                        // accordionContainer.appendChild(body);
-                    });
-                });
-
-                // Create a blob URL for the Excel file and set it to the <a> tag
-                zip.file("Assessment Workbook with Analysis.xlsx").async("blob").then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const xlsxReportLink = document.getElementById("xlsx_report");
-                    xlsxReportLink.href = url;
-                    xlsxReportLink.download = 'Assessment Workbook with Answers.xlsx'; // This suggests the name for the downloaded file
-                });
-            });
-        })
+        .then(response => response.json())
+        .then(data => {
+            // Once the assessment is running as a celery task (i.e. the initial assessment view kicks off and returns a task id), move to the monitor assessment progress stage (see below)
+            if (data.task_id) {
+                monitorAssessmentProgress(data.task_id);
+            }
+        });
     }
+
+    function monitorAssessmentProgress(taskId) {
+
+        console.log("monitoring task id of " + taskId);
+
+        let interval = setInterval(function() {
+            fetch(baseUrl + '/get_assessment_status/' + taskId)
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.state === 'SUCCESS') {
+
+                clearInterval(interval);
+
+                // Handle successful completion
+                console.log("Assessment completed successfully.");
+                    processAssessmentResults(data);
+                } 
+                
+                else if (data.state === 'FAILURE') {
+                    clearInterval(interval);
+                    console.error('Task failed:', data.error);
+                    // Handle error
+                } 
+                
+                else {
+                    console.log('Task state:', data.state); // Log ongoing task state as the assessment runs
+                    
+                    //Report only ifthe assessment has defined progress details (current procedures assessed, total, etc.)
+                    if (data.details && data.details.current !== undefined && data.details.total !== undefined) {
+                        let progress = (data.details.current / data.details.total) * 100;
+                        console.log(`Progress: ${progress.toFixed(2)}% (${data.details.current} out of ${data.details.total})`);
+
+                        updateProgress(progress)
+                    }
+                    // Update loading bar or other UI elements
+                }
+
+            }).catch(error => {
+                console.error('Error:', error);
+                clearInterval(interval);
+            });
+        }, 2000);
+    }
+
+    function processAssessmentResults(data) {
+
+        console.log("Processing workbook file at " + data.workbook_url + "...");
+        console.log("Processing metrics file at " + data.metrics_url + "...");
+
+        // Fetch and process the metrics.json file
+        if (data.metrics_url) {
+            fetch(data.metrics_url)
+                .then(response => response.json())
+                .then(metrics => {
+                    updateDashboard(metrics);
+                    console.log("Metrics processed successfully.");
+                })
+                .catch(error => console.error("Error fetching metrics:", error));
+        } else {
+            console.error("Metrics URL not found.");
+        }
+
+        // Update link for downloading the Excel workbook
+        if (data.workbook_url) {
+            // Reset the assess button and progress indicators now that the assessment is complete
+            document.getElementById('progress_bar').style.width = 0 + '%';
+            document.getElementById('percentage_text').textContent = '';
+            
+            const assess_button = document.getElementById('assessment_submission');
+            assess_button.textContent = "Assess";
+
+            const iconElement = document.getElementById("assess_button_spinner");
+            if (iconElement) {
+                iconElement.remove();
+            }
+
+            // Make the results tab clickable and give it the pinging icon
+            const resultsTab = document.getElementById('nav_results_tab_button');
+            resultsTab.disabled = false;
+            resultsTab.classList.remove("cursor-not-allowed");
+
+            // Append notification icon to the results tab
+            appendNotificationIcon(resultsTab);
+
+            updateExcelReportLink(data.workbook_url);
+        } else {
+            console.error("Workbook URL not found.");
+        }
+    }
+
+function appendNotificationIcon(element) {
+    const notificationDiv = document.createElement('div');
+    notificationDiv.classList.add('ml-4', 'relative', 'flex');
+
+    const pingSpan = document.createElement('span');
+    pingSpan.classList.add('absolute', 'animate-ping', 'h-4', 'w-4', 'rounded-full', 'bg-blue-500', 'opacity-75');
+
+    const regularSpan = document.createElement('span');
+    regularSpan.classList.add('inline-flex', 'h-4', 'w-4', 'rounded-full', 'bg-blue-600');
+
+    notificationDiv.appendChild(pingSpan);
+    notificationDiv.appendChild(regularSpan);
+
+    element.insertBefore(notificationDiv, element.children[1]);
+
+    element.addEventListener('click', function removeDivOnFirstClick() {
+        notificationDiv.remove();
+        element.removeEventListener('click', removeDivOnFirstClick);
+    }, { once: true });
+}
+
+function updateDashboard(metrics) {
+    // Update control results table, coverage, graphs, and files analyzed
+    updateControlResultsTable(metrics.control_results);
+    updateControlsCoverage(metrics);
+    updateFilesAnalyzed(metrics.analyzed_file_summaries);
+}
+
+function updateControlResultsTable(controlResults) {
+    const table = document.getElementById('control_status_table_body');
+    table.innerHTML = '';  // Clear existing rows
+
+    for (const controlId in controlResults) {
+        const controlName = controlResults[controlId].Name;
+        const controlStatus = controlResults[controlId].Status;
+        addTableRow(controlId, controlName, controlStatus);
+    }
+}
+
+function updateExcelReportLink(url) {
+    const xlsxReportLink = document.getElementById("xlsx_report");
+    xlsxReportLink.href = url;
+    xlsxReportLink.download = 'Assessment Workbook with Analysis.xlsx';
+}
+
+function updateControlsCoverage(metrics) {
+    const filesCountElement = document.getElementById('files_count');
+    const controlsCountElement = document.getElementById('controls_count');
+    const proceduresCountElement = document.getElementById('procedures_count');
+    const implementedCountElement = document.getElementById('control_implemented_count');
+    const partialCountElement = document.getElementById('control_partial_count');
+    const notImplementedCountElement = document.getElementById('control_not_count');
+    
+    filesCountElement.textContent = metrics.number_of_files;
+    controlsCountElement.textContent = metrics.total_controls;
+    proceduresCountElement.textContent = metrics.total_procedures;
+    implementedCountElement.textContent = metrics.implemented_controls_count;
+    partialCountElement.textContent = metrics.partially_implemented_controls_count;
+    notImplementedCountElement.textContent = metrics.not_implemented_controls_count;
+
+    // UPDATING THE GRAPHS IN THE DASHBOARD
+
+    // Additionally, for calculated metrics (%s for Controls Coverage Chart), retrieve them and create them
+    const implementedPercentage = (metrics.implemented_controls_count / metrics.total_controls) * 100;
+    const partiallyImplementedPercentage = (metrics.partially_implemented_controls_count / metrics.total_controls) * 100;
+    const notImplementedPercentage = (metrics.not_implemented_controls_count / metrics.total_controls) * 100;
+
+    // Calculate pie chart percentages for the Test Procedures Results sections of Overview tab
+    const passPercentage = (metrics.passed_procedures_count / metrics.total_procedures) * 100;
+    const failPercentage = (metrics.failed_procedures_count / metrics.total_procedures) * 100;
+
+    const passRateElement = document.getElementById('testing_pass_rate');
+    passRateElement.textContent = Math.round(passPercentage) + "%"
+
+    const passedProcedureElement = document.getElementById('testing_pass_count');
+    passedProcedureElement.textContent = metrics.passed_procedures_count + " of " + metrics.total_procedures;
+
+    // Update charts with the processed data
+    updateCharts(metrics);
+}
+
+function updateFilesAnalyzed(fileSummaries) {
+    const accordionContainer = document.getElementById('accordion-documents');
+    accordionContainer.innerHTML = '';
+
+    Object.keys(fileSummaries).forEach((fileName, index) => {
+        const fileSummary = fileSummaries[fileName];
+        const heading = document.createElement('h2');
+        heading.id = `accordion-documents-heading-${index}`;
+        heading.innerHTML = `
+            <button type="button" class="flex items-center justify-between w-full py-5 text-sm text-left text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400" data-accordion-target="#accordion-documents-body-${index}" aria-expanded="false" aria-controls="accordion-documents-body-${index}">
+                <span class="truncate">${fileName}</span>
+            </button>
+        `;
+        accordionContainer.appendChild(heading);
+    });
+}
     
 function addTableRow(controlId, controlName, status) {
     
@@ -797,6 +875,21 @@ function addTableRow(controlId, controlName, status) {
     const tableBody = document.getElementById('control_status_table_body');
     tableBody.appendChild(row);
     tableBody.appendChild(tooltipDiv);
+}
+
+function updateProgress(progress) {
+    const progress_bar = document.getElementById('progress_bar');
+    progress_bar.style.width = progress + '%';
+   
+    // Round progress to the nearest integer for the percentage text
+    let roundedProgress = Math.round(progress);
+    const progress_text = document.getElementById('percentage_text');
+
+    if (progress > 0) {
+        progress_text.textContent = roundedProgress + '%';
+    } else {
+        progress_text.textContent = ''; // Clear text if progress is 0.0 or less
+    }
 }
 
 // functionality to show toast messages when AI call is successful
@@ -974,7 +1067,7 @@ const getChartOptions = (seriesValues) => {
 window.addEventListener("load", function() {
 const getChartOptions = (seriesValues) => {
     return {
-        colors: ["#1A56DB", "#FDBA8C"],
+        colors: ["#1A56DB", "#CC3333"],
         series: seriesValues,
         chart: {
             type: "bar",
@@ -1079,7 +1172,7 @@ function updateCharts(metrics) {
     if (barChart) {
         barChart.updateSeries([
             { name: "Pass", color: "#16BDCA", data: passData },
-            { name: "Fail", color: "#FDBA8C", data: failData }
+            { name: "Fail", color: "#CC3333", data: failData }
         ], true);
     }
 

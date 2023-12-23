@@ -1536,6 +1536,11 @@ select {
  .left-52 {
   left: 13rem; /* 208px */
  }
+
+ .left-54 {
+  left: 13.5rem; /* 208px */
+ }
+
  .inset-56 {
   inset: 14rem; /* 224px */
  }

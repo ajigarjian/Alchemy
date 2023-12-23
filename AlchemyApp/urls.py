@@ -14,9 +14,10 @@ urlpatterns = [
     path("logout", views.logout_view, name="logout"),
     path("contact", views.contact, name="contact"),
 
-    # Public PWC Innovation routes
+    # Public Innovation routes
     path("assess", views.assess, name="assess"),
     path("generate_ai_assessment", views.generate_ai_assessment, name="generate_ai_assessment"),
+    path("get_assessment_status/<str:task_id>/", views.get_assessment_status, name="get_assessment_status"),
 
     #Once logged in - app itself
     path("dashboard", views.dashboard, name="dashboard"),
