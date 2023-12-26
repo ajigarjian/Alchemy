@@ -616,16 +616,18 @@
         // Insert the <i> element as the first child of the assess button
         assess_button.insertBefore(iconElement, assess_button.firstChild);
 
-        // use 'https://decent-habitat-407303.uk.r.appspot.com/generate_ai_assessment' for the production environment
         fetch(baseUrl + '/generate_ai_assessment', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
-            // Once the assessment is running as a celery task (i.e. the initial assessment view kicks off and returns a task id), move to the monitor assessment progress stage (see below)
+            // Asynchronous Celery task case: Once the assessment is running as a celery task (i.e. the initial assessment view kicks off and returns a task id), move to the monitor assessment progress stage (see below)
             if (data.task_id) {
                 monitorAssessmentProgress(data.task_id);
+            } else {
+                // Synchronous case
+                processAssessmentResults(data); // Call the same function used for successful task completion
             }
         });
     }

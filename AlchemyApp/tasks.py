@@ -282,25 +282,6 @@ def process_assessment_task(self, temp_files):
         with open(metrics_file_path, 'w') as json_file:
             json.dump(overview_metrics, json_file)
         print("metrics.json has been successfully created at:", metrics_file_path)
-        
-        #COMMENTED OUT FOR NOW (RETURNING ZIP VS INDIVIDUAL)
-                            # # Move assessment workbook file in temporary path to  static files directory and set up the future zip path
-                            # storage_directory = settings.STATICFILES_DIRS[0] if settings.DEBUG else settings.STATIC_ROOT
-                            # zip_filename = "Assessment_and_Metrics.zip"
-                            # zip_file_path = os.path.join(storage_directory, zip_filename)
-
-                            # #Zip the assessment workbook file and the metrics json file together using the above path
-                            # with zipfile.ZipFile(zip_file_path, 'w') as zipf:
-                            #     zipf.write(updated_workbook_path, arcname=os.path.basename(updated_workbook_path))
-                            #     zipf.write(json_file_path, arcname="metrics.json") # Ensure correct arcname for the JSON file
-                            
-                            # # Check if the zip file was created and log the result
-                            # if os.path.exists(zip_file_path):
-                            #     print("Zip file has been successfully created at:", zip_file_path)
-                            # else:
-                            #     print("Failed to create zip file at:", zip_file_path)
-                            
-                            # return {'zip_file_path': zip_file_path}
 
         # Return the paths of the workbook and metrics file
         return {

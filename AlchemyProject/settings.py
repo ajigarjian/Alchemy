@@ -43,8 +43,8 @@ def str2bool(v):
     return str(v).lower() in ("yes", "true", "t", "1")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Read DEBUG setting from environment variable
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
+# Read IN_TESTING setting from environment variable
+DEBUG = os.environ.get('IN_TESTING', 'False') == 'True'
 
 # vercel app included
 ALLOWED_HOSTS = ['*']
@@ -183,9 +183,14 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # ----- FOR CELERY --------
 
-# Celery Configuration - sets RabbitMQ running on localhost as the message broker for Celery
-CELERY_BROKER_URL = 'amqp://localhost' # Default RabbitMQ broker URL when local
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0' #Sets up the backend for the task workers to store results while task is being performed and after it finishes (set up for Redis)
+if DEBUG:
+    # Local Redis configuration for task worker backend for storing results while tasks are being performed and finished
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+    CELERY_BROKER_URL = 'amqp://localhost' # Default RabbitMQ broker URL when local
+else:
+    # Production Redis configuration with AUTH string
+    CELERY_RESULT_BACKEND = 'redis://:3dcd2249-1c4f-4d8b-9a2e-863b479e3775@10.136.252.179:6379/0'
+    CELERY_BROKER_URL = 'amqps://xhdxitae:aNgtb6OZV6-DCmVwdKnG4kBpNGv8oKQG@porpoise.rmq.cloudamqp.com/xhdxitae' #RabbitMQ hosted on CloudAMPQ when in production
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

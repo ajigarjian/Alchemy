@@ -7,4 +7,5 @@ env_variables:
   GITHUB_ACCOUNT_KEY: "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"
   SUPABASE_ACCOUNT_KEY: "sbp_484503e2cf01808a1eb0b63c9735358e6b8262a5"
   DATABASE_URI: "postgresql://postgres:Prot3ctYourReput@tion!@db.xapzxccjutkbjmfcpdkd.supabase.co:5432/postgres"
-  DJANGO_DEBUG: "False"
+  IN_TESTING: "False"
+  USE_CELERY: "False"
