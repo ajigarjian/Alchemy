@@ -144,8 +144,8 @@ def generate_ai_assessment(request):
 
     #Figure out if we're in testing or not 
     use_celery = os.getenv("USE_CELERY", None)
-
-    print(use_celery)
+    # Convert the string values to booleans
+    use_celery = True if use_celery.lower() == "true" else False
     
     # Get the relevant info from the user (files, settings)
     uploaded_files = request.FILES.getlist('data_files')
@@ -168,6 +168,7 @@ def generate_ai_assessment(request):
         temp_files.append(temp_file_path)
 
     # ------------ MAIN PROCESSING AREA ------------------
+    print("Choosing to process async or sync...")
 
     if use_celery: #If we want to toggle using the celery, rabbitmq, redis process logic, use this branch
         # Call the Celery task and wait for its result
@@ -308,7 +309,11 @@ def process_assessment(temp_files):
         #Call helper function to actually perform AI-assessment on the procedures for the given control family
         procedure_results = assess_controls_in_worksheet(worksheet, duplicate_worksheet, document_org, prompt_template, qa_chain)
 
+        print(f"Received procedure results: {procedure_results} for {control_family} family...")
+
         list_of_results.append(procedure_results)
+
+        print(f"Current list of results: {list_of_results}")
         
         # Save the updated duplicate workbook directly in the static files directory
         workbook_filename = "Assessment_Workbook_with_Analysis.xlsx"
@@ -437,7 +442,7 @@ def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_na
         
         #skip the row if it is empty
         # if row[0]:
-        if row_index > 20:
+        if row_index > 21:
 
             print(f"Testing control procedure {row[2]}")
 
@@ -493,6 +498,8 @@ def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_na
                 "name": procedure_name,
                 "result": procedure_result
             }
+    
+    print("Returning testing results for " + worksheet.title + " family.")
     
     return procedure_results
 
