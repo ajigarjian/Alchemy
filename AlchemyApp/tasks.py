@@ -306,7 +306,7 @@ def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_na
         
         #skip the row if it is empty
         # if row[0]:
-        if row_index > 20:
+        if row[0]:
 
             print(f"Testing control procedure {row[2]}")
 

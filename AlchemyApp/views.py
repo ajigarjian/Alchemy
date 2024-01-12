@@ -31,6 +31,8 @@ from .tasks import process_assessment_task #For celery task where AI assessment 
 from celery.result import AsyncResult #for celery
 from celery_progress.backend import ProgressRecorder #for celery
 
+from google.cloud import storage #for production serving output files
+
 from langchain.document_loaders import PyPDFLoader #for taking relevant pdfs and loading them as langchain "document" objects
 from langchain.document_loaders import Docx2txtLoader #for taking relevant word documents and loading them as langchain "document" objects
 from langchain.text_splitter import CharacterTextSplitter #for taking langchain documents and splitting them into chunks (pre-processing for vector storage)
@@ -130,72 +132,78 @@ def assess(request):
 
     return render(request, "public/assess.html")
 
+def save_to_cloud_storage(bucket_name, source_file_path, destination_blob_name):
+    """Uploads a file to Google Cloud Storage."""
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+
+    blob.upload_from_filename(source_file_path)
+    blob.make_public()
+
 @csrf_exempt
 def generate_ai_assessment(request):
 
-    #Initializing for celery for progress bar
+    try:
+        #Initializing for celery for progress bar
 
-    # Cannot call this API call to OpenAI unless via the file upload POSTing to backend
-    if request.method != "POST":
-        return JsonResponse({"error": "POST request required."}, status=400)
+        # Cannot call this API call to OpenAI unless via the file upload POSTing to backend
+        if request.method != "POST":
+            return JsonResponse({"error": "POST request required."}, status=400)
 
-    # Store the OpenAI API Key for future use
-    openai_api_key = os.getenv("OPENAI_API_KEY", None)
+        # Store the OpenAI API Key for future use
+        openai_api_key = os.getenv("OPENAI_API_KEY", None)
 
-    #Figure out if we're in testing or not 
-    use_celery = os.getenv("USE_CELERY", None)
-    # Convert the string values to booleans
-    use_celery = True if use_celery.lower() == "true" else False
-    
-    # Get the relevant info from the user (files, settings)
-    uploaded_files = request.FILES.getlist('data_files')
-    selected_framework = request.POST['selectedFramework']
-    # selected_family = request.POST['selectedFamily']
-    selected_model = request.POST['selectedModel']
-
-    temp_files = []
-
-    for uploaded_file in uploaded_files:
-        if uploaded_file.multiple_chunks():
-            return JsonResponse({"error": "Uploaded file is too big (%.2f MB)." % (uploaded_file.size/(1000*1000),)}, status=400)
+        #Figure out if we're in testing or not 
+        use_celery = os.getenv("USE_CELERY", None)
+        # Convert the string values to booleans
+        use_celery = True if use_celery.lower() == "true" else False
         
-        temp_dir = tempfile.mkdtemp()
-        temp_file_path = os.path.join(temp_dir, uploaded_file.name)
-        with open(temp_file_path, 'wb') as temp_file:
-            for chunk in uploaded_file.chunks():
-                temp_file.write(chunk)
+        # Get the relevant info from the user (files, settings)
+        uploaded_files = request.FILES.getlist('data_files')
+        selected_framework = request.POST['selectedFramework']
+        # selected_family = request.POST['selectedFamily']
+        selected_model = request.POST['selectedModel']
+
+        temp_files = []
+
+        for uploaded_file in uploaded_files:
+            if uploaded_file.multiple_chunks():
+                return JsonResponse({"error": "Uploaded file is too big (%.2f MB)." % (uploaded_file.size/(1000*1000),)}, status=400)
+            
+            temp_dir = tempfile.mkdtemp()
+            temp_file_path = os.path.join(temp_dir, uploaded_file.name)
+            with open(temp_file_path, 'wb') as temp_file:
+                for chunk in uploaded_file.chunks():
+                    temp_file.write(chunk)
+            
+            temp_files.append(temp_file_path)
+
+        # ------------ MAIN PROCESSING AREA ------------------
+        print("Choosing to process async or sync...")
+
+        if use_celery: #If we want to toggle using the celery, rabbitmq, redis process logic, use this branch
+            # Call the Celery task and wait for its result
+            task_result = process_assessment_task.delay(temp_files)
+            task_id = task_result.id
+
+            print(f"Asynchronously processing task: {task_id}...")
+
+            # Return the task ID to the frontend
+            return JsonResponse({'task_id': task_id})
         
-        temp_files.append(temp_file_path)
+        else:
+            # Synchronous processing logic without using celery, rabbitmq, redis, etc.
+            print("document received. beginning synchronous analysis...")
+            result = process_assessment(temp_files)  # Implement this function
+            print("assessment results received.")
+            return JsonResponse(result)
 
-    # ------------ MAIN PROCESSING AREA ------------------
-    print("Choosing to process async or sync...")
-
-    if use_celery: #If we want to toggle using the celery, rabbitmq, redis process logic, use this branch
-        # Call the Celery task and wait for its result
-        task_result = process_assessment_task.delay(temp_files)
-        task_id = task_result.id
-
-        print(f"Asynchronously processing task: {task_id}...")
-
-        # Return the task ID to the frontend
-        return JsonResponse({'task_id': task_id})
-    
-    else:
-        # Synchronous processing logic without using celery, rabbitmq, redis, etc.
-        print("document received. beginning synchronous analysis...")
-        result = process_assessment(temp_files)  # Implement this function
-        return JsonResponse(result)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
 def process_assessment(temp_files):
-    
-    # Determine the file storage directory based on the environment
-    if settings.DEBUG:
-        # Development environment
-        storage_directory = settings.STATICFILES_DIRS[0]
-    else:
-        # Production environment
-        storage_directory = settings.STATIC_ROOT
 
     list_of_results = []
 
@@ -313,122 +321,153 @@ def process_assessment(temp_files):
 
         list_of_results.append(procedure_results)
 
-        print(f"Current list of results: {list_of_results}")
-        
-        # Save the updated duplicate workbook directly in the static files directory
-        workbook_filename = "Assessment_Workbook_with_Analysis.xlsx"
-        workbook_file_path = os.path.join(storage_directory, workbook_filename)
+    print("Analysis finished. Saving workbook...")
+    
+    # Save the updated duplicate workbook directly in the static files directory
+    workbook_filename = "Assessment_Workbook_with_Analysis.xlsx"
+
+    print(f"settings.DEBUG: {settings.DEBUG}")
+
+    if settings.DEBUG == True:
+        # Local storage
+        workbook_file_path = os.path.join(settings.STATICFILES_DIRS[0], workbook_filename)
+        print(f"Workbook local file path: {workbook_file_path}")
         duplicate_workbook.save(workbook_file_path)
-        print("Analysis finished. Workbook has been successfully saved at:", workbook_file_path)
 
-        # -------------------- INTERMEDIARY SECTION TO GET METRICS FROM FILLED OUT WORKBOOK FOR FRONT END ----------------
+    else:
+        # Cloud storage
+        temp_workbook_path = os.path.join(tempfile.mkdtemp(), workbook_filename)
+        duplicate_workbook.save(temp_workbook_path)
+        save_to_cloud_storage("alchemy-assessment-output-001", temp_workbook_path, workbook_filename)
+        workbook_file_path = f"https://storage.googleapis.com/alchemy-assessment-output-001/{workbook_filename}"
 
-        # Dictionary to store the intermediate results
-        control_intermediate = {}
+    print("Analysis finished. Workbook has been successfully saved at:", workbook_file_path)
 
-        # Process each test procedure
-        for control_family in list_of_results:
-            for procedure, data in control_family.items():
-                
-                status = data["result"] #Getting each procedure's pass/fail
-                if status == 'Partial Pass' or status == 'Error':
-                    status = 'Fail'
+    # -------------------- INTERMEDIARY SECTION TO GET METRICS FROM FILLED OUT WORKBOOK FOR FRONT END ----------------
 
-                control_name = data["name"] #Getting each procedure's 'name' (really control name)
-                control = procedure.rsplit('.', 1)[0] #Getting the control ID from each procedure ID
+    print("Beginning metrics creation...")
+    # Dictionary to store the intermediate results
+    control_intermediate = {}
 
-                # If control isn't in the intermediate dictionary yet, initialize it
-                if control not in control_intermediate:
-                    control_intermediate[control] = {'Pass': 0, 'Fail': 0, 'Name': control_name}
-
-                # Increase the count for the current status (either Pass or Fail) for the current control
-                control_intermediate[control][status] += 1
-
-        print("intermediate step complete...")
-
-        # Final dictionary for control results
-        control_results = {}
-
-        # Determine the final status for each control
-        for control, statuses in control_intermediate.items():
-            control_name = statuses.pop('Name')
-
-            if statuses['Pass'] > 0 and statuses['Fail'] == 0:
-                status = 'Implemented'
-            elif statuses['Pass'] > 0 and statuses['Fail'] > 0:
-                status = 'Partially Implemented'
-            else:
-                status = 'Not Implemented'
+    # Process each test procedure
+    for control_family in list_of_results:
+        for procedure, data in control_family.items():
             
-            control_results[control] = {
-                'Name': control_name,
-                'Status': status,
-                'ProcedurePassCount': statuses['Pass'],
-                'ProcedureFailCount': statuses['Fail']
-            }
+            status = data["result"] #Getting each procedure's pass/fail
+            if status == 'Partial Pass' or status == 'Error':
+                status = 'Fail'
+
+            control_name = data["name"] #Getting each procedure's 'name' (really control name)
+            control = procedure.rsplit('.', 1)[0] #Getting the control ID from each procedure ID
+
+            # If control isn't in the intermediate dictionary yet, initialize it
+            if control not in control_intermediate:
+                control_intermediate[control] = {'Pass': 0, 'Fail': 0, 'Name': control_name}
+
+            # Increase the count for the current status (either Pass or Fail) for the current control
+            control_intermediate[control][status] += 1
+
+    print("intermediate step 1 complete...")
+
+    # Final dictionary for control results
+    control_results = {}
+
+    # Determine the final status for each control
+    for control, statuses in control_intermediate.items():
+        control_name = statuses.pop('Name')
+
+        if statuses['Pass'] > 0 and statuses['Fail'] == 0:
+            status = 'Implemented'
+        elif statuses['Pass'] > 0 and statuses['Fail'] > 0:
+            status = 'Partially Implemented'
+        else:
+            status = 'Not Implemented'
         
-        print("control results step complete...")
-                
-        # --------------------------- METRICS ------------------------------
-
-        # Initialize procedure-specific metric variables
-        total_procedures = 0
-        passed_procedures_count = 0
-        failed_procedures_count = 0
-
-        # Iterate through each control family's results at the procedure level
-        for family_results in list_of_results:
-            total_procedures += len(family_results)
-            passed_procedures_count += sum(1 for data in family_results.values() if data["result"] == 'Pass')
-
-        print("passed procedures complete...")
-        
-        failed_procedures_count = total_procedures - passed_procedures_count
-
-        #Create control-specific metric variables
-        total_controls = len(control_results)
-        implemented_controls_count = sum(1 for data in control_results.values() if data['Status'] == 'Implemented')
-        partially_implemented_controls_count = sum(1 for data in control_results.values() if data['Status'] == 'Partially Implemented')
-        not_implemented_controls_count = total_controls - implemented_controls_count - partially_implemented_controls_count
-
-        # Pack metrics into a dictionary to send to the frontend
-
-        overview_metrics = {
-            'control_results': control_results,
-            'total_procedures': total_procedures,
-            'passed_procedures_count': passed_procedures_count,
-            'failed_procedures_count': failed_procedures_count,
-            'total_controls': total_controls,
-            'implemented_controls_count': implemented_controls_count,
-            'partially_implemented_controls_count': partially_implemented_controls_count,
-            'not_implemented_controls_count': not_implemented_controls_count,
-            'analyzed_file_summaries': analyzed_file_summaries,
-            'number_of_files': len(analyzed_file_summaries)
+        control_results[control] = {
+            'Name': control_name,
+            'Status': status,
+            'ProcedurePassCount': statuses['Pass'],
+            'ProcedureFailCount': statuses['Fail']
         }
+    
+    print("control results step complete...")
+            
+    # --------------------------- METRICS ------------------------------
 
-        print("Metrics creation complete...")
+    # Initialize procedure-specific metric variables
+    total_procedures = 0
+    passed_procedures_count = 0
+    failed_procedures_count = 0
 
-        # ---------------------------------- SECTION TO TEMPORARILY SAVE OUTPUTS (METRICS & TESTING WORKBOOK) FOR FRONT END ---------------------
+    # Iterate through each control family's results at the procedure level
+    for family_results in list_of_results:
+        total_procedures += len(family_results)
+        passed_procedures_count += sum(1 for data in family_results.values() if data["result"] == 'Pass')
 
-        # Save the metrics to a JSON file in the static directory
-        metrics_filename = "metrics.json"
-        metrics_file_path = os.path.join(storage_directory, metrics_filename)
+    print("passed procedures complete...")
+    
+    failed_procedures_count = total_procedures - passed_procedures_count
+
+    #Create control-specific metric variables
+    total_controls = len(control_results)
+    implemented_controls_count = sum(1 for data in control_results.values() if data['Status'] == 'Implemented')
+    partially_implemented_controls_count = sum(1 for data in control_results.values() if data['Status'] == 'Partially Implemented')
+    not_implemented_controls_count = total_controls - implemented_controls_count - partially_implemented_controls_count
+
+    # Pack metrics into a dictionary to send to the frontend
+
+    overview_metrics = {
+        'control_results': control_results,
+        'total_procedures': total_procedures,
+        'passed_procedures_count': passed_procedures_count,
+        'failed_procedures_count': failed_procedures_count,
+        'total_controls': total_controls,
+        'implemented_controls_count': implemented_controls_count,
+        'partially_implemented_controls_count': partially_implemented_controls_count,
+        'not_implemented_controls_count': not_implemented_controls_count,
+        'analyzed_file_summaries': analyzed_file_summaries,
+        'number_of_files': len(analyzed_file_summaries)
+    }
+
+    print("Metrics creation complete...")
+
+    # ---------------------------------- SECTION TO TEMPORARILY SAVE OUTPUTS (METRICS & TESTING WORKBOOK) FOR FRONT END ---------------------
+
+    metrics_filename = "metrics.json"
+    metrics_content = json.dumps(overview_metrics)
+    
+    if settings.DEBUG:
+        # Save locally in development
+        metrics_file_path = os.path.join(settings.STATICFILES_DIRS[0], metrics_filename)
         with open(metrics_file_path, 'w') as json_file:
-            json.dump(overview_metrics, json_file)
-        print("metrics.json has been successfully created at:", metrics_file_path)
+            json_file.write(metrics_content)
+    else:
+        # Save to cloud storage in production
+        temp_metrics_path = os.path.join(tempfile.mkdtemp(), metrics_filename)
+        with open(temp_metrics_path, 'w') as json_file:
+            json_file.write(metrics_content)
+        
+        save_to_cloud_storage("alchemy-assessment-output-001", temp_metrics_path, metrics_filename)
+        metrics_file_path = f"https://storage.googleapis.com/alchemy-assessment-output-001/{metrics_filename}"
 
-        # Generate URLs for the files to let the front end access the files
+    print("metrics.json has been successfully created at:", metrics_file_path)
+    
+    # Generate URLs for the files to let the front end access the files
+    if settings.DEBUG: #If local environment - create urls for front end to access
         workbook_url = settings.STATIC_URL + os.path.basename(workbook_file_path) if workbook_file_path else None
         metrics_url = settings.STATIC_URL + os.path.basename(metrics_file_path) if metrics_file_path else None
+    else: #If production - just provide the google cloud storage file path since it is a URL already
+        workbook_url = workbook_file_path  # Direct URL to cloud storage
+        metrics_url = metrics_file_path  # Direct URL to cloud storage
 
-        # Construct the response data
-        response_data = {
-            'workbook_url': workbook_url,
-            'metrics_url': metrics_url
-        }
+    # Construct the response data
+    response_data = {
+        'workbook_url': workbook_url,
+        'metrics_url': metrics_url
+    }
 
-        # Return the paths of the workbook and metrics file
-        return response_data
+    # Return the paths of the workbook and metrics file
+    return response_data
     
 # Helper function to /generate_ai_assessment that takes in the worksheet, name of the organization, and the prompt template, and updates the workbook accordingly with the output of the analysis
 def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_name, prompt_template, qa_chain):
@@ -441,8 +480,8 @@ def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_na
     for row_index, row in enumerate(worksheet.iter_rows(min_row=starting_row, values_only=True), start=starting_row): # Assuming your data starts from the second row (skipping header)
         
         #skip the row if it is empty
-        # if row[0]:
-        if row_index > 21:
+        if row[0]:
+        # if row_index > 21:
 
             print(f"Testing control procedure {row[2]}")
 

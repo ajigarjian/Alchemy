@@ -385,6 +385,7 @@
                                 <tbody id="control_status_table_body">
                                 </tbody>
                             </table>
+                            <div id="hidden_row_count" class="mt-2 text-sm text-gray-700 uppercase bg-gray-50"></div>
                         </div>
     
                         <div class="w-full mx-auto bg-white rounded-lg shadow dark:bg-gray-800 mt-4 p-4 md:p-6">
@@ -754,12 +755,27 @@ function updateDashboard(metrics) {
 
 function updateControlResultsTable(controlResults) {
     const table = document.getElementById('control_status_table_body');
-    table.innerHTML = '';  // Clear existing rows
+    table.innerHTML = ''; // Clear existing rows
+
+    let rowCount = 0; // Initialize row counter
+    const totalRows = Object.keys(controlResults).length; // Total number of rows
+    let hiddenRowCount = 0; // Rows not displayed
 
     for (const controlId in controlResults) {
+        if (rowCount >= 10) {
+            hiddenRowCount = totalRows - rowCount;
+            break; // Stop adding rows after 10
+        }
         const controlName = controlResults[controlId].Name;
         const controlStatus = controlResults[controlId].Status;
         addTableRow(controlId, controlName, controlStatus);
+
+        rowCount++; // Increment the row counter
+    }
+
+    // Update the hidden row count display if there are more rows to show in the final report
+    if (hiddenRowCount != 0) {
+        document.getElementById('hidden_row_count').textContent = `...and ${hiddenRowCount} more (in .xlsx report)`;
     }
 }
 

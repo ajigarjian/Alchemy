@@ -1,0 +1,8 @@
+[
+    {
+        "origin": ["https://www.complywithalchemy.com", "https://www.complywithalchemy.com/assess", "https://decent-habitat-407303.uk.r.appspot.com", "https://decent-habitat-407303.uk.r.appspot.com/assess"],
+        "responseHeader": ["Content-Type"],
+        "method": ["GET", "HEAD", "OPTIONS"],
+        "maxAgeSeconds": 14400 
+    }
+]
