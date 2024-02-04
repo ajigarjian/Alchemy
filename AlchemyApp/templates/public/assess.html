@@ -515,8 +515,6 @@
         baseUrl = 'https://decent-habitat-407303.uk.r.appspot.com';
     }
 
-    console.log(baseUrl)
-
     // Logic for the AI assessment upload
 
     // Logic to update the form upload area with the name of the file
@@ -586,6 +584,8 @@
         event.preventDefault();
 
         const files = dropzoneFileInput.files;
+
+        console.log(files);
         const selectedFramework = document.getElementById("framework_selection").value;
         // const selectedFamily = document.getElementById("family_selection").value;
         const selectedModel = document.getElementById("model_selection").value;

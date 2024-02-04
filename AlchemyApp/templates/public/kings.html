@@ -1,0 +1,121 @@
+{% extends "public/public.html" %}
+{% load static %}
+
+{% block body %}
+<div id='assess_section' class="flex flex-col items-center mt-6 mb-12 h-[85vh] min-w-3xl">
+
+    <div id="tool_title" class="mt-12 mb-6 mx-auto">
+        <div class="flex">
+            <i class="fa-solid text-4xl fa-wand-magic-sparkles" style="color: #3b82f6;"></i>
+            <div class="ml-2">
+                <h1 class="font-semibold text-3xl">DraftKings Data Tool</h1>
+            </div>
+        </div>
+    </div>
+
+    <div id="tool_nav_content" class="flex justify-center w-full relative">
+
+        <div id="assess_input" class="rounded-lg bg-gray-50 w-2/3 p-12">
+
+            <form id="data_submission_form_nfl" class="mb-12" action="#" method="post">
+                {% csrf_token %}
+                <!-- Submit button to pull the data -->
+                <button id="data_submission_nfl" class="relative w-1/3 bg-blue-500 text-xl text-white font-semibold py-2 px-4 rounded-md">
+                    Analyze NFL
+                </button>
+            </form>
+
+            <form id="data_submission_form_nba" action="#" method="post">
+                {% csrf_token %}
+                <!-- Submit button to pull the data -->
+                <button id="data_submission_nba" class="relative w-1/3 bg-blue-500 text-xl text-white font-semibold py-2 px-4 rounded-md">
+                    Analyze NBA
+                </button>
+            </form>
+        </div>
+
+    </div>
+    
+</div> 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js" defer></script>
+
+<!-- Javascript for interactive aspects of the onboarding wizard -->
+<script type="text/javascript">
+
+    // Define the base URL variable based on if local environment or in production
+    let baseUrl = '';
+
+    // Check if the current hostname matches your production hostname
+    if (window.location.hostname === 'decent-habitat-407303.uk.r.appspot.com') {
+        baseUrl = 'https://decent-habitat-407303.uk.r.appspot.com';
+    }
+
+    // Get the form element
+    const nfl_form = document.querySelector("#data_submission_form_nfl");
+    const nba_form = document.querySelector("#data_submission_form_nba");
+
+    // Add a submit event listener to the form
+    nfl_form.addEventListener("submit", function(event) {
+
+        // Prevent the default form submission behavior
+        event.preventDefault();
+
+        // Get the assess button
+        const assess_button = document.getElementById('data_submission_nfl');
+        
+        // Update it's text from 'Assess' to 'Assessing' to show in progress
+        assess_button.textContent = "Assessing..."
+
+        fetch(baseUrl + '/pull_nfl_data', {
+            method: 'POST'
+        }).then(response => {
+            // Handle response
+
+        }).catch(error => {
+            // Handle error
+            
+        });
+    
+    });
+
+    // Add a submit event listener to the form
+    nba_form.addEventListener("submit", function(event) {
+
+    // Prevent the default form submission behavior
+    event.preventDefault();
+
+    // Get the assess button
+    const assess_button = document.getElementById('data_submission_nba');
+
+    // Update it's text from 'Assess' to 'Assessing' to show in progress
+    assess_button.textContent = "Assessing..."
+
+    fetch(baseUrl + '/pull_nba_data', {
+        method: 'POST'
+    }).then(response => {
+        if (response.ok) return response.blob(); // Convert the response to a blob
+        throw new Error('Network response was not ok.'); // Handle non-OK responses
+    }).then(blob => {
+        // Create a URL for the blob object
+        const url = window.URL.createObjectURL(blob);
+        // Create a temporary anchor element and trigger the download
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        // The filename you want to save the file as
+        a.download = 'NBA Report.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url); // Clean up by revoking the blob URL
+        assess_button.textContent = "Analyze NBA"; // Reset button text or state as necessary
+    }).catch(error => {
+        console.error('There was an issue downloading the file:', error);
+        assess_button.textContent = "Assess"; // Reset button text or state as necessary
+    });
+
+    });
+
+</script>
+    
+{% endblock %}

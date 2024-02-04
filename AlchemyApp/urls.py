@@ -15,6 +15,9 @@ urlpatterns = [
     path("contact", views.contact, name="contact"),
 
     # Public Innovation routes
+    path("kings", views.kings, name="kings"),
+    path("pull_nfl_data", views.pull_nfl_data, name="pull_nfl_data"),
+    path("pull_nba_data", views.pull_nba_data, name="pull_nba_data"),
     path("assess", views.assess, name="assess"),
     path("generate_ai_assessment", views.generate_ai_assessment, name="generate_ai_assessment"),
     path("get_assessment_status/<str:task_id>/", views.get_assessment_status, name="get_assessment_status"),

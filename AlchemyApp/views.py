@@ -18,7 +18,8 @@ import os, openai
 from dotenv import load_dotenv #for access to .env variables, like OPENAI API key
 from urllib.parse import unquote #to decode url strings passed through urls as parameters, e.g. client
 from openpyxl.styles import Alignment
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
+from openpyxl.writer.excel import save_virtual_workbook
 from copy import copy
 from django.conf import settings
 from math import ceil
@@ -26,10 +27,23 @@ import xml.etree.ElementTree as ET
 import zipfile
 import tempfile
 import shutil #for removing temporary directories once they are done being used
+from django.core.files.uploadedfile import TemporaryUploadedFile, InMemoryUploadedFile
+import warnings
+
 
 from .tasks import process_assessment_task #For celery task where AI assessment is performed
 from celery.result import AsyncResult #for celery
 from celery_progress.backend import ProgressRecorder #for celery
+
+import time #for Kings
+from selenium import webdriver #for Kings
+from selenium.webdriver.common.by import By #for Kings when selecting elements
+from selenium.webdriver.chrome.service import Service #for Kings when importing a ChromeDriver
+from selenium.webdriver.chrome.options import Options # for Kings for downloading workbooks
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import undetected_chromedriver as uc #For Kings for undetected ChromeDriver
+import csv #for Kings manipulating downloaded csv
 
 from google.cloud import storage #for production serving output files
 
@@ -48,6 +62,10 @@ from langchain.prompts import PromptTemplate #for creating a prompt template tha
 load_dotenv()
 
 ####################################### Public Application when not logged in ##############################################
+
+# Suppress specific UserWarning related to langchain
+warnings.filterwarnings("ignore", category=UserWarning, message="Importing llm_cache from langchain root module is no longer supported.")
+warnings.filterwarnings("ignore", category=UserWarning, message="You are trying to use a chat model. This way of initializing it is no longer supported. Instead, please use: `from langchain.chat_models import ChatOpenAI`")
 
 # Route to render the landing page
 def index(request):
@@ -120,16 +138,613 @@ def logout_view(request):
         logout(request)
     return HttpResponseRedirect(reverse("alchemy:index"))
 
+def get_latest_file(download_dir, file_extension=".csv"):
+    # Get a list of all files with the specified extension
+    files = [f for f in os.listdir(download_dir) if f.endswith(file_extension)]
+
+    # Initialize the latest file name and its last modified time
+    latest_file = None
+    latest_time = 0
+
+    # Iterate through the files to find the most recently modified
+    for file in files:
+        file_path = os.path.join(download_dir, file)
+        modified_time = os.path.getmtime(file_path)
+        if modified_time > latest_time:
+            latest_time = modified_time
+            latest_file = file
+
+    return latest_file
+
 def contact(request):
 
     if request.user.is_authenticated:
          return HttpResponseRedirect(reverse("alchemy:dashboard"))
     return render(request, "public/contact.html")
 
+def kings(request):
+
+    #render kings.html
+    return render(request, "public/kings.html")
+
+@csrf_exempt
+def pull_nfl_data(request):
+
+    # Initialize undetected-chromedriver
+    options = uc.ChromeOptions()
+    download_dir = str(settings.STATIC_ROOT)
+    options.add_experimental_option("prefs", {'download.default_directory' : download_dir})
+    driver = uc.Chrome(options=options)
+
+    print("Driver created...")
+
+    # Open the login page
+    driver.get("https://www.draftkings.com/lobby#/NFL/0/IsStarred")
+
+    login_page = driver.find_element(By.ID, "sign-up-navigate")
+    login_page.click()
+
+    print("At login page...")
+
+    # Find the username, password input fields and the login button
+    username = driver.find_element(By.ID, "login-username-input")
+    password = driver.find_element(By.ID, "login-password-input")
+    login_button = driver.find_element(By.ID, "login-submit")
+
+    username_string = os.getenv("KINGS_USERNAME", None)
+    password_string = os.getenv("KINGS_PASSWORD", None)
+
+    print("Retrieved credentials...")
+
+    # Input your username and password
+    username.send_keys(username_string)
+    time.sleep(2)  # Wait for 2 seconds
+
+    password.send_keys(password_string)
+    time.sleep(2)  # Wait for 2 seconds
+
+    # Click the login button
+    login_button.click()
+
+    print("Logging in...")
+
+    # Wait for the page to load
+    time.sleep(15)
+
+    driver.get("https://www.draftkings.com/lineup/#create-lineup")
+
+    print("At lineup page...")
+
+    time.sleep(2)
+
+    nfl_button = driver.find_element(By.CSS_SELECTOR, "input[type='radio'][name='sport'][value='1']")
+    nfl_button.click()
+    time.sleep(1)
+
+    game_button = driver.find_element(By.CSS_SELECTOR, "input[type='radio'][name='game-variant'][data-game-variant-id='1']")
+    game_button.click()
+    time.sleep(1)
+
+    contest_button = driver.find_element(By.CSS_SELECTOR, "input[type='radio'][name='contest-start-date'][value='1']")
+    contest_button.click()
+    time.sleep(1)
+
+    continue_button = driver.find_element(By.CSS_SELECTOR, "a.dk-btn.dk-btn-primary.continue")
+    continue_button.click()
+    time.sleep(2)
+    
+    csv_link = driver.find_element(By.CSS_SELECTOR, "a[data-test-id='player-picker-export-to-csv-link']")
+    csv_link.click()
+    time.sleep(2)
+
+    print("Daily Fantasy information downloaded to CSV...")
+
+    #Get the name of the CSV file downloaded and get the path
+    latest_csv_file_name = get_latest_file(download_dir)
+    csv_path = download_dir + "/" + latest_csv_file_name
+
+    #Display the name for tracking purposes
+    if latest_csv_file_name:
+        print(f"Downloaded CSV file: {latest_csv_file_name}")
+    else:
+        print("No CSV files found in the directory.")
+
+    #Open the CSV file given its path and convert it to an Excel workbook
+    with open(csv_path, mode='r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        data = list(reader)
+    
+    #Instantiate an Excel workbook and copy over the data from the CSV file to an Excel workbook
+    wb = Workbook()
+    ws = wb.active
+
+    for row in data:
+        ws.append(row)
+    
+    print("Created XLSX file")
+
+    #Delete the old CSV file now that it's been converted to an Excel workbook
+    os.remove(csv_path)
+    print("File deleted successfully")
+
+    #Add new rows to the Excel workbook
+    header_row = 1  # Assuming first row is the header
+    salary_col = ws['E']  # Assuming 'Salary' is in column E
+    ws.cell(row=header_row, column=ws.max_column + 1, value="TD Odds")
+    ws.cell(row=header_row, column=ws.max_column + 1, value="Yards")
+    ws.cell(row=header_row, column=ws.max_column + 1, value="Yards/Cost")
+    ws.cell(row=header_row, column=ws.max_column + 1, value="Cost/Yards")
+
+    # Save the workbook with the new columns
+    modified_file_path = download_dir + "/" + "Output.xlsx"
+    wb.save(modified_file_path)
+
+    driver.get("https://sportsbook.draftkings.com/leagues/football/nfl")
+    time.sleep(2)
+
+    # Find all links to upcoming NFL games
+    game_elements = driver.find_elements(By.CSS_SELECTOR, '.event-cell-link')
+
+    # Get the links and remove duplicates (they are doubled up due to page structure)
+    unique_links = set()
+    for element in game_elements:
+        href = element.get_attribute('href')
+        if href:
+            unique_links.add(href)
+    
+    # Now 'unique_links' contains all unique URLs
+    for link in unique_links:
+        print(link)
+     
+    unique_links_list = list(unique_links)
+    
+    for link in unique_links_list:
+
+        print(f"For the {link} game...")
+        
+        driver.get(link)
+
+        # Find the ul with class 'component-18-side-rail'
+        side_rail = driver.find_element(By.CSS_SELECTOR, "div[aria-labelledby='game_category_Odds'] .component-18-side-rail")
+
+        # Find all the li elements with class 'side-rail-name'
+        player_elements = side_rail.find_elements(By.CLASS_NAME, "side-rail-name")
+
+        # Extract and print player names, skipping "No Touchdown Scorer"
+        player_names = [player.text.strip() for player in player_elements if player.text.strip() != "No Touchdown Scorer"]
+
+        #Get the TD odds for each players
+        # Find the div with aria-labelledby='game_category_Odds'
+        odds_category_div = driver.find_element(By.CSS_SELECTOR, "div[aria-labelledby='game_category_Odds']")
+
+        # Find all the 'component-18' divs within the 'game_category_Odds' div
+        component_18_divs_within_odds_category = odds_category_div.find_elements(By.CLASS_NAME, "component-18")
+
+        # Select the component div with the TD Odds the second or third one
+
+        if len(component_18_divs_within_odds_category) == 3:
+            component_18_div = component_18_divs_within_odds_category[2]
+        
+        else:
+            component_18_div = component_18_divs_within_odds_category[1]
+
+        # Find all the span elements with the desired class within this div
+        odds_elements = component_18_div.find_elements(By.CSS_SELECTOR, "span.sportsbook-odds.american.no-margin.default-color")
+
+        # Extract the odds values
+        td_values = [odds_element.text.strip() for odds_element in odds_elements]
+
+        # Create a dictionary mapping player names to their odds
+        player_odds_dict = dict(zip(player_names, td_values))
+
+        # Print the dictionary
+        for player, odds in player_odds_dict.items():
+            print(f"{player}: {odds}")
+        
+        players_odds = {}
+
+        # Extract and map player names to their odds
+        for player, odds in player_odds_dict.items():
+            players_odds[player] = odds
+        
+        #Update the Excel file with the odds
+        for row in ws.iter_rows(min_row=2):  # Assuming first row is header
+            player_name_in_excel = row[2].value  # Assuming player names are in column C
+            if player_name_in_excel in players_odds:
+                # Assuming you want to update column J
+                row[9].value = players_odds[player_name_in_excel]  
+        
+        #LOGIC FOR ADDING PASS YARDS
+
+        # Check if the "Event Accordion for Pass Yards exists
+        pass_accordion_exists = len(driver.find_elements(By.XPATH, "//div[@aria-label='Event Accordion for Pass Yards']")) > 0
+
+        if pass_accordion_exists:
+            # Locate the parent div using the aria-label attribute for "Event Accordion for Pass Yards"
+            event_accordion_div = driver.find_element(By.XPATH, "//div[@aria-label='Event Accordion for Pass Yards']/following-sibling::div")
+
+            # Find the table body within this specific div
+            table_body = event_accordion_div.find_element(By.CSS_SELECTOR, "table.sportsbook-table tbody")
+
+            # Initialize a dictionary to store the players and their pass yards
+            pass_yards_dict = {}
+
+            # Iterate through each row in the table
+            for row in table_body.find_elements(By.TAG_NAME, "tr"):
+                # Get the player's name
+                player_name = row.find_element(By.CSS_SELECTOR, ".sportsbook-row-name").text.strip()
+                
+                # Get the player's pass yards value from the span with the pass yard line
+                pass_yards_value = row.find_element(By.CSS_SELECTOR, ".sportsbook-outcome-cell__label-line-container span:last-child").text.strip()
+
+                # Add the player's name and pass yards value to the dictionary
+                pass_yards_dict[player_name] = pass_yards_value
+
+            # Print the result
+            for player, yards in pass_yards_dict.items():
+                print(f"{player}: {yards} passing yards")
+        
+        #LOGIC FOR ADDING RUSHING YARDS
+        # Check if the "Event Accordion for Rush Yards" exists
+        rush_accordion_exists = len(driver.find_elements(By.XPATH, "//div[@aria-label='Event Accordion for Rush Yards']")) > 0
+
+        if rush_accordion_exists:
+            # Locate the parent div using the aria-label attribute for "Event Accordion for Rush Yards"
+            event_accordion_div = driver.find_element(By.XPATH, "//div[@aria-label='Event Accordion for Rush Yards']/following-sibling::div")
+
+            # Find the table body within this specific div
+            table_body = event_accordion_div.find_element(By.CSS_SELECTOR, "table.sportsbook-table tbody")
+
+            # Initialize a dictionary to store the players and their pass yards
+            rush_yards_dict = {}
+
+            # Iterate through each row in the table
+            for row in table_body.find_elements(By.TAG_NAME, "tr"):
+                # Get the player's name
+                player_name = row.find_element(By.CSS_SELECTOR, ".sportsbook-row-name").text.strip()
+                
+                # Get the player's pass yards value from the span with the pass yard line
+                rush_yards_value = row.find_element(By.CSS_SELECTOR, ".sportsbook-outcome-cell__label-line-container span:last-child").text.strip()
+
+                # Add the player's name and pass yards value to the dictionary
+                rush_yards_dict[player_name] = rush_yards_value
+
+            # Print the result
+            for player, yards in rush_yards_dict.items():
+                print(f"{player}: {yards} rushing yards")
+            
+            #Update the Excel file with the odds
+            for row in ws.iter_rows(min_row=2):  # Assuming first row is header
+                player_name_in_excel = row[2].value  # Assuming player names are in column C
+                if player_name_in_excel in rush_yards_dict:
+                    # Assuming you want to update column J
+                    row[10].value = rush_yards_dict[player_name_in_excel]  
+
+            wb.save(modified_file_path)
+
+        
+        #LOGIC FOR ADDING RECEIVING YARDS
+
+        # Check if the "Event Accordion for Rec Yards" exists
+        rec_accordion_exists = len(driver.find_elements(By.XPATH, "//div[@aria-label='Event Accordion for Receiving Yards']")) > 0
+
+        if rec_accordion_exists:
+            # Locate the parent div using the aria-label attribute for "Event Accordion for Receiving Yards"
+            event_accordion_div = driver.find_element(By.XPATH, "//div[@aria-label='Event Accordion for Receiving Yards']/following-sibling::div")
+
+            # Find the table body within this specific div
+            table_body = event_accordion_div.find_element(By.CSS_SELECTOR, "table.sportsbook-table tbody")
+
+            # Initialize a dictionary to store the players and their pass yards
+            receiving_yards_dict = {}
+
+            # Iterate through each row in the table
+            for row in table_body.find_elements(By.TAG_NAME, "tr"):
+                # Get the player's name
+                player_name = row.find_element(By.CSS_SELECTOR, ".sportsbook-row-name").text.strip()
+                
+                # Get the player's pass yards value from the span with the pass yard line
+                receiving_yards_value = row.find_element(By.CSS_SELECTOR, ".sportsbook-outcome-cell__label-line-container span:last-child").text.strip()
+
+                # Add the player's name and pass yards value to the dictionary
+                receiving_yards_dict[player_name] = receiving_yards_value
+
+            # Print the result
+            for player, yards in receiving_yards_dict.items():
+                print(f"{player}: {yards} receiving yards")
+            
+            #Update the Excel file with the odds
+            for row in ws.iter_rows(min_row=2):  # Assuming first row is header
+                player_name_in_excel = row[2].value  # Assuming player names are in column C
+                if player_name_in_excel in receiving_yards_dict:
+                    # Assuming you want to update column J
+                    row[10].value = receiving_yards_dict[player_name_in_excel]  
+
+            wb.save(modified_file_path)
+        
+        #LOGIC FOR ADDING RUSH + REC YARDS FOR ELIGIBLE PLAYERS
+
+        # Check if the "Event Accordion for Rush + Rec Yards" exists
+        rush_rec_accordion_exists = len(driver.find_elements(By.XPATH, "//div[@aria-label='Event Accordion for Rush + Rec Yards']")) > 0
+
+        if rush_rec_accordion_exists:
+            # Locate the parent div using the aria-label attribute for "Event Accordion for Pass Yards"
+            event_accordion_div = driver.find_element(By.XPATH, "//div[@aria-label='Event Accordion for Rush + Rec Yards']/following-sibling::div")
+
+            # Find the table body within this specific div
+            table_body = event_accordion_div.find_element(By.CSS_SELECTOR, "table.sportsbook-table tbody")
+
+            # Initialize a dictionary to store the players and their pass yards
+            rush_rec_yards_dict = {}
+
+            # Iterate through each row in the table
+            for row in table_body.find_elements(By.TAG_NAME, "tr"):
+                # Get the player's name
+                player_name = row.find_element(By.CSS_SELECTOR, ".sportsbook-row-name").text.strip()
+                
+                # Get the player's pass yards value from the span with the pass yard line
+                rush_rec_yards_value = row.find_element(By.CSS_SELECTOR, ".sportsbook-outcome-cell__label-line-container span:last-child").text.strip()
+
+                # Add the player's name and pass yards value to the dictionary
+                rush_rec_yards_dict[player_name] = rush_rec_yards_value
+
+            # Print the result
+            for player, yards in rush_rec_yards_dict.items():
+                print(f"{player}: {yards} rushing + receiving yards")
+            
+            #Update the Excel file with the odds
+            for row in ws.iter_rows(min_row=2):  # Assuming first row is header
+                player_name_in_excel = row[2].value  # Assuming player names are in column C
+                if player_name_in_excel in rush_rec_yards_dict:
+                    # Assuming you want to update column J
+                    row[10].value = rush_rec_yards_dict[player_name_in_excel]  
+
+            wb.save(modified_file_path)
+    
+    # Iterate over the rows in the worksheet
+    for row in ws.iter_rows(min_row=2):  # Assuming first row is header
+        yards_value = row[10].value  # Column K (11th column, index 10)
+        cost_value = row[5].value   # Column E (5th column, index 4)
+        print(yards_value)
+        print(cost_value)
+
+        # Check if both yards and cost values are present and numeric
+        if (yards_value and cost_value):
+            # Calculate Yards/Cost and update the cell value
+            yards_per_cost = float(yards_value) / float(cost_value)
+            row[11].value = yards_per_cost  # Column L (Yards/Cost, index 11)
+
+        else:
+            # If either value is missing or not numeric, leave the cell blank
+            row[11].value = None
+    
+    # Save the workbook with the updated data
+    wb.save(modified_file_path)
+
+    return HttpResponse("Data processing completed successfully.")
+
+# Helper function to add/update stats for a player
+def add_player_stat(stat_dictionary, player_name, stat, value):
+    if player_name not in stat_dictionary:
+        # If the player is not already in the dictionary, add them with an empty stats dictionary
+        stat_dictionary[player_name] = {}
+    # Update the player's stats dictionary with the new stat
+    stat_dictionary[player_name][stat] = value
+
+@csrf_exempt
+def pull_nba_data(request):
+
+    # Initialize undetected-chromedriver
+    options = uc.ChromeOptions()
+    download_dir = str(settings.STATIC_ROOT)
+    options.add_experimental_option("prefs", {'download.default_directory' : download_dir})
+    driver = uc.Chrome(options=options)
+
+    wait = WebDriverWait(driver, 3)  # Delay to make sure page elements load
+
+    print("Driver created...")
+
+    #Go to the Daily Fantasy Fuel website and get the most recent CSV
+    try:
+        driver.get("https://www.dailyfantasyfuel.com/nba/projections/")
+        csv_link = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@class,'projections-download') and contains(.,'Download CSV')]")))
+        csv_link.click()
+    except Exception as e:
+        print(f"Error finding or clicking the CSV download link: {e}")
+    
+    #Given the CSV file, port it over to an XLSX file and add the additional columns
+    try:
+        #Get the name of the CSV file downloaded and get the path
+        latest_csv_file_name = get_latest_file(download_dir)
+        csv_path = download_dir + "/" + latest_csv_file_name
+
+        #Display the name for tracking purposes
+        if latest_csv_file_name:
+            print(f"Downloaded CSV file: {latest_csv_file_name}")
+        else:
+            print("No CSV files found in the directory.")
+
+        #Open the CSV file given its path and convert it to an Excel workbook
+        with open(csv_path, mode='r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            data = list(reader)
+        
+        #Instantiate an Excel workbook and copy over the data from the CSV file to an Excel workbook
+        wb = Workbook()
+        ws = wb.active
+
+        for row in data:
+            ws.append(row)
+        
+        # modified_file_path = download_dir + "/" + "NBA_Report.xlsx"
+        # wb.save(modified_file_path)
+        
+        print("Created .xlsx file")
+
+        #Delete the old CSV file now that it's been converted to an Excel workbook
+        os.remove(csv_path)
+        print("File deleted successfully")
+
+        #Add new columns to the Excel workbook for player's individual projected stats
+        header_row = 1  # Assuming first row is the header
+        salary_col = ws['M']  # Assuming 'Salary' is in column M
+
+        ws.cell(row=header_row, column=ws.max_column + 1, value="Points")
+        ws.cell(row=header_row, column=ws.max_column + 1, value="Threes")
+        ws.cell(row=header_row, column=ws.max_column + 1, value="Rebounds")
+        ws.cell(row=header_row, column=ws.max_column + 1, value="Assists")
+        ws.cell(row=header_row, column=ws.max_column + 1, value="Steals")
+        ws.cell(row=header_row, column=ws.max_column + 1, value="Blocks")
+
+        ws.cell(row=header_row, column=ws.max_column + 1, value="Projected Points")
+        ws.cell(row=header_row, column=ws.max_column + 1, value="Cost Per Point")
+
+        # Assuming your data starts from row 2 to avoid headers
+        for row in range(2, ws.max_row + 1):
+            # Set Column AB (28) to calculate projected points once those rows are populated with individual stats
+            ws.cell(row=row, column=28).value = f"=(V{row}*1) + (W{row}*.5) + (X{row}*1.2) + (Y{row}*1.5) + (Z{row}*3) + (AA{row}*3)"
+            ws.cell(row=row, column=29).value = f"=(M{row})/(AB{row})"
+
+    except Exception as e:
+        print(f"Error saving and modifying the Excel workbook: {e}")
+    
+    print("Excel workbook formatted")
+    
+    # Setting the column number that the stats columns are in the worksheet
+    stats_columns = { "Points": 22, "Threes": 23, "Rebounds": 24, "Assists": 25, "Steals": 26, "Blocks": 27 }
+    
+    driver.get("https://sportsbook.draftkings.com/leagues/basketball/nba")
+
+    # Find all links to upcoming NFL games
+    game_elements = driver.find_elements(By.CSS_SELECTOR, '.event-cell-link')
+
+    # Get the links and remove duplicates (they are doubled up due to page structure)
+    unique_links = set()
+    for element in game_elements:
+        href = element.get_attribute('href')
+        if href:
+            unique_links.add(href)
+    
+    unique_links_list = list(unique_links)
+
+    print(unique_links_list)
+    
+    for link in unique_links_list:
+
+        print(f"For the {link} game...")
+
+        # Initialize a dictionary to hold all player data
+        players_stats = {}
+
+        try:
+            driver.get(link)
+
+            offensive_stats = ["Points", "Threes", "Rebounds", "Assists"]
+            defensive_stats = ["Steals", "Blocks"]
+
+            time.sleep(2)  # Wait for 2 seconds to let things load
+
+            for stat in offensive_stats:
+
+                # Find the div with the specific aria-label for Points
+                stats_div = driver.find_element(By.XPATH, f'//div[@aria-label="Event Accordion for {stat}"]')
+
+                # Move to the adjacent div that contains the table
+                table_wrapper_div = stats_div.find_element(By.XPATH, './following-sibling::div')
+
+                # Now find the table within this div
+                table = table_wrapper_div.find_element(By.TAG_NAME, 'tbody')
+
+                #get points
+                player_stat_values = {}
+
+                # Iterate through each row in the table body to extract player names and "over" values
+                for row in table.find_elements(By.TAG_NAME, 'tr'):
+                    # Extract the player name, which is in a span with class 'sportsbook-row-name'
+                    player_name = row.find_element(By.CSS_SELECTOR, 'span.sportsbook-row-name').text
+
+                    # Extract the "over" value, which is the first td element in the row
+                    stat_parent_element = row.find_elements(By.TAG_NAME, 'td')[0]
+
+                    stat_value = stat_parent_element.find_element(By.CSS_SELECTOR, 'span.sportsbook-outcome-cell__line').text
+
+                    # Add the player name and "over" value to the dictionary
+                    player_stat_values[player_name] = stat_value
+
+                # Add offensive stat data
+                for player_name, value in player_stat_values.items():
+                    add_player_stat(players_stats, player_name, stat, value)
+            
+            defense_tab_link = driver.find_element(By.ID, "subcategory_Player Defense").get_attribute('href')
+            driver.get(defense_tab_link)
+
+            for stat in defensive_stats:
+
+                # Find the div with the specific aria-label for Points
+                stats_div = driver.find_element(By.XPATH, f'//div[@aria-label="Event Accordion for {stat}"]')
+
+                # Move to the adjacent div that contains the table
+                table_wrapper_div = stats_div.find_element(By.XPATH, './following-sibling::div')
+
+                # Now find the table within this div
+                table = table_wrapper_div.find_element(By.TAG_NAME, 'tbody')
+
+                #get points
+                player_stat_values = {}
+
+                # Iterate through each row in the table body to extract player names and "over" values
+                for row in table.find_elements(By.TAG_NAME, 'tr'):
+                    # Extract the player name, which is in a span with class 'sportsbook-row-name'
+                    player_name = row.find_element(By.CSS_SELECTOR, 'span.sportsbook-row-name').text
+
+                    # Extract the "over" value, which is the first td element in the row
+                    stat_parent_element = row.find_elements(By.TAG_NAME, 'td')[0]
+
+                    stat_value = stat_parent_element.find_element(By.CSS_SELECTOR, 'span.sportsbook-outcome-cell__line').text
+
+                    # Add the player name and "over" value to the dictionary
+                    player_stat_values[player_name] = stat_value
+
+                # Add offensive stat data
+                for player_name, value in player_stat_values.items():
+                    add_player_stat(players_stats, player_name, stat, value)
+
+            print(players_stats)
+
+            # Now that we have the players' stats for the given game, we add them to the workbook
+            for row in ws.iter_rows(min_row=2, max_col=2, max_row=ws.max_row):
+                # Combine the player's first name and last name since they're split in the first two columns
+                player_name = f"{row[0].value} {row[1].value}"
+                
+                # Check if this player is in the dictionary
+                if player_name in players_stats:
+                    # Get the player's stats
+                    player_stats = players_stats[player_name]
+                
+                    # Iterate through each stat and fill in the values
+                    for stat, col in stats_columns.items():
+                        if stat in player_stats:
+                            ws.cell(row=row[0].row, column=col, value=player_stats[stat])
+
+        except Exception as e:
+            print(f"Error pulling the NBA stats from for the {link} game: {e}")
+    
+    print("NBA Stats inserted into workbook from DK.")
+        
+    # Once all modifications are done, convert the workbook to a byte stream
+    virtual_workbook = save_virtual_workbook(wb)
+
+    # Prepare the HttpResponse to send the Excel file to the client
+    response = HttpResponse(virtual_workbook, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="NBA Report.xlsx"'
+
+    driver.close()
+    
+    return response
+
 def assess(request):
 
     # render assess.html
-
     return render(request, "public/assess.html")
 
 def save_to_cloud_storage(bucket_name, source_file_path, destination_blob_name):
@@ -145,7 +760,6 @@ def save_to_cloud_storage(bucket_name, source_file_path, destination_blob_name):
 def generate_ai_assessment(request):
 
     try:
-        #Initializing for celery for progress bar
 
         # Cannot call this API call to OpenAI unless via the file upload POSTing to backend
         if request.method != "POST":
@@ -161,42 +775,56 @@ def generate_ai_assessment(request):
         
         # Get the relevant info from the user (files, settings)
         uploaded_files = request.FILES.getlist('data_files')
+
+        print(f"0. Scanning uploaded files {uploaded_files}...")
+        
         selected_framework = request.POST['selectedFramework']
         # selected_family = request.POST['selectedFamily']
         selected_model = request.POST['selectedModel']
 
         temp_files = []
 
+        # for uploaded_file in uploaded_files:
+        #     temp_dir = tempfile.mkdtemp()
+        #     temp_file_path = os.path.join(temp_dir, uploaded_file.name)
+        #     with open(temp_file_path, 'wb') as temp_file:
+        #         for chunk in uploaded_file.chunks():
+        #             temp_file.write(chunk)
+            
+        #     temp_files.append(temp_file_path)
+
         for uploaded_file in uploaded_files:
-            if uploaded_file.multiple_chunks():
-                return JsonResponse({"error": "Uploaded file is too big (%.2f MB)." % (uploaded_file.size/(1000*1000),)}, status=400)
-            
-            temp_dir = tempfile.mkdtemp()
-            temp_file_path = os.path.join(temp_dir, uploaded_file.name)
-            with open(temp_file_path, 'wb') as temp_file:
-                for chunk in uploaded_file.chunks():
-                    temp_file.write(chunk)
-            
-            temp_files.append(temp_file_path)
+
+            if isinstance(uploaded_file, TemporaryUploadedFile):
+                # print("Temporary file detected...")
+                # Use the file's temporary path directly
+                temp_files.append(uploaded_file.temporary_file_path())
+            else:
+                # For InMemoryUploadedFile, continue to write to a temp file
+                temp_dir = tempfile.mkdtemp()
+                temp_file_path = os.path.join(temp_dir, uploaded_file.name)
+                with open(temp_file_path, 'wb') as temp_file:
+                    for chunk in uploaded_file.chunks():
+                        temp_file.write(chunk)
+                temp_files.append(temp_file_path)
 
         # ------------ MAIN PROCESSING AREA ------------------
-        print("Choosing to process async or sync...")
 
         if use_celery: #If we want to toggle using the celery, rabbitmq, redis process logic, use this branch
             # Call the Celery task and wait for its result
             task_result = process_assessment_task.delay(temp_files)
             task_id = task_result.id
 
-            print(f"Asynchronously processing task: {task_id}...")
+            print(f"1. Asynchronously processing task: {task_id}...")
 
             # Return the task ID to the frontend
             return JsonResponse({'task_id': task_id})
         
         else:
             # Synchronous processing logic without using celery, rabbitmq, redis, etc.
-            print("document received. beginning synchronous analysis...")
+            print("1. Synchronously processing analysis...")
             result = process_assessment(temp_files)  # Implement this function
-            print("assessment results received.")
+            print("Assessment results received.")
             return JsonResponse(result)
 
     except Exception as e:
@@ -214,79 +842,102 @@ def process_assessment(temp_files):
     vectorstore = None
     relevant_control_families = set()
 
-    # Instantiate the llm we'll be using to tag the files' associated control families
+    # Instantiate the llm we'll be using to tag the files' associated control families and the files' types (policy, plan, etc.)
     metadata_llm = OpenAI(model_name="gpt-4", openai_api_key=openai_api_key)
 
     # Create the prompt template, prompt, and chain we'll use for the tagging
-    metadata_template = """Please provide the most relevant FedRAMP control family for a document summarized as follows: {summary}
+    family_template = """Please provide the most relevant FedRAMP control family for a document summarized as follows: {summary}
     Provide nothing but the abbreviation (in all caps) of the control family, e.g. "AT" or "CP" - and nothing else. Your response should only be two letters long."""
-    metadata_prompt = PromptTemplate(template=metadata_template, input_variables=["summary"])
-    metadata_chain = LLMChain(prompt=metadata_prompt, llm=metadata_llm)
+    family_prompt = PromptTemplate(template=family_template, input_variables=["summary"])
+    family_chain = LLMChain(prompt=family_prompt, llm=metadata_llm)
 
     analyzed_file_summaries = {}
-    metadata_llm = OpenAI(model_name='gpt-4', openai_api_key=openai_api_key)
 
-    print("beginning pre-processing...")
+    file_type_template = """Please provide the type of document for a document with a file name of '{file_name}' summarized as follows: {summary}
+    Provide nothing but one of these options for the type of document: "policy", "procedure", "plan", "diagram", "contract", or "report".
+    Please provide one of those options and nothing else. Your response should only be one word long."""
+    file_type_prompt = PromptTemplate(template=file_type_template, input_variables=["file_name", "summary"])
+    file_type_chain = LLMChain(prompt=file_type_prompt, llm=metadata_llm)
+
+    print("2. Beginning pre-processing...")
+
+    summary_chain = (load_summarize_chain(metadata_llm, chain_type="stuff"))
 
     for index, file_path in enumerate(temp_files): # Loop through all uploaded files
+        try:
+            # Load the temporary file using the PyPDFLoader (if a PDF ) or a DocxLoader (if a Word document)
+            if file_path.endswith('.pdf'):
+                loader = PyPDFLoader(file_path)
+            elif file_path.endswith('.docx'):
+                loader = Docx2txtLoader(file_path)
+            else:
+                return JsonResponse({"error": "Unsupported file type."}, status=400)
 
-        # Load the temporary file using the PyPDFLoader (if a PDF ) or a DocxLoader (if a Word document)
-        if file_path.endswith('.pdf'):
-            loader = PyPDFLoader(file_path)
-        elif file_path.endswith('.docx'):
-            loader = Docx2txtLoader(file_path)
-        else:
-            return JsonResponse({"error": "Unsupported file type."}, status=400)
+            #splitter to chunk up the loaded file. Can tweak chunking parameters for optimal performance 
+            text_splitter = CharacterTextSplitter(        
+                separator = "\n",
+                chunk_size = 1000,
+                chunk_overlap  = 200,
+                length_function = len,
+            )
 
-        #splitter to chunk up the loaded file. Can tweak chunking parameters for optimal performance 
-        text_splitter = CharacterTextSplitter(        
-            separator = "\n",
-            chunk_size = 1000,
-            chunk_overlap  = 200,
-            length_function = len,
-        )
+            # Use the text splitter to chunk up the file into chunks (i.e. "Documents"), each page also has metadata (page number, source file name)
+            documents = loader.load_and_split(text_splitter)
 
-        # Use the text splitter to chunk up the file into chunks (i.e. "Documents"), each page also has metadata (page number, source file name)
-        documents = loader.load_and_split(text_splitter)
+            print("3. File split up, creating metadata such as relevant control families and summary...")
 
-        # Run the previously created summarize chain on the Document chunks from the file to get a summary of the file
-        file_summary = (load_summarize_chain(metadata_llm, chain_type="stuff")).run(documents)
+            try:
+                # Run the previously created summarize chain on the Document chunks from the file to get a summary of the file
+                file_summary = summary_chain.run(documents[:10])
+            except:
+                print('An error occurred for the file summary generation.')
 
-        #Getting the first few sentences from the file's summary for the dashboard
-        sentences = file_summary.split('. ')
-        first_two_sentences = '. '.join(sentences[:2]) + ('.' if len(sentences) > 1 else '')
-        analyzed_file_summaries[os.path.basename(file_path)] = first_two_sentences
+            #Getting the first few sentences from the file's summary for the dashboard
+            sentences = file_summary.split('. ')
+            first_two_sentences = '. '.join(sentences[:2]) + ('.' if len(sentences) > 1 else '')
+            # print(f"{os.path.basename(file_path)}: {first_two_sentences}")
+            analyzed_file_summaries[os.path.basename(file_path)] = first_two_sentences
 
-        # Now, with the summary in hand, retrieve the associated control family abbreviation (future state - will be more than just FedRAMP control families)
-        file_control_family = metadata_chain.run(file_summary)
+            # Now, with the summary in hand, retrieve the associated control family abbreviation (future state - will be more than just FedRAMP control families)
+            file_control_family = family_chain.run(file_summary)
 
-        # Tag all the Documents for the given file with the associated control family in its metadata for later use
-        for document in documents:
-            # Add the 'control_family' field to the metadata
-            document.metadata['control_family'] = file_control_family
-            # print(document)
-            # print("")
-        
-        relevant_control_families.add(file_control_family)
+            file_type = file_type_chain.run(file_name=(os.path.basename(file_path)), summary=file_summary)
 
-        if index == 0:
-            # Take the first file's document chunks and store them as vector embeddings within FAISS vector storage.
-            vectorstore = FAISS.from_documents(documents, OpenAIEmbeddings(openai_api_key=openai_api_key))
-        
-        else:
-            # Add every subsequent file's page chunks into the initialized vector storage
-            vectorstore.add_documents(documents)
+            print(f'4. {os.path.basename(file_path)}: {file_type} covering the {file_control_family} family. {first_two_sentences}.')
+
+            # Tag all the Documents for the given file with the associated control family in its metadata for later use
+            for document in documents:
+                # Add the 'control_family' field to the metadata
+                document.metadata['control_family'] = file_control_family
+                document.metadata['file_type'] = file_type
+
+            
+            relevant_control_families.add(file_control_family)
+
+            print(document)
+
+            if vectorstore == None:
+                # Take the first file's document chunks and store them as vector embeddings within FAISS vector storage.
+                vectorstore = FAISS.from_documents(documents, OpenAIEmbeddings(openai_api_key=openai_api_key))
+            
+            else:
+                # Add every subsequent file's page chunks into the initialized vector storage
+                vectorstore.add_documents(documents)
+        except:
+            print(f"Error while vectorizing the file at {file_path}...")
 
     # Instantiate the llm we'll be using to analyze the documents using the user's selected OpenAI model
     llm = ChatOpenAI(model_name="gpt-4", temperature=0, openai_api_key=openai_api_key)
 
-    template = """{organization} has implemented security processes based on the provided documents. Please analyze the documents against the following information security test procedure: "{control_description}". None of your responses should contain "I'm sorry", "I apologize" or similar. For this test procedure, please respond with exactly each of the 5 items, with each prefaced by their "Analysis_Part" + the number of the section, e.g. "Analysis_Part1:" (without any introduction or explanation, just your analysis):
+    template = """{organization} has implemented security processes based on the provided documents. They have hired us as security advisors. Please analyze the documents against the following information security test procedure: "{control_description}". None of your responses should contain "I'm sorry", "I apologize" or similar. For this test procedure, please respond with exactly each of the 5 items, with each prefaced by their "Analysis_Part" + the number of the section, e.g. "Analysis_Part1:" (without any introduction or explanation, just your analysis):
 
     1. Without any introduction or explanation, the snippets of the relevant sections of text that offer evidence to support that the test requirement is implemented. Include the page number, where possible. (If there are no relevant text sections, do not provide anything);
     2. An analysis of how well the document(s) meets the requirements of the given test procedure (If there were no relevant text sections in 1., then explain there was no match);
     3. An implementation status based on 1. and 2. of "Pass" or "Fail" (and nothing else);
     4. If the status was deemed "Fail" in 3., then recommendations for control remediation. If it was deemed "Pass", then do not provide anything; and
     5. Based on the relevant text in 1. and the recommendation in 4., what updated text could look like to meet the procedure. If the status was deemed "Pass" in 3., then do not provide anything.
+
+    Note: If you think that there is no context or documents to analyze in the first place, mention in 1. and 2. that there was no relevant information, make 3. "Fail", and write 4. and 5. as if wholly new text must be added.
     """
 
     # Generating a Langchain prompt template using the string from above
@@ -305,9 +956,18 @@ def process_assessment(temp_files):
     # Create a duplicate of the original workbook for output
     duplicate_workbook = copy(workbook)
 
-    print("Pre-processing finished. Performing analysis...")
+    print("5. Pre-processing finished. Performing analysis...")
 
     for index, control_family in enumerate(relevant_control_families):
+
+        try:
+            # Gather unique sources for the current control family
+            unique_sources = set(doc.metadata['source'] for doc in vectorstore.documents if doc.metadata['control_family'] == control_family)
+
+            print(unique_sources)
+        except:
+            print("Couldn't get sources...")
+
         qa_chain = RetrievalQA.from_chain_type(llm,retriever=vectorstore.as_retriever(search_kwargs={'k': 2, 'filter': {'control_family':control_family}}), return_source_documents=True)
 
         # select the control family's worksheet in the original workbook and output workbook
@@ -317,21 +977,16 @@ def process_assessment(temp_files):
         #Call helper function to actually perform AI-assessment on the procedures for the given control family
         procedure_results = assess_controls_in_worksheet(worksheet, duplicate_worksheet, document_org, prompt_template, qa_chain)
 
-        print(f"Received procedure results: {procedure_results} for {control_family} family...")
+        print(f"5x. Received procedure results: {procedure_results} for {control_family} family...")
 
         list_of_results.append(procedure_results)
-
-    print("Analysis finished. Saving workbook...")
     
     # Save the updated duplicate workbook directly in the static files directory
     workbook_filename = "Assessment_Workbook_with_Analysis.xlsx"
 
-    print(f"settings.DEBUG: {settings.DEBUG}")
-
     if settings.DEBUG == True:
         # Local storage
         workbook_file_path = os.path.join(settings.STATICFILES_DIRS[0], workbook_filename)
-        print(f"Workbook local file path: {workbook_file_path}")
         duplicate_workbook.save(workbook_file_path)
 
     else:
@@ -341,11 +996,11 @@ def process_assessment(temp_files):
         save_to_cloud_storage("alchemy-assessment-output-001", temp_workbook_path, workbook_filename)
         workbook_file_path = f"https://storage.googleapis.com/alchemy-assessment-output-001/{workbook_filename}"
 
-    print("Analysis finished. Workbook has been successfully saved at:", workbook_file_path)
+    print("6. Analysis finished. Workbook has been successfully saved at:", workbook_file_path)
 
     # -------------------- INTERMEDIARY SECTION TO GET METRICS FROM FILLED OUT WORKBOOK FOR FRONT END ----------------
 
-    print("Beginning metrics creation...")
+    print("7. Beginning metrics creation...")
     # Dictionary to store the intermediate results
     control_intermediate = {}
 
@@ -367,8 +1022,6 @@ def process_assessment(temp_files):
             # Increase the count for the current status (either Pass or Fail) for the current control
             control_intermediate[control][status] += 1
 
-    print("intermediate step 1 complete...")
-
     # Final dictionary for control results
     control_results = {}
 
@@ -389,8 +1042,6 @@ def process_assessment(temp_files):
             'ProcedurePassCount': statuses['Pass'],
             'ProcedureFailCount': statuses['Fail']
         }
-    
-    print("control results step complete...")
             
     # --------------------------- METRICS ------------------------------
 
@@ -403,8 +1054,6 @@ def process_assessment(temp_files):
     for family_results in list_of_results:
         total_procedures += len(family_results)
         passed_procedures_count += sum(1 for data in family_results.values() if data["result"] == 'Pass')
-
-    print("passed procedures complete...")
     
     failed_procedures_count = total_procedures - passed_procedures_count
 
@@ -429,7 +1078,7 @@ def process_assessment(temp_files):
         'number_of_files': len(analyzed_file_summaries)
     }
 
-    print("Metrics creation complete...")
+    print("8. Metrics creation complete...")
 
     # ---------------------------------- SECTION TO TEMPORARILY SAVE OUTPUTS (METRICS & TESTING WORKBOOK) FOR FRONT END ---------------------
 
@@ -450,7 +1099,7 @@ def process_assessment(temp_files):
         save_to_cloud_storage("alchemy-assessment-output-001", temp_metrics_path, metrics_filename)
         metrics_file_path = f"https://storage.googleapis.com/alchemy-assessment-output-001/{metrics_filename}"
 
-    print("metrics.json has been successfully created at:", metrics_file_path)
+    print(f"9. 'metrics.json' has been successfully created at: {metrics_file_path}...")
     
     # Generate URLs for the files to let the front end access the files
     if settings.DEBUG: #If local environment - create urls for front end to access
@@ -480,8 +1129,8 @@ def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_na
     for row_index, row in enumerate(worksheet.iter_rows(min_row=starting_row, values_only=True), start=starting_row): # Assuming your data starts from the second row (skipping header)
         
         #skip the row if it is empty
-        if row[0]:
-        # if row_index > 21:
+        if row_index > 19:
+        # if row_index == 21 or row_index == 20:
 
             print(f"Testing control procedure {row[2]}")
 
@@ -491,6 +1140,10 @@ def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_na
             # Querying the llm to perform a similarity search with the templated query against our vector store
             question = prompt_template.format(control_description=control_description, organization=organization_name)
             result = qa_chain({"query": question})
+
+            # print(result)
+
+            # print(f"Result for procedure {row[2]}: {result}.")
 
             source_set = set()
 
@@ -538,7 +1191,7 @@ def assess_controls_in_worksheet(worksheet, duplicate_worksheet, organization_na
                 "result": procedure_result
             }
     
-    print("Returning testing results for " + worksheet.title + " family.")
+    # print("Returning testing results for " + worksheet.title + " family.")
     
     return procedure_results
 
@@ -587,7 +1240,7 @@ def extract_parts(input_str):
         return tuple(extracted_parts)
 
     # Handle case where neither set of markers worked
-    return ('Error', 'Error', 'Error', 'Error', 'Error')
+    return ('ErrorX', 'ErrorX', 'ErrorX', 'ErrorX', 'ErrorX')
 
 @csrf_exempt
 def get_assessment_status(request, task_id):
